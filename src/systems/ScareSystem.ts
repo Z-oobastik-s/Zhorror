@@ -1,6 +1,6 @@
 import { chance, randPick, randRange } from '@/utils/math';
 import { WHISPERS } from '@/config/constants';
-import { SCREAM_GIFS, SCREAM_GIFS_ACT3, SCREAM_GIFS_ACT4, mediaUrl, pickScareGif } from '@/config/media';
+import { SCREAM_GIFS, SCREAM_GIFS_ACT3, SCREAM_GIFS_ACT4, mediaUrl, pickScareGif, type ScareAudioKind } from '@/config/media';
 import { events, EVT } from '@/core/EventBus';
 import type { AtmosphereSystem } from './AtmosphereSystem';
 import type { AudioSystem } from './AudioSystem';
@@ -46,13 +46,20 @@ export class ScareSystem {
 
     events.on(EVT.SCARE_REQUEST, (payload) => {
       const type = (payload as { type?: ScareType }).type ?? 'gif';
-      this.trigger(this.normalizeType(type), true);
+      this.trigger(type, true);
     });
   }
 
-  private normalizeType(type: ScareType): ScareType {
-    if (type === 'face' || type === 'static' || type === 'eyes') return 'gif';
-    return type;
+  private toAudioKind(type: ScareType): ScareAudioKind {
+    if (type === 'text') return 'text';
+    if (type === 'static') return 'static';
+    if (type === 'eyes') return 'eyes';
+    return 'gif';
+  }
+
+  private normalizeVisual(type: ScareType): 'gif' | 'text' {
+    if (type === 'text') return 'text';
+    return 'gif';
   }
 
   private preloadGifs(): void {
@@ -99,23 +106,24 @@ export class ScareSystem {
     this.lastScare = performance.now();
     events.emit(EVT.SCARE, { type });
 
+    const audioKind = this.toAudioKind(type);
     document.body.classList.add('zh-scare-shake');
 
-    if (type === 'text') {
-      this.playTextScare();
+    if (this.normalizeVisual(type) === 'text') {
+      this.playTextScare(audioKind);
     } else {
-      this.playGifScare();
+      this.playGifScare(audioKind);
     }
   }
 
-  private playGifScare(): void {
+  private playGifScare(audioKind: ScareAudioKind): void {
+    this.audio.playScare(audioKind);
+
     const gifPath = pickScareGif(quest.getAct());
     this.gifEl.src = mediaUrl(gifPath);
     this.textEl.textContent = '';
     this.overlay.classList.add('zh-scare--active', 'zh-scare--gif');
     this.flash.classList.add('zh-scare__flash--on');
-
-    this.audio.playScare('gif');
 
     const duration = quest.getAct() >= 4 ? 1100 + randRange(0, 500) : 900 + randRange(0, 400);
     setTimeout(() => {
@@ -126,11 +134,11 @@ export class ScareSystem {
     }, duration);
   }
 
-  private playTextScare(): void {
+  private playTextScare(audioKind: ScareAudioKind): void {
+    this.audio.playScare(audioKind);
     this.overlay.classList.add('zh-scare--active', 'zh-scare--text');
     this.textEl.textContent = randPick(WHISPERS).toUpperCase();
     this.gifEl.src = '';
-    this.audio.playScare('text');
 
     setTimeout(() => {
       this.overlay.classList.remove('zh-scare--active', 'zh-scare--text');

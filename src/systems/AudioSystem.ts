@@ -7,6 +7,16 @@ import { AUDIO, mediaUrl, pickRandom, type ScareAudioKind } from '@/config/media
 type SfxKind = 'hover' | 'click' | 'paper' | 'rune' | 'heartbeat' | 'creak';
 
 const MAX_SHORT = 4;
+const SCARE_POOL_COPIES = 2;
+
+/** Короткие файлы для мгновенного скримера (без длинных ambient/event) */
+const SCARE_PRELOAD: readonly string[] = [
+  ...AUDIO.screams,
+  ...AUDIO.impacts.slice(0, 6),
+  ...AUDIO.static,
+  AUDIO.heartbeat,
+  ...AUDIO.whispers.slice(0, 4),
+];
 
 export class AudioSystem {
   private masterVolume = 0.55;
@@ -21,6 +31,8 @@ export class AudioSystem {
   private whisperTimer = 0;
   private bedTimer = 0;
   private activeShort: HTMLAudioElement[] = [];
+  private scarePool = new Map<string, HTMLAudioElement[]>();
+  private scarePoolReady = false;
 
   constructor(private toggleBtn: HTMLElement) {
     this.toggleBtn.addEventListener('click', (e) => {
@@ -46,11 +58,61 @@ export class AudioSystem {
     this.primed = true;
     this.enabled = true;
     audioGate.setOpen(true);
+    await this.preloadScarePool();
     this.startAmbience();
     this.toggleBtn.classList.add('zh-audio--on', 'zh-audio-toggle--locked');
     this.toggleBtn.setAttribute('aria-label', 'Звук архива включён');
     this.toggleBtn.setAttribute('aria-disabled', 'true');
     events.emit(EVT.AUDIO_TOGGLE, { enabled: true });
+  }
+
+  /** Предзагрузка и «прогрев» звуков скримера сразу после включения звука */
+  private async preloadScarePool(): Promise<void> {
+    if (this.scarePoolReady) return;
+
+    for (const src of SCARE_PRELOAD) {
+      if (this.scarePool.has(src)) continue;
+      const instances: HTMLAudioElement[] = [];
+      for (let i = 0; i < SCARE_POOL_COPIES; i++) {
+        const el = this.createAudio(src, 1);
+        el.preload = 'auto';
+        el.load();
+        instances.push(el);
+      }
+      this.scarePool.set(src, instances);
+    }
+
+    const warm = this.scarePool.get(AUDIO.screams[0])?.[0];
+    if (warm) {
+      const prevVol = warm.volume;
+      warm.volume = 0.001;
+      try {
+        await warm.play();
+        warm.pause();
+        warm.currentTime = 0;
+      } catch { /* браузер иногда блокирует - пул всё равно поможет */ }
+      warm.volume = prevVol;
+    }
+
+    this.scarePoolReady = true;
+  }
+
+  private playPooled(src: string, volume: number): void {
+    if (!this.enabled) return;
+
+    let pool = this.scarePool.get(src);
+    if (!pool) {
+      const el = this.createAudio(src, volume);
+      void el.play().catch(() => {});
+      return;
+    }
+
+    const el = pool.find((a) => a.paused || a.ended) ?? pool[0];
+    el.volume = volume * this.masterVolume;
+    try {
+      el.currentTime = 0;
+    } catch { /* ignore */ }
+    void el.play().catch(() => {});
   }
 
   private createAudio(src: string, volume: number, loop = false): HTMLAudioElement {
@@ -196,18 +258,23 @@ export class AudioSystem {
 
   playScare(type: ScareAudioKind): void {
     if (!this.enabled) return;
-    const vol = 0.88;
-    this.playFile(pickRandom(AUDIO.screams), vol, false, true);
-    this.playFile(pickRandom(AUDIO.impacts), vol * 0.65, false, true);
+    const vol = 0.95;
+
+    // Крик и удар - сразу, из прогретого пула
+    this.playPooled(pickRandom(AUDIO.screams), vol);
+    this.playPooled(pickRandom(AUDIO.impacts.slice(0, 4)), vol * 0.72);
 
     if (type === 'static') {
-      this.playFile(pickRandom(AUDIO.static), 0.45, false, true);
+      this.playPooled(pickRandom(AUDIO.static), 0.55);
     }
     if (type === 'eyes') {
-      this.playFile(AUDIO.heartbeat, 0.38, false, true);
+      this.playPooled(AUDIO.heartbeat, 0.45);
+    }
+    if (type === 'text') {
+      this.playPooled(pickRandom(AUDIO.whispers), 0.35);
     }
     if (type === 'gif' && this.actProfile >= 3) {
-      this.playFile(pickRandom(AUDIO.events), 0.35, false, true);
+      this.playPooled(pickRandom(AUDIO.impacts.slice(0, 3)), vol * 0.5);
     }
   }
 
