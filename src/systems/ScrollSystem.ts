@@ -80,11 +80,17 @@ export class ScrollSystem {
       this.scrollY = target.offset;
       this.targetScrollY = target.offset;
       this.velocity = 0;
+      this.transitioning = false;
+      this.applyTransform();
     } else {
       this.startTransition(this.scrollY, target.offset);
     }
     this.activeSceneId = id;
     events.emit(EVT.SCENE_CHANGE, { id, progress: this.getSceneProgress(id) });
+  }
+
+  private applyTransform(): void {
+    this.content.style.transform = `translate3d(0, ${-this.scrollY}px, 0)`;
   }
 
   startTransition(from: number, to: number, duration = 1.8): void {
@@ -219,7 +225,7 @@ export class ScrollSystem {
       this.scrollY = damp(this.scrollY, this.targetScrollY, 6, dt);
     }
 
-    this.content.style.transform = `translate3d(0, ${-this.scrollY}px, 0)`;
+    this.applyTransform();
 
     const sceneId = this.getSceneAtScroll(this.scrollY);
     if (sceneId !== this.activeSceneId) {

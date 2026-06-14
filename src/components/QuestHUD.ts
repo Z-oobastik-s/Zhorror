@@ -1,4 +1,5 @@
 import { events, EVT } from '@/core/EventBus';
+import { CORRIDOR_GOAL } from '@/config/constants';
 import type { QuestSystem } from '@/systems/QuestSystem';
 
 export class QuestHUD {
@@ -207,6 +208,9 @@ export class QuestHUD {
       }
       if (this.quest.isButcherWon()) {
         parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">☒</span>`);
+      }
+      if (scene === 'corridor' || (this.quest.getCorridorProgress() > 0 && !this.quest.isCorridorDone())) {
+        parts.push(`<span class="zh-quest-hud__rune">${this.quest.getCorridorProgress()} / ${CORRIDOR_GOAL}</span>`);
       }
       if (this.quest.isCorridorDone()) {
         parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">⌇</span>`);

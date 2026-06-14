@@ -3,6 +3,7 @@ import {
   CHAPTERS_ACT2,
   CHAPTERS_ACT3,
   CHAPTERS_ACT4,
+  CORRIDOR_GOAL,
   SCENE_IDS,
   SCENE_ORDER,
   SCENE_ORDER_ACT1,
@@ -41,6 +42,7 @@ interface QuestState {
   hooksFound: number;
   butcherWon: boolean;
   corridorDone: boolean;
+  corridorPieces: number;
   meatlockStep: number;
   failCount: number;
   voidComplete: boolean;
@@ -67,6 +69,7 @@ export class QuestSystem {
   private hooksFound = 0;
   private butcherWon = false;
   private corridorDone = false;
+  private corridorPieces = 0;
   private meatlockStep = 0;
   private failCount = 0;
   private voidComplete = false;
@@ -161,6 +164,18 @@ export class QuestSystem {
     return this.corridorDone;
   }
 
+  getCorridorProgress(): number {
+    return this.corridorPieces;
+  }
+
+  registerCorridorPiece(): number {
+    if (this.corridorDone) return this.corridorPieces;
+    this.corridorPieces += 1;
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return this.corridorPieces;
+  }
+
   getMeatSequence(): readonly string[] {
     return this.run.meatSequence;
   }
@@ -253,11 +268,19 @@ export class QuestSystem {
     return CHAPTERS_ACT1[Math.min(this.chapter, CHAPTERS_ACT1.length - 1)];
   }
 
+  /** Сцена для автоперехода после перезагрузки */
+  getResumeSceneId(): SceneId {
+    if (this.chapter === 0 && this.act === 1) return SCENE_IDS.hero;
+    return this.getChapterInfo().scene as SceneId;
+  }
+
   getObjective(): string {
     if (this.act4Complete) return 'Архив замкнут. Мясник доволен. Ты - последняя запись.';
     if (this.act === 4) {
       if (this.act4Chapter === 2 && !this.butcherWon) return 'Выиграй у мясника. Ничья - просто заново. Проигрыш = скример.';
-      if (this.act4Chapter === 3 && !this.corridorDone) return 'Пробел - старт. Стрелки. 10 кусков. После стены - снова пробел.';
+      if (this.act4Chapter === 3 && !this.corridorDone) {
+        return `Собрано ${this.corridorPieces} / ${CORRIDOR_GOAL}. Прогресс сохраняется. Пробел - старт.`;
+      }
       if (this.act4Chapter === 5 && this.butcherWon) return `Код мясника: ${this.getAbattoirHint()}`;
       return this.getChapterInfo().objective;
     }
@@ -743,7 +766,10 @@ export class QuestSystem {
       }
       if (this.act4Chapter >= 2) this.hooksFound = this.run.hookRealIndices.length;
       if (this.act4Chapter >= 3) this.butcherWon = true;
-      if (this.act4Chapter >= 4) this.corridorDone = true;
+      if (this.act4Chapter >= 4) {
+        this.corridorDone = true;
+        this.corridorPieces = CORRIDOR_GOAL;
+      }
       if (this.act4Chapter >= 5) this.meatlockStep = this.run.meatSequence.length;
     }
 
@@ -813,6 +839,7 @@ export class QuestSystem {
       this.hooksFound = data.hooksFound ?? 0;
       this.butcherWon = data.butcherWon ?? false;
       this.corridorDone = data.corridorDone ?? false;
+      this.corridorPieces = data.corridorPieces ?? 0;
       this.meatlockStep = data.meatlockStep ?? 0;
       this.failCount = data.failCount ?? 0;
       this.voidComplete = data.voidComplete ?? false;
@@ -844,6 +871,7 @@ export class QuestSystem {
         hooksFound: this.hooksFound,
         butcherWon: this.butcherWon,
         corridorDone: this.corridorDone,
+        corridorPieces: this.corridorPieces,
         meatlockStep: this.meatlockStep,
         failCount: this.failCount,
         voidComplete: this.voidComplete,

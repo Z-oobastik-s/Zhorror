@@ -189,12 +189,15 @@ function generateCorridorWalls(rng: () => number): boolean[][] {
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       if (x === 0 || y === 0 || x === size - 1 || y === size - 1) grid[y][x] = true;
-      else if (rng() < 0.14) grid[y][x] = true;
+      else if (rng() < 0.1) grid[y][x] = true;
+    }
+  }
+  for (let dy = 0; dy <= 2; dy++) {
+    for (let dx = 0; dx <= 2; dx++) {
+      grid[1 + dy][1 + dx] = false;
     }
   }
   grid[1][1] = false;
-  grid[1][2] = false;
-  grid[2][1] = false;
   grid[size - 2][size - 2] = false;
   grid[size - 2][size - 3] = false;
   grid[size - 3][size - 2] = false;

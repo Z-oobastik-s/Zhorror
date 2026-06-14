@@ -3,8 +3,8 @@ import { CORRIDOR_GOAL, CORRIDOR_GRID, SCENE_IDS } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
 import { setAmbientScareBlocked } from '@/systems/MinigameFocus';
 import { quest } from '@/systems/QuestSystem';
+import { pickReachableFood, type GridPoint } from '@/utils/corridor';
 
-type Point = { x: number; y: number };
 type GameState = 'ready' | 'playing' | 'crashed' | 'done';
 
 export class CorridorScene extends Scene {
@@ -14,11 +14,10 @@ export class CorridorScene extends Scene {
   private statusEl!: HTMLElement;
   private gateEl!: HTMLElement;
   private gateTextEl!: HTMLElement;
-  private snake: Point = { x: 1, y: 1 };
-  private dir: Point = { x: 1, y: 0 };
-  private nextDir: Point = { x: 1, y: 0 };
-  private food: Point = { x: 5, y: 5 };
-  private collected = 0;
+  private snake: GridPoint = { x: 1, y: 1 };
+  private dir: GridPoint = { x: 1, y: 0 };
+  private nextDir: GridPoint = { x: 1, y: 0 };
+  private food: GridPoint = { x: 5, y: 5 };
   private tick = 0;
   private speed = 0.17;
   private gameState: GameState = 'ready';
@@ -33,9 +32,9 @@ export class CorridorScene extends Scene {
     header.append(
       this.createEl('span', 'zh-corridor__label', '◈ акт IV · III'),
       this.createEl('h2', 'zh-corridor__title', 'Кровавый коридор'),
-      this.createEl('p', 'zh-corridor__hint', 'пробел - старт. стрелки ← ↑ → ↓. 10 кусков'),
+      this.createEl('p', 'zh-corridor__hint', 'пробел - старт. прогресс сохраняется. стрелки ← ↑ → ↓'),
     );
-    this.statusEl = this.createEl('p', 'zh-corridor__status', `0 / ${CORRIDOR_GOAL}`);
+    this.statusEl = this.createEl('p', 'zh-corridor__status', this.progressText());
 
     const playWrap = this.createEl('div', 'zh-corridor__play');
     this.gridEl = this.createEl('div', 'zh-corridor__grid');
@@ -60,6 +59,10 @@ export class CorridorScene extends Scene {
     }
   }
 
+  private progressText(): string {
+    return `${quest.getCorridorProgress()} / ${CORRIDOR_GOAL}`;
+  }
+
   private onKey(e: KeyboardEvent): void {
     if (!this.active || this.gameState === 'done') return;
 
@@ -74,7 +77,7 @@ export class CorridorScene extends Scene {
 
     if (this.gameState !== 'playing' || this.scareActive) return;
 
-    const map: Record<string, Point> = {
+    const map: Record<string, GridPoint> = {
       ArrowLeft: { x: -1, y: 0 },
       ArrowRight: { x: 1, y: 0 },
       ArrowUp: { x: 0, y: -1 },
@@ -91,28 +94,25 @@ export class CorridorScene extends Scene {
     this.snake = { x: 1, y: 1 };
     this.dir = { x: 1, y: 0 };
     this.nextDir = { x: 1, y: 0 };
-    this.collected = 0;
     this.tick = 0;
-    this.speed = 0.17;
+    const progress = quest.getCorridorProgress();
+    this.speed = Math.max(0.11, 0.17 - progress * 0.004);
     this.gameState = 'playing';
     this.gateEl.classList.add('zh-corridor__gate--hidden');
     this.gateTextEl.textContent = 'пробел · сначала';
-    this.statusEl.textContent = `0 / ${CORRIDOR_GOAL}`;
+    this.statusEl.textContent = this.progressText();
     setAmbientScareBlocked(true);
     this.spawnFood();
     this.render();
   }
 
   private spawnFood(): void {
-    const size = CORRIDOR_GRID;
-    for (let n = 0; n < 80; n++) {
-      const x = 1 + Math.floor(Math.random() * (size - 2));
-      const y = 1 + Math.floor(Math.random() * (size - 2));
-      if (!this.walls[y][x] && (x !== this.snake.x || y !== this.snake.y)) {
-        this.food = { x, y };
-        return;
-      }
+    const next = pickReachableFood(this.walls, this.snake, this.food);
+    if (next) {
+      this.food = next;
+      return;
     }
+    this.food = { x: -1, y: -1 };
   }
 
   private crash(): void {
@@ -124,8 +124,7 @@ export class CorridorScene extends Scene {
     this.snake = { x: 1, y: 1 };
     this.dir = { x: 1, y: 0 };
     this.nextDir = { x: 1, y: 0 };
-    this.collected = 0;
-    this.statusEl.textContent = 'стена. дождись конца скримера, потом пробел.';
+    this.statusEl.textContent = `${this.progressText()} · стена. пробел после скримера.`;
     this.gateEl.classList.remove('zh-corridor__gate--hidden');
     this.render();
   }
@@ -170,10 +169,10 @@ export class CorridorScene extends Scene {
     }
     this.snake = { x: nx, y: ny };
     if (nx === this.food.x && ny === this.food.y) {
-      this.collected += 1;
-      this.statusEl.textContent = `${this.collected} / ${CORRIDOR_GOAL}`;
+      const total = quest.registerCorridorPiece();
+      this.statusEl.textContent = this.progressText();
       events.emit(EVT.INTERACT, { type: 'rune' });
-      if (this.collected >= CORRIDOR_GOAL) {
+      if (total >= CORRIDOR_GOAL) {
         this.gameState = 'done';
         setAmbientScareBlocked(false);
         this.statusEl.textContent = 'выход близко';
@@ -181,7 +180,7 @@ export class CorridorScene extends Scene {
         return;
       }
       this.spawnFood();
-      this.speed = Math.max(0.1, this.speed - 0.004);
+      this.speed = Math.max(0.1, this.speed - 0.003);
     }
     this.render();
   }

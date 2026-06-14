@@ -139,9 +139,22 @@ export class App {
     const boot = new BootSequence(this.uiLayer);
     await boot.run();
     this.shell.classList.add('zh-app--ready');
+    this.restoreScrollPosition();
     events.emit(EVT.BOOT_COMPLETE);
     engine.start();
     engine.onUpdate((dt) => this.update(dt));
+  }
+
+  private restoreScrollPosition(): void {
+    const resumeId = quest.getResumeSceneId();
+    if (resumeId === SCENE_IDS.hero) return;
+    this.scroll.recalculate();
+    const cap = this.scroll.getScrollCapForScene(quest.getMaxUnlockedSceneId());
+    this.scroll.applyScrollCap(cap);
+    this.scroll.scrollToScene(resumeId, true);
+    this.nav.setActive(resumeId);
+    this.nav.refreshLocks();
+    this.audio.setActProfile(quest.getAct());
   }
 
   private update(dt: number): void {
