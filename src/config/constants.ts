@@ -92,7 +92,7 @@ export const CHAPTERS_ACT3 = [
   { act: 3 as const, index: 1, scene: SCENE_IDS.catacombs, title: 'Катакомбы', objective: 'Открой 4 верных двери с метками' },
   { act: 3 as const, index: 2, scene: SCENE_IDS.swarm, title: 'Рой', objective: 'Найди 6 настоящих глаз за 25 секунд' },
   { act: 3 as const, index: 3, scene: SCENE_IDS.silence, title: 'Тишина', objective: 'Застыть на 8 секунд в абсолютной тишине' },
-  { act: 3 as const, index: 4, scene: SCENE_IDS.finalrite, title: 'Финальный ритуал', objective: 'Повтори 6 символов за 10 секунд' },
+  { act: 3 as const, index: 4, scene: SCENE_IDS.finalrite, title: 'Финальный ритуал', objective: 'Повтори 6 символов. Подсказка остаётся на экране' },
   { act: 3 as const, index: 5, scene: SCENE_IDS.terminus, title: 'Терминус', objective: 'Назови автора архива' },
 ] as const;
 
@@ -145,8 +145,8 @@ export const ECHO_DECOY_POOL = [
 
 export const RITUAL_SHOW_SECONDS = 3;
 export const RITUAL_INPUT_SECONDS = 14;
-export const FINAL_RITUAL_SHOW_SECONDS = 2.5;
-export const FINAL_RITUAL_INPUT_SECONDS = 10;
+export const FINAL_RITUAL_SHOW_SECONDS = 4;
+export const FINAL_RITUAL_INPUT_SECONDS = 18;
 
 export const VOID_CODE = 'ZH-666';
 export const COLLAPSE_CODE = 'ARCHIVE';

@@ -1336,6 +1336,27 @@ body.zh-scare-shake {
     height: 220px;
   }
 
+  .zh-finalrite .zh-ritual__circle {
+    width: min(320px, 92vw);
+    height: min(320px, 92vw);
+    --orbit: calc(min(320px, 92vw) * 0.44);
+  }
+
+  .zh-finalrite .zh-ritual__symbol {
+    width: 42px;
+    height: 42px;
+    margin: -21px 0 0 -21px;
+    font-size: 20px;
+  }
+
+  .zh-finalrite .zh-ritual__seq-rune {
+    font-size: 26px;
+  }
+
+  .zh-finalrite .zh-ritual__seq-rune--current {
+    font-size: 30px;
+  }
+
   .zh-archive__grid {
     grid-template-columns: 1fr;
   }
@@ -1593,6 +1614,21 @@ body.zh-scare-shake {
 .zh-ritual__seq-rune:nth-child(3) { animation-delay: 0.3s; }
 .zh-ritual__seq-rune:nth-child(4) { animation-delay: 0.45s; }
 
+.zh-ritual__seq-rune--done {
+  opacity: 0.35;
+  color: #5a3030;
+  animation: none;
+  transform: scale(0.92);
+}
+
+.zh-ritual__seq-rune--current {
+  opacity: 1;
+  color: #d45050;
+  font-size: 34px;
+  text-shadow: 0 0 24px rgba(180, 40, 40, 0.7);
+  animation: seqPulse 0.8s ease infinite;
+}
+
 @keyframes seqPulse {
   0%, 100% { opacity: 0.6; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.08); }
@@ -1610,6 +1646,52 @@ body.zh-scare-shake {
 .zh-ritual__symbol--wrong {
   animation: ritualWrong 0.5s ease;
   color: #ff2020 !important;
+}
+
+.zh-ritual__symbol--next {
+  color: #e06060 !important;
+  border-color: rgba(180, 50, 50, 0.85) !important;
+  box-shadow: 0 0 22px rgba(160, 35, 35, 0.55) !important;
+  transform: rotate(var(--angle)) translateY(var(--orbit, -140px)) rotate(calc(-1 * var(--angle))) scale(1.12);
+}
+
+/* Финальный ритуал: крупнее круг, без вращения */
+.zh-finalrite .zh-ritual__circle-wrap {
+  margin: 24px 0 32px;
+}
+
+.zh-finalrite .zh-ritual__circle {
+  width: min(420px, 88vw);
+  height: min(420px, 88vw);
+  --orbit: calc(min(420px, 88vw) * 0.44);
+}
+
+.zh-finalrite .zh-ritual__symbol {
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  font-size: 24px;
+  transform: rotate(var(--angle)) translateY(calc(-1 * var(--orbit))) rotate(calc(-1 * var(--angle)));
+}
+
+.zh-finalrite .zh-ritual__symbol--next {
+  transform: rotate(var(--angle)) translateY(calc(-1 * var(--orbit))) rotate(calc(-1 * var(--angle))) scale(1.15);
+}
+
+.zh-finalrite .zh-ritual__sequence {
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: min(520px, 92vw);
+  margin: 12px auto 8px;
+}
+
+.zh-finalrite .zh-ritual__seq-rune {
+  font-size: 32px;
+}
+
+.zh-finalrite .zh-ritual__timer {
+  max-width: min(420px, 88vw);
+  margin: 0 auto 8px;
 }
 
 @keyframes ritualWrong {

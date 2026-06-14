@@ -211,7 +211,7 @@ export class QuestSystem {
   }
 
   getFinalRiteInputSeconds(): number {
-    return Math.max(6, this.run.finalRiteInputSeconds - this.failCount * 1.2);
+    return Math.max(12, this.run.finalRiteInputSeconds - this.failCount * 0.6);
   }
 
   getSwarmTimeSeconds(): number {
@@ -263,7 +263,7 @@ export class QuestSystem {
     }
     if (this.act3Complete && this.act < 4) return 'Терминус пройден. Мясник ждёт за дверью.';
     if (this.act === 3) {
-      if (this.act3Chapter === 4) return 'Повтори 6 символов. Время сокращается с каждой ошибкой.';
+      if (this.act3Chapter === 4) return 'Повтори 6 символов по порядку. Подсказка остаётся на экране.';
       if (this.act3Chapter === 5 && this.finalRiteStep >= this.run.finalRiteSequence.length) {
         return 'Назови автора. Подсказка открыта после ритуала.';
       }

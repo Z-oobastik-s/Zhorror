@@ -23,7 +23,6 @@ export class FinalRiteScene extends Scene {
   private phaseTimer = 0;
   private inputLeft = 0;
   private inputSeconds = 0;
-  private rotation = 0;
   private ritualDone = false;
 
   protected build(): void {
@@ -35,7 +34,7 @@ export class FinalRiteScene extends Scene {
     header.append(
       this.createEl('span', 'zh-finalrite__label', '◈ акт III · IV'),
       this.createEl('h2', 'zh-finalrite__title', 'Финальный ритуал'),
-      this.createEl('p', 'zh-finalrite__hint', '6 символов. время сокращается с каждой ошибкой'),
+      this.createEl('p', 'zh-finalrite__hint', '6 символов. последовательность не исчезает'),
     );
 
     this.sequenceEl = this.createEl('div', 'zh-ritual__sequence');
@@ -70,20 +69,33 @@ export class FinalRiteScene extends Scene {
     }
   }
 
-  private showSequence(): void {
-    this.sequenceEl.innerHTML = quest.getFinalRiteSequence()
-      .map((r) => `<span class="zh-ritual__seq-rune">${r}</span>`)
-      .join('');
+  private updateSequenceDisplay(): void {
+    const seq = quest.getFinalRiteSequence();
+    const step = quest.getFinalRiteProgress();
+    this.sequenceEl.innerHTML = seq.map((r, i) => {
+      let cls = 'zh-ritual__seq-rune';
+      if (i < step) cls += ' zh-ritual__seq-rune--done';
+      else if (i === step && this.phase === 'input') cls += ' zh-ritual__seq-rune--current';
+      return `<span class="${cls}">${r}</span>`;
+    }).join('');
     this.sequenceEl.classList.add('zh-ritual__sequence--visible');
+    const expected = seq[step];
+    this.symbols.forEach((s) => {
+      s.classList.toggle('zh-ritual__symbol--next', this.phase === 'input' && s.dataset.rune === expected);
+    });
+  }
+
+  private showSequence(): void {
+    this.updateSequenceDisplay();
   }
 
   private startInput(): void {
     this.phase = 'input';
     this.inputSeconds = quest.getFinalRiteInputSeconds();
     this.inputLeft = this.inputSeconds;
-    this.sequenceEl.classList.remove('zh-ritual__sequence--visible');
+    this.updateSequenceDisplay();
     this.timerBar.classList.add('zh-ritual__timer--active');
-    this.hintEl.textContent = 'повтори. время идёт.';
+    this.hintEl.textContent = 'повтори по порядку. подсказка сверху.';
     this.updateTimer();
   }
 
@@ -93,7 +105,9 @@ export class FinalRiteScene extends Scene {
     this.phaseTimer = 0;
     this.inputSeconds = quest.getFinalRiteInputSeconds();
     this.timerBar.classList.remove('zh-ritual__timer--active', 'zh-ritual__timer--urgent');
-    this.symbols.forEach((s) => s.classList.remove('zh-ritual__symbol--lit', 'zh-ritual__symbol--wrong'));
+    this.symbols.forEach((s) => s.classList.remove(
+      'zh-ritual__symbol--lit', 'zh-ritual__symbol--wrong', 'zh-ritual__symbol--next',
+    ));
     this.hintEl.textContent = 'сорвано. смотри снова.';
   }
 
@@ -115,6 +129,7 @@ export class FinalRiteScene extends Scene {
       this.restart();
       return;
     }
+    sym.classList.remove('zh-ritual__symbol--next');
     sym.classList.add('zh-ritual__symbol--lit');
     events.emit(EVT.INTERACT, { type: 'rune' });
     if (result === 'done') {
@@ -123,6 +138,7 @@ export class FinalRiteScene extends Scene {
       this.hintEl.textContent = 'терминус открыт';
       setTimeout(() => events.emit(EVT.SCARE_REQUEST, { type: 'face' }), 400);
     } else {
+      this.updateSequenceDisplay();
       this.hintEl.textContent = `${quest.getFinalRiteProgress()} / ${quest.getFinalRiteSequence().length}`;
     }
   }
@@ -144,8 +160,6 @@ export class FinalRiteScene extends Scene {
         this.restart();
         return;
       }
-      this.rotation += dt * 5;
-      this.circleInner.style.transform = `rotate(${this.rotation}deg)`;
     }
   }
 }
