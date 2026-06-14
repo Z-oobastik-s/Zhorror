@@ -1,5 +1,3 @@
-import { events, EVT } from './EventBus';
-
 type UpdateFn = (dt: number, elapsed: number) => void;
 type RenderFn = (dt: number, elapsed: number) => void;
 
@@ -61,7 +59,6 @@ export class Engine {
     for (const fn of this.updates) fn(dt, this.elapsed);
     for (const fn of this.renders) fn(dt, this.elapsed);
 
-    events.emit(EVT.SCROLL);
     this.rafId = requestAnimationFrame(this.tick);
   };
 }

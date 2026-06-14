@@ -205,6 +205,8 @@ export class ScrollSystem {
       this.activeSceneId = sceneId;
       events.emit(EVT.SCENE_CHANGE, { id: sceneId, progress: this.getSceneProgress(sceneId) });
     }
+
+    events.emit(EVT.SCROLL);
   }
 
   destroy(): void {

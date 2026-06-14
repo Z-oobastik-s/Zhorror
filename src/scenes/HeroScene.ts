@@ -12,7 +12,8 @@ export class HeroScene extends Scene {
   private enterSigil!: HTMLElement;
   private eyeEl!: HTMLElement;
   private glitchTimer = 0;
-  private titleScale = 0.95;
+  private titleScale = 0.96;
+  private introTime = 0;
 
   protected build(): void {
     const inner = this.createEl('div', 'zh-scene__inner zh-hero');
@@ -56,32 +57,39 @@ export class HeroScene extends Scene {
         this.enterSigil.click();
       }
     });
-
-    this.titleEl.style.opacity = '0';
-    this.subtitleEl.style.opacity = '0';
-    this.authorEl.style.opacity = '0';
   }
 
   protected onUpdate(dt: number): void {
     if (!this.active && this.progress < 0.01) return;
 
-    this.titleScale = damp(this.titleScale, 1, 1.5, dt);
+    if (this.active) {
+      this.introTime = Math.min(this.introTime + dt, 2);
+    }
+
+    this.titleScale = damp(this.titleScale, 1, 2, dt);
     this.titleEl.style.transform = `scale(${this.titleScale})`;
 
-    const reveal = Math.min(1, this.progress * 3 + (this.active ? 0.3 : 0));
-    this.titleEl.style.opacity = String(Math.min(1, reveal));
-    this.subtitleEl.style.opacity = String(Math.min(1, reveal * 0.8 - 0.1));
-    this.authorEl.style.opacity = String(Math.min(1, reveal * 0.6 - 0.2));
+    const intro = Math.min(1, this.introTime / 1.2);
+    if (this.active) {
+      this.titleEl.style.opacity = String(0.4 + intro * 0.6);
+      this.subtitleEl.style.opacity = String(0.35 + intro * 0.55);
+      this.authorEl.style.opacity = String(0.3 + intro * 0.45);
+    } else {
+      const fade = Math.max(0, 1 - this.progress * 2);
+      this.titleEl.style.opacity = String(fade);
+      this.subtitleEl.style.opacity = String(fade * 0.85);
+      this.authorEl.style.opacity = String(fade * 0.7);
+    }
 
     this.glitchTimer -= dt;
-    if (this.glitchTimer <= 0 && Math.random() < 0.003) {
+    if (this.glitchTimer <= 0 && Math.random() < 0.002) {
       this.titleEl.classList.add('zh-glitch-active');
       this.glitchTimer = 0.1;
       setTimeout(() => this.titleEl.classList.remove('zh-glitch-active'), 100);
     }
 
     if (this.active) {
-      const ringRotation = performance.now() * 0.008;
+      const ringRotation = performance.now() * 0.005;
       this.runeRing.style.transform = `rotate(${ringRotation}deg)`;
     }
   }

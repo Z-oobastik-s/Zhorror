@@ -1,3 +1,4 @@
+import { detectPerfTier, getMaxDpr } from '@/config/performance';
 import type { AtmosphereSystem } from '@/systems/AtmosphereSystem';
 import type { CursorSystem } from '@/systems/CursorSystem';
 
@@ -41,12 +42,12 @@ const FRAG = `
     vec2 cursorDist = uv - u_cursor;
     float cursorGlow = exp(-dot(cursorDist, cursorDist) * 8.0) * 0.03 * u_atmosphere;
 
-    vec3 col = vec3(0.02, 0.015, 0.025);
-    col += vec3(0.08, 0.02, 0.04) * depth * (0.3 + u_atmosphere * 0.4);
-    col += vec3(0.02, 0.04, 0.02) * n2 * 0.15;
-    col += vec3(0.15, 0.05, 0.05) * cursorGlow;
+    vec3 col = vec3(0.04, 0.035, 0.045);
+    col += vec3(0.06, 0.02, 0.03) * depth * (0.2 + u_atmosphere * 0.25);
+    col += vec3(0.02, 0.03, 0.02) * n2 * 0.08;
+    col += vec3(0.1, 0.04, 0.04) * cursorGlow;
 
-    float vig = 1.0 - dot(uv - 0.5, uv - 0.5) * 1.8;
+    float vig = 1.0 - dot(uv - 0.5, uv - 0.5) * 0.9;
     col *= vig;
 
     gl_FragColor = vec4(col, 1.0);
@@ -123,7 +124,7 @@ export class WebGLBackground {
 
   private resize(): void {
     if (!this.gl) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = getMaxDpr(detectPerfTier());
     this.canvas.width = window.innerWidth * dpr;
     this.canvas.height = window.innerHeight * dpr;
     this.canvas.style.width = `${window.innerWidth}px`;

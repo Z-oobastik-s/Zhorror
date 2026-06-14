@@ -1,4 +1,5 @@
 import { randRange, randInt } from '@/utils/math';
+import { detectPerfTier, getMaxDpr, type PerfTier } from '@/config/performance';
 import type { AtmosphereSystem } from '@/systems/AtmosphereSystem';
 import type { CursorSystem } from '@/systems/CursorSystem';
 
@@ -19,7 +20,6 @@ interface Silhouette {
   height: number;
   alpha: number;
   targetAlpha: number;
-  speed: number;
   type: 'figure' | 'eye';
   life: number;
 }
@@ -33,21 +33,28 @@ export class CanvasRenderer {
   private height = 0;
   private grainCanvas: HTMLCanvasElement;
   private grainCtx: CanvasRenderingContext2D;
+  private scanlineCanvas: HTMLCanvasElement | null = null;
+  private scanlineCtx: CanvasRenderingContext2D | null = null;
   private noiseOffset = 0;
   private scanLineY = 0;
   private glitchOffset = 0;
   private glitchTimer = 0;
-  private vignettePulse = 0;
+  private frame = 0;
+  private grainOffsetX = 0;
+  private grainOffsetY = 0;
+  private readonly tier: PerfTier;
 
   constructor(parent: HTMLElement) {
+    this.tier = detectPerfTier();
     this.canvas = document.createElement('canvas');
     this.canvas.className = 'zh-fx-canvas';
+    this.canvas.dataset.tier = this.tier;
     parent.appendChild(this.canvas);
-    this.ctx = this.canvas.getContext('2d')!;
+    this.ctx = this.canvas.getContext('2d', { alpha: true })!;
 
     this.grainCanvas = document.createElement('canvas');
-    this.grainCanvas.width = 256;
-    this.grainCanvas.height = 256;
+    this.grainCanvas.width = 128;
+    this.grainCanvas.height = 128;
     this.grainCtx = this.grainCanvas.getContext('2d')!;
     this.generateGrain();
 
@@ -57,18 +64,38 @@ export class CanvasRenderer {
   }
 
   private resize(): void {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = getMaxDpr(this.tier);
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.canvas.width = this.width * dpr;
-    this.canvas.height = this.height * dpr;
+    this.canvas.width = Math.floor(this.width * dpr);
+    this.canvas.height = Math.floor(this.height * dpr);
     this.canvas.style.width = `${this.width}px`;
     this.canvas.style.height = `${this.height}px`;
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.buildScanlineLayer();
+    this.initParticles();
+  }
+
+  private buildScanlineLayer(): void {
+    if (this.tier === 'low') {
+      this.scanlineCanvas = null;
+      return;
+    }
+    this.scanlineCanvas = document.createElement('canvas');
+    this.scanlineCanvas.width = this.width;
+    this.scanlineCanvas.height = this.height;
+    this.scanlineCtx = this.scanlineCanvas.getContext('2d')!;
+    const ctx = this.scanlineCtx;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+    for (let y = 0; y < this.height; y += 4) {
+      ctx.fillRect(0, y, this.width, 1);
+    }
   }
 
   private initParticles(): void {
-    const count = Math.min(120, Math.floor(this.width * this.height / 12000));
+    const max = this.tier === 'low' ? 25 : 45;
+    const count = Math.min(max, Math.floor(this.width * this.height / 25000));
+    this.particles = [];
     for (let i = 0; i < count; i++) {
       this.particles.push(this.createParticle(true));
     }
@@ -78,58 +105,62 @@ export class CanvasRenderer {
     return {
       x: randRange(0, this.width),
       y: randomY ? randRange(0, this.height) : this.height + 10,
-      vx: randRange(-0.15, 0.15),
-      vy: randRange(-0.3, -0.05),
-      size: randRange(0.5, 2),
-      alpha: randRange(0.05, 0.25),
+      vx: randRange(-0.1, 0.1),
+      vy: randRange(-0.2, -0.05),
+      size: randRange(0.5, 1.5),
+      alpha: randRange(0.04, 0.15),
       life: randRange(5, 15),
     };
   }
 
   private generateGrain(): void {
-    const img = this.grainCtx.createImageData(256, 256);
+    const img = this.grainCtx.createImageData(128, 128);
     for (let i = 0; i < img.data.length; i += 4) {
-      const v = randInt(0, 255);
+      const v = randInt(100, 155);
       img.data[i] = v;
       img.data[i + 1] = v;
       img.data[i + 2] = v;
-      img.data[i + 3] = randInt(8, 30);
+      img.data[i + 3] = randInt(4, 14);
     }
     this.grainCtx.putImageData(img, 0, 0);
   }
 
   spawnSilhouette(): void {
-    if (this.silhouettes.length > 3) return;
+    if (this.tier === 'low' || this.silhouettes.length > 2) return;
     this.silhouettes.push({
       x: randRange(this.width * 0.1, this.width * 0.7),
       y: randRange(this.height * 0.2, this.height * 0.6),
-      width: randRange(20, 60),
-      height: randRange(80, 180),
+      width: randRange(20, 50),
+      height: randRange(60, 140),
       alpha: 0,
-      targetAlpha: randRange(0.08, 0.2),
-      speed: randRange(0.02, 0.08),
-      type: Math.random() > 0.7 ? 'eye' : 'figure',
-      life: randRange(3, 8),
+      targetAlpha: randRange(0.05, 0.12),
+      type: Math.random() > 0.75 ? 'eye' : 'figure',
+      life: randRange(3, 6),
     });
   }
 
   update(dt: number, atmosphere: AtmosphereSystem, cursor: CursorSystem): void {
     const level = atmosphere.getLevel();
-    this.noiseOffset += dt * 0.5;
-    this.scanLineY = (this.scanLineY + dt * 30) % this.height;
-    this.vignettePulse = atmosphere.getBreathScale();
+    this.frame += 1;
+    this.noiseOffset += dt * 0.3;
+    this.scanLineY = (this.scanLineY + dt * 20) % this.height;
+
+    if (this.frame % 6 === 0) {
+      this.grainOffsetX = randRange(-1, 1);
+      this.grainOffsetY = randRange(-1, 1);
+    }
 
     this.glitchTimer -= dt;
-    if (this.glitchTimer <= 0 && Math.random() < 0.002 * (1 + level * 2)) {
-      this.glitchOffset = randRange(-8, 8);
-      this.glitchTimer = randRange(0.05, 0.15);
+    if (this.glitchTimer <= 0 && Math.random() < 0.001 * (1 + level)) {
+      this.glitchOffset = randRange(-4, 4);
+      this.glitchTimer = randRange(0.05, 0.12);
     } else if (this.glitchTimer <= 0) {
       this.glitchOffset = dampGlitch(this.glitchOffset, 0, dt);
     }
 
     const { nx } = cursor.getNormalized();
     for (const p of this.particles) {
-      p.x += p.vx + nx * 0.2;
+      p.x += p.vx + nx * 0.1;
       p.y += p.vy;
       p.life -= dt;
       if (p.life <= 0 || p.y < -10) {
@@ -145,59 +176,68 @@ export class CanvasRenderer {
       if (s.life <= 0) this.silhouettes.splice(i, 1);
     }
 
-    if (Math.random() < 0.0003 * (1 + level * 3)) {
+    if (Math.random() < 0.00015 * (1 + level * 2)) {
       this.spawnSilhouette();
     }
   }
 
   render(atmosphere: AtmosphereSystem): void {
     const level = atmosphere.getLevel();
-    const flicker = atmosphere.getLightFlicker();
     const ctx = this.ctx;
 
     ctx.clearRect(0, 0, this.width, this.height);
 
-    this.drawFog(ctx, level, flicker);
+    this.drawFog(ctx, level);
     this.drawParticles(ctx, level);
     this.drawSilhouettes(ctx);
-    this.drawScanlines(ctx, level);
-    this.drawGrain(ctx, level);
+
+    if (this.tier === 'high') {
+      this.drawScanlines(ctx);
+    }
+
+    if (this.frame % 2 === 0) {
+      this.drawGrain(ctx, level);
+    }
+
     this.drawVignette(ctx, level);
-    this.drawGlitch(ctx, level);
-    this.drawBreathing(ctx, atmosphere);
+
+    if (this.tier === 'high') {
+      this.drawGlitch(ctx, level);
+    }
   }
 
-  private drawFog(ctx: CanvasRenderingContext2D, level: number, flicker: number): void {
+  private drawFog(ctx: CanvasRenderingContext2D, level: number): void {
     const grad = ctx.createRadialGradient(
-      this.width * 0.5, this.height * 0.6, 0,
-      this.width * 0.5, this.height * 0.5, this.width * 0.8
+      this.width * 0.5, this.height * 0.5, this.width * 0.15,
+      this.width * 0.5, this.height * 0.5, this.width * 0.95
     );
-    grad.addColorStop(0, `rgba(20, 15, 25, ${0.02 + level * 0.04})`);
-    grad.addColorStop(0.5, `rgba(10, 8, 15, ${0.05 + level * 0.06})`);
-    grad.addColorStop(1, `rgba(5, 5, 8, ${0.1 * flicker})`);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(1, `rgba(5, 4, 8, ${0.08 + level * 0.06})`);
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    ctx.globalAlpha = 0.03 + level * 0.04;
-    for (let i = 0; i < 3; i++) {
-      const y = (this.noiseOffset * 20 + i * this.height / 3) % (this.height + 100) - 50;
-      const fogGrad = ctx.createLinearGradient(0, y, this.width, y + 80);
+    if (this.tier === 'high') {
+      ctx.globalAlpha = 0.015 + level * 0.02;
+      const y = (this.noiseOffset * 15) % (this.height + 80) - 40;
+      const fogGrad = ctx.createLinearGradient(0, y, this.width, y + 60);
       fogGrad.addColorStop(0, 'transparent');
-      fogGrad.addColorStop(0.5, 'rgba(40, 30, 50, 0.3)');
+      fogGrad.addColorStop(0.5, 'rgba(30, 25, 40, 0.15)');
       fogGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = fogGrad;
-      ctx.fillRect(0, y, this.width, 80);
+      ctx.fillRect(0, y, this.width, 60);
+      ctx.globalAlpha = 1;
     }
-    ctx.globalAlpha = 1;
   }
 
   private drawParticles(ctx: CanvasRenderingContext2D, level: number): void {
+    ctx.fillStyle = `rgba(140, 130, 120, ${0.08 + level * 0.05})`;
     for (const p of this.particles) {
+      ctx.globalAlpha = p.alpha;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(140, 130, 120, ${p.alpha * (0.5 + level * 0.5)})`;
       ctx.fill();
     }
+    ctx.globalAlpha = 1;
   }
 
   private drawSilhouettes(ctx: CanvasRenderingContext2D): void {
@@ -213,32 +253,30 @@ export class CanvasRenderer {
       } else {
         ctx.fillStyle = '#3a1010';
         ctx.beginPath();
-        ctx.ellipse(s.x, s.y, 4, 2, 0, 0, Math.PI * 2);
+        ctx.ellipse(s.x, s.y, 3, 2, 0, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
     }
   }
 
-  private drawScanlines(ctx: CanvasRenderingContext2D, level: number): void {
-    ctx.globalAlpha = 0.03 + level * 0.02;
-    ctx.fillStyle = '#000';
-    for (let y = 0; y < this.height; y += 3) {
-      ctx.fillRect(0, y, this.width, 1);
+  private drawScanlines(ctx: CanvasRenderingContext2D): void {
+    if (this.scanlineCanvas) {
+      ctx.drawImage(this.scanlineCanvas, 0, 0);
     }
-    ctx.globalAlpha = 0.05 + level * 0.03;
-    ctx.fillStyle = 'rgba(255,255,255,0.02)';
+    ctx.globalAlpha = 0.04;
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
     ctx.fillRect(0, this.scanLineY, this.width, 2);
     ctx.globalAlpha = 1;
   }
 
   private drawGrain(ctx: CanvasRenderingContext2D, level: number): void {
-    ctx.globalAlpha = 0.04 + level * 0.06;
+    ctx.globalAlpha = 0.025 + level * 0.025;
     const pat = ctx.createPattern(this.grainCanvas, 'repeat');
     if (pat) {
       ctx.fillStyle = pat;
       ctx.save();
-      ctx.translate(randRange(-2, 2), randRange(-2, 2));
+      ctx.translate(this.grainOffsetX, this.grainOffsetY);
       ctx.fillRect(0, 0, this.width, this.height);
       ctx.restore();
     }
@@ -246,37 +284,22 @@ export class CanvasRenderer {
   }
 
   private drawVignette(ctx: CanvasRenderingContext2D, level: number): void {
-    const pulse = this.vignettePulse;
     const grad = ctx.createRadialGradient(
-      this.width / 2, this.height / 2, this.width * 0.2 * pulse,
-      this.width / 2, this.height / 2, this.width * 0.75 * pulse
+      this.width / 2, this.height / 2, this.width * 0.35,
+      this.width / 2, this.height / 2, this.width * 0.95
     );
     grad.addColorStop(0, 'transparent');
-    grad.addColorStop(1, `rgba(0, 0, 0, ${0.5 + level * 0.3})`);
+    grad.addColorStop(0.7, 'transparent');
+    grad.addColorStop(1, `rgba(0, 0, 0, ${0.18 + level * 0.12})`);
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, this.width, this.height);
   }
 
   private drawGlitch(ctx: CanvasRenderingContext2D, level: number): void {
     if (Math.abs(this.glitchOffset) < 0.5) return;
-    ctx.globalAlpha = 0.1 + level * 0.1;
+    ctx.globalAlpha = 0.06 + level * 0.05;
     ctx.fillStyle = '#3a1515';
-    ctx.fillRect(0, randRange(0, this.height * 0.8), this.width, randRange(2, 8));
-    ctx.globalCompositeOperation = 'difference';
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(this.glitchOffset, 0, this.width, this.height);
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = 1;
-  }
-
-  private drawBreathing(ctx: CanvasRenderingContext2D, atmosphere: AtmosphereSystem): void {
-    const scale = atmosphere.getBreathScale();
-    if (Math.abs(scale - 1) < 0.001) return;
-    ctx.globalAlpha = 0.02;
-    ctx.fillStyle = '#1a1020';
-    const margin = (1 - scale) * this.width * 0.5;
-    ctx.fillRect(0, 0, this.width, margin);
-    ctx.fillRect(0, this.height - margin, this.width, margin);
+    ctx.fillRect(0, randRange(0, this.height * 0.8), this.width, randRange(1, 4));
     ctx.globalAlpha = 1;
   }
 }
