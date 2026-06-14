@@ -11,8 +11,12 @@ export class QuestHUD {
   private ritualEl: HTMLElement;
   private echoEl: HTMLElement;
   private resetBtn!: HTMLButtonElement;
+  private resetModal!: HTMLElement;
+  private resetConfirmBtn!: HTMLButtonElement;
+  private resetCancelBtn!: HTMLButtonElement;
   private toastEl: HTMLElement;
   private toastTimer = 0;
+  private resetOpen = false;
 
   constructor(parent: HTMLElement, private quest: QuestSystem) {
     this.root = document.createElement('div');
@@ -36,11 +40,39 @@ export class QuestHUD {
     this.echoEl = this.root.querySelector('.zh-quest-hud__echo')!;
     this.resetBtn = this.root.querySelector('.zh-quest-hud__reset') as HTMLButtonElement;
 
+    this.resetModal = document.createElement('div');
+    this.resetModal.className = 'zh-reset-modal';
+    this.resetModal.setAttribute('role', 'dialog');
+    this.resetModal.setAttribute('aria-modal', 'true');
+    this.resetModal.setAttribute('aria-hidden', 'true');
+    this.resetModal.setAttribute('aria-label', 'Подтверждение сброса прогресса');
+    this.resetModal.innerHTML = `
+      <div class="zh-reset-modal__backdrop" data-reset-close></div>
+      <div class="zh-reset-modal__panel">
+        <span class="zh-reset-modal__mark">☍</span>
+        <p class="zh-reset-modal__title">сброс памяти</p>
+        <p class="zh-reset-modal__text">прогресс будет стёрт.<br>архив начнётся с порога.</p>
+        <p class="zh-reset-modal__warn">это нельзя отменить</p>
+        <div class="zh-reset-modal__actions">
+          <button type="button" class="zh-reset-modal__btn zh-reset-modal__btn--ghost" data-reset-cancel>остаться</button>
+          <button type="button" class="zh-reset-modal__btn zh-reset-modal__btn--danger" data-reset-confirm>стереть всё</button>
+        </div>
+      </div>
+    `;
+    parent.appendChild(this.resetModal);
+
+    this.resetConfirmBtn = this.resetModal.querySelector('[data-reset-confirm]') as HTMLButtonElement;
+    this.resetCancelBtn = this.resetModal.querySelector('[data-reset-cancel]') as HTMLButtonElement;
+
     this.toastEl = document.createElement('div');
     this.toastEl.className = 'zh-quest-toast';
     parent.appendChild(this.toastEl);
 
-    this.resetBtn.addEventListener('click', () => this.onReset());
+    this.resetBtn.addEventListener('click', () => this.openResetModal());
+    this.resetConfirmBtn.addEventListener('click', () => this.confirmReset());
+    this.resetCancelBtn.addEventListener('click', () => this.closeResetModal());
+    this.resetModal.querySelector('[data-reset-close]')?.addEventListener('click', () => this.closeResetModal());
+    window.addEventListener('keydown', this.onKeyDown);
 
     events.on(EVT.QUEST_UPDATE, () => this.render());
     events.on(EVT.QUEST_CHAPTER, () => this.flashChapter());
@@ -65,9 +97,30 @@ export class QuestHUD {
     this.toastTimer = 3;
   }
 
-  private onReset(): void {
-    const ok = window.confirm('Прогресс будет удалён. Архив начнётся сначала. Продолжить?');
-    if (!ok) return;
+  private onKeyDown = (e: KeyboardEvent): void => {
+    if (!this.resetOpen) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      this.closeResetModal();
+    }
+  };
+
+  private openResetModal(): void {
+    this.resetOpen = true;
+    this.resetModal.classList.add('zh-reset-modal--visible');
+    this.resetModal.setAttribute('aria-hidden', 'false');
+    this.resetCancelBtn.focus();
+  }
+
+  private closeResetModal(): void {
+    this.resetOpen = false;
+    this.resetModal.classList.remove('zh-reset-modal--visible');
+    this.resetModal.setAttribute('aria-hidden', 'true');
+    this.resetBtn.focus();
+  }
+
+  private confirmReset(): void {
+    this.closeResetModal();
     this.quest.resetProgress();
   }
 

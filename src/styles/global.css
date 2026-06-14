@@ -1577,6 +1577,123 @@ body.zh-scare-shake {
   color: #8a5555;
 }
 
+/* ===== RESET MODAL ===== */
+
+.zh-reset-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 8500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+
+.zh-reset-modal--visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+}
+
+.zh-reset-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 2, 2, 0.82);
+  backdrop-filter: blur(3px);
+}
+
+.zh-reset-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 360px);
+  padding: 32px 28px 28px;
+  text-align: center;
+  background: rgba(8, 6, 6, 0.95);
+  border: 1px solid rgba(70, 25, 25, 0.45);
+  box-shadow: 0 0 40px rgba(40, 10, 10, 0.25);
+  transform: translateY(12px) scale(0.97);
+  transition: transform 0.45s ease;
+}
+
+.zh-reset-modal--visible .zh-reset-modal__panel {
+  transform: translateY(0) scale(1);
+}
+
+.zh-reset-modal__mark {
+  display: block;
+  font-size: 26px;
+  color: #5c1a1a;
+  margin-bottom: 14px;
+  text-shadow: 0 0 16px rgba(90, 20, 20, 0.45);
+}
+
+.zh-reset-modal__title {
+  font-size: 11px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: #8a7068;
+  margin-bottom: 16px;
+}
+
+.zh-reset-modal__text {
+  font-size: 11px;
+  line-height: 1.9;
+  letter-spacing: 1px;
+  color: #6a6058;
+  margin-bottom: 10px;
+}
+
+.zh-reset-modal__warn {
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #5c3030;
+  margin-bottom: 24px;
+}
+
+.zh-reset-modal__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.zh-reset-modal__btn {
+  font-family: inherit;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 12px 18px;
+  cursor: pointer;
+  border: 1px solid rgba(60, 20, 20, 0.35);
+  background: transparent;
+  transition: border-color 0.3s, color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+
+.zh-reset-modal__btn--ghost {
+  color: #6a6058;
+}
+
+.zh-reset-modal__btn--ghost:hover {
+  border-color: rgba(80, 40, 40, 0.45);
+  color: #9a8880;
+}
+
+.zh-reset-modal__btn--danger {
+  color: #a87070;
+  border-color: rgba(90, 30, 30, 0.55);
+}
+
+.zh-reset-modal__btn--danger:hover {
+  color: #c89090;
+  background: rgba(40, 12, 12, 0.35);
+  box-shadow: 0 0 16px rgba(80, 20, 20, 0.25);
+}
+
 /* ===== RITUAL TIMER ===== */
 
 .zh-ritual__timer {
