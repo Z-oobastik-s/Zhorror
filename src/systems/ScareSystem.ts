@@ -108,7 +108,7 @@ export class ScareSystem {
 
     this.audio.playScare('gif');
 
-    const duration = 650 + randRange(0, 350);
+    const duration = 900 + randRange(0, 400);
     setTimeout(() => {
       this.overlay.classList.remove('zh-scare--active', 'zh-scare--gif');
       this.flash.classList.remove('zh-scare__flash--on');
