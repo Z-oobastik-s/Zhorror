@@ -1,7 +1,8 @@
 import { engine } from '@/core/Engine';
 import { events, EVT } from '@/core/EventBus';
 import type { SceneId } from '@/config/constants';
-import { SCENE_IDS } from '@/config/constants';
+import { SCENE_IDS, SCENE_ORDER_ACT3 } from '@/config/constants';
+import { ACT3_BG, mediaUrl } from '@/config/media';
 import { perf } from '@/systems/PerformanceManager';
 import { ScrollSystem } from '@/systems/ScrollSystem';
 import { AtmosphereSystem } from '@/systems/AtmosphereSystem';
@@ -32,6 +33,7 @@ export class App {
   private questHud!: QuestHUD;
   private scrollIndicator!: ScrollIndicator;
   private scenes: Scene[] = [];
+  private bgAct3!: HTMLElement;
 
   constructor(rootEl: HTMLElement) {
     this.root = rootEl;
@@ -51,10 +53,16 @@ export class App {
     this.fxLayer.className = 'zh-fx-layer';
     const bg = document.createElement('div');
     bg.className = 'zh-bg-static';
+    this.bgAct3 = document.createElement('div');
+    this.bgAct3.className = 'zh-bg-act3';
+    this.bgAct3.style.backgroundImage = `url("${mediaUrl(ACT3_BG)}")`;
     const grain = document.createElement('div');
     grain.className = 'zh-bg-grain';
-    this.fxLayer.append(bg, grain);
+    this.fxLayer.append(bg, this.bgAct3, grain);
     this.shell.appendChild(this.fxLayer);
+
+    const preloadAct3Bg = new Image();
+    preloadAct3Bg.src = mediaUrl(ACT3_BG);
 
     this.uiLayer = document.createElement('div');
     this.uiLayer.className = 'zh-ui-layer';
@@ -172,7 +180,9 @@ export class App {
     });
 
     events.on(EVT.SCENE_CHANGE, (payload) => {
-      this.nav.setActive((payload as { id: string }).id);
+      const id = (payload as { id: string }).id;
+      this.nav.setActive(id);
+      this.shell.classList.toggle('zh-app--act3', (SCENE_ORDER_ACT3 as readonly string[]).includes(id));
     });
 
     events.on(EVT.QUEST_UPDATE, () => {

@@ -111,6 +111,38 @@ body.zh-dragging {
     radial-gradient(ellipse 70% 50% at 50% 40%, rgba(45, 25, 35, 0.55) 0%, transparent 60%),
     radial-gradient(ellipse 90% 70% at 50% 100%, rgba(20, 10, 15, 0.8) 0%, transparent 50%),
     linear-gradient(165deg, #121018 0%, #0c0a0e 45%, #080608 100%);
+  transition: opacity 1.4s ease;
+}
+
+.zh-bg-act3 {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1.4s ease;
+  pointer-events: none;
+}
+
+.zh-bg-act3::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(4, 2, 3, 0.78) 0%, rgba(6, 3, 5, 0.52) 45%, rgba(4, 2, 3, 0.82) 100%);
+}
+
+.zh-app--act3 .zh-bg-act3 {
+  opacity: 1;
+}
+
+.zh-app--act3 .zh-bg-static {
+  opacity: 0.12;
+}
+
+.zh-app--act3 .zh-scene__inner {
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.85);
 }
 
 .zh-bg-grain {

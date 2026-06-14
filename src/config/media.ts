@@ -2,6 +2,10 @@
 
 const BASE = import.meta.env.BASE_URL;
 const G = 'gif scream';
+const I = 'Image';
+
+/** Фон акта III */
+export const ACT3_BG = `${I}/3 glava.png`;
 
 export function mediaUrl(relativePath: string): string {
   const encoded = relativePath.split('/').map((p) => encodeURIComponent(p)).join('/');
