@@ -4,6 +4,7 @@ export abstract class Scene {
   protected element!: HTMLElement;
   protected progress = 0;
   protected active = false;
+  protected visible = false;
 
   create(): HTMLElement {
     this.element = document.createElement('section');
@@ -13,11 +14,18 @@ export abstract class Scene {
     return this.element;
   }
 
+  getElement(): HTMLElement {
+    return this.element;
+  }
+
   protected abstract build(): void;
 
-  update(dt: number, progress: number, active: boolean): void {
+  update(dt: number, progress: number, active: boolean, visible: boolean): void {
     this.progress = progress;
     this.active = active;
+    this.visible = visible;
+    this.element.classList.toggle('zh-scene--visible', visible);
+    if (!visible && !active) return;
     this.onUpdate(dt);
   }
 

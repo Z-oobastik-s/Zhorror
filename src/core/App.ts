@@ -1,13 +1,13 @@
 import { engine } from '@/core/Engine';
 import { events, EVT } from '@/core/EventBus';
+import { perf } from '@/systems/PerformanceManager';
 import { ScrollSystem } from '@/systems/ScrollSystem';
 import { AtmosphereSystem } from '@/systems/AtmosphereSystem';
 import { RandomEventSystem } from '@/systems/RandomEventSystem';
 import { AudioSystem } from '@/systems/AudioSystem';
 import { ProtectionSystem } from '@/systems/ProtectionSystem';
-import { CursorSystem } from '@/systems/CursorSystem';
+import { ScareSystem } from '@/systems/ScareSystem';
 import { CanvasRenderer } from '@/render/CanvasRenderer';
-import { WebGLBackground } from '@/render/WebGLBackground';
 import { HorrorNav } from '@/components/HorrorNav';
 import { BootSequence } from '@/components/BootSequence';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
@@ -21,10 +21,9 @@ export class App {
   private scroll!: ScrollSystem;
   private atmosphere!: AtmosphereSystem;
   private randomEvents!: RandomEventSystem;
+  private scare!: ScareSystem;
   private audio!: AudioSystem;
-  private cursor!: CursorSystem;
   private canvasFx!: CanvasRenderer;
-  private webglBg!: WebGLBackground;
   private nav!: HorrorNav;
   private scrollIndicator!: ScrollIndicator;
   private scenes: Scene[] = [];
@@ -45,6 +44,11 @@ export class App {
 
     this.fxLayer = document.createElement('div');
     this.fxLayer.className = 'zh-fx-layer';
+
+    const bg = document.createElement('div');
+    bg.className = 'zh-bg-static';
+    this.fxLayer.appendChild(bg);
+
     this.shell.appendChild(this.fxLayer);
 
     this.uiLayer = document.createElement('div');
@@ -53,9 +57,7 @@ export class App {
   }
 
   private initSystems(): void {
-    this.webglBg = new WebGLBackground(this.fxLayer);
     this.canvasFx = new CanvasRenderer(this.fxLayer);
-    this.cursor = new CursorSystem(this.uiLayer);
     this.atmosphere = new AtmosphereSystem();
     this.scroll = new ScrollSystem(this.shell);
     this.randomEvents = new RandomEventSystem(this.uiLayer, this.atmosphere);
@@ -67,6 +69,7 @@ export class App {
     audioToggle.setAttribute('aria-label', 'Включить звук');
     this.uiLayer.appendChild(audioToggle);
     this.audio = new AudioSystem(audioToggle);
+    this.scare = new ScareSystem(this.uiLayer, this.atmosphere, this.audio, perf);
 
     this.nav = new HorrorNav(this.uiLayer, (id) => {
       this.scroll.scrollToScene(id);
@@ -81,6 +84,7 @@ export class App {
       this.scroll.registerSection(scene.id, el);
     }
     this.scroll.recalculate();
+    perf.observeScenes(this.scenes.map((s) => s.getElement()));
     this.nav.setScenes(scenes.map((s) => ({ id: s.id, label: s.label })));
   }
 
@@ -96,50 +100,65 @@ export class App {
   }
 
   private update(dt: number): void {
-    this.atmosphere.update(dt);
-    this.atmosphere.tickIdle(dt);
     this.scroll.update(dt);
     this.scrollIndicator.update();
-    this.cursor.update(dt);
-    this.webglBg.update(dt);
-    this.canvasFx.update(dt, this.atmosphere, this.cursor);
+
+    if (!perf.shouldRunAmbientSystems()) return;
+
+    this.atmosphere.update(dt);
+    this.atmosphere.tickIdle(dt);
+
+    const fxOn = perf.shouldRenderFx();
+    this.fxLayer.classList.toggle('zh-fx-layer--active', fxOn);
+    this.canvasFx.setEnabled(fxOn);
+    if (fxOn) {
+      this.canvasFx.update(dt, this.atmosphere);
+    }
+
     this.randomEvents.update(dt);
+    this.scare.update(dt);
     this.audio.update(dt, this.atmosphere.getLevel());
 
     for (const scene of this.scenes) {
       const progress = this.scroll.getSceneProgress(scene.id);
       const active = this.scroll.getActiveSceneId() === scene.id;
-      scene.update(dt, progress, active);
+      const visible = perf.shouldUpdateScene(scene.id, active);
+      scene.update(dt, progress, active, visible);
     }
   }
 
-  private render(_dt: number): void {
-    this.webglBg.render(this.atmosphere, this.cursor);
+  private render(dt: number): void {
+    if (!perf.consumeRenderFrame(dt)) return;
     this.canvasFx.render(this.atmosphere);
   }
 
   private bindGlobalEvents(): void {
     const onActivity = () => this.atmosphere.onActivity();
-    window.addEventListener('mousemove', onActivity);
-    window.addEventListener('touchstart', onActivity);
+    window.addEventListener('mousemove', onActivity, { passive: true });
+    window.addEventListener('touchstart', onActivity, { passive: true });
     window.addEventListener('keydown', onActivity);
-    window.addEventListener('wheel', onActivity);
+    window.addEventListener('wheel', onActivity, { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        engine.stop();
+        this.canvasFx.setEnabled(false);
+      } else {
+        engine.start();
+      }
+    });
 
     window.addEventListener('resize', () => {
       this.scroll.recalculate();
       events.emit(EVT.RESIZE);
     });
 
-    events.on(EVT.RANDOM_EVENT, (payload) => {
-      const { type } = payload as { type: string };
-      if (type === 'silhouette_render') {
-        this.canvasFx.spawnSilhouette();
-      }
-    });
-
     events.on(EVT.SCENE_CHANGE, (payload) => {
       const { id } = payload as { id: string };
       this.nav.setActive(id);
+      if (id === 'entity') {
+        setTimeout(() => events.emit(EVT.SCARE_REQUEST, { type: 'eyes' }), 800 + Math.random() * 1200);
+      }
     });
   }
 }

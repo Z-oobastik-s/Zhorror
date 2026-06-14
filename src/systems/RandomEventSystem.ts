@@ -1,6 +1,7 @@
 import { chance, randInt, randPick } from '@/utils/math';
 import { RUNES, WHISPERS } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
+import { perf } from '@/systems/PerformanceManager';
 import type { AtmosphereSystem } from './AtmosphereSystem';
 
 type EventType =
@@ -9,7 +10,6 @@ type EventType =
   | 'rune'
   | 'text_glitch'
   | 'noise_burst'
-  | 'silhouette'
   | 'whisper'
   | 'invert';
 
@@ -26,7 +26,6 @@ const EVENTS: RandomEvent[] = [
   { type: 'rune', minInterval: 30000, chance: 0.015, minAtmosphere: 0.05 },
   { type: 'text_glitch', minInterval: 40000, chance: 0.01, minAtmosphere: 0.15 },
   { type: 'noise_burst', minInterval: 35000, chance: 0.012, minAtmosphere: 0.1 },
-  { type: 'silhouette', minInterval: 50000, chance: 0.008, minAtmosphere: 0.25 },
   { type: 'whisper', minInterval: 55000, chance: 0.006, minAtmosphere: 0.3 },
   { type: 'invert', minInterval: 90000, chance: 0.004, minAtmosphere: 0.4 },
 ];
@@ -43,7 +42,7 @@ export class RandomEventSystem {
   }
 
   update(dt: number): void {
-    if (this.active) return;
+    if (!perf.shouldRunAmbientSystems() || this.active) return;
     const elapsed = performance.now();
     const level = this.atmosphere.getLevel();
 
@@ -80,10 +79,6 @@ export class RandomEventSystem {
       case 'noise_burst':
         this.doNoiseBurst();
         break;
-      case 'silhouette':
-        events.emit(EVT.RANDOM_EVENT, { type: 'silhouette_render' });
-        setTimeout(() => { this.active = false; }, 2000);
-        return;
       case 'whisper':
         this.doWhisper();
         break;

@@ -6,7 +6,7 @@ export class AtmosphereSystem {
   private targetLevel = 0;
   private sessionTime = 0;
   private idleTime = 0;
-  private isIdle = false;
+  private idleState = false;
   private breathPhase = 0;
   private lightFlicker = 1;
   private flickerTarget = 1;
@@ -14,7 +14,7 @@ export class AtmosphereSystem {
 
   constructor() {
     events.on(EVT.IDLE, (payload) => {
-      this.isIdle = (payload as { idle: boolean }).idle;
+      this.idleState = (payload as { idle: boolean }).idle;
     });
   }
 
@@ -23,7 +23,7 @@ export class AtmosphereSystem {
     this.breathPhase += dt * 0.4;
 
     const timeFactor = clamp(this.sessionTime / 120000, 0, 1);
-    const idleFactor = this.isIdle ? 0.15 : 0;
+    const idleFactor = this.idleState ? 0.15 : 0;
     this.targetLevel = clamp(timeFactor + idleFactor, 0, 1);
 
     this.level = damp(this.level, this.targetLevel, 0.8, dt);
@@ -56,6 +56,10 @@ export class AtmosphereSystem {
     return this.lightFlicker;
   }
 
+  isIdle(): boolean {
+    return this.idleState;
+  }
+
   getSessionTime(): number {
     return this.sessionTime;
   }
@@ -70,15 +74,15 @@ export class AtmosphereSystem {
 
   tickIdle(dt: number): void {
     this.idleTime += dt;
-    if (this.idleTime > 8 && !this.isIdle) {
+    if (this.idleTime > 8 && !this.idleState) {
       events.emit(EVT.IDLE, { idle: true });
     }
   }
 
   onActivity(): void {
     this.idleTime = 0;
-    if (this.isIdle) {
-      this.isIdle = false;
+    if (this.idleState) {
+      this.idleState = false;
       events.emit(EVT.IDLE, { idle: false });
     }
   }

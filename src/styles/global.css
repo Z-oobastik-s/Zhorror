@@ -18,7 +18,7 @@ body {
   background: #0c0a0a;
   color: #a09890;
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  cursor: none;
+  cursor: default;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -50,7 +50,8 @@ body {
   pointer-events: none;
 }
 
-.zh-webgl-bg {
+.zh-webgl-bg,
+.zh-bg-static {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -98,39 +99,28 @@ body {
 }
 
 body.zh-dragging {
-  cursor: none;
+  cursor: grabbing;
 }
 
-/* ===== CURSOR ===== */
+/* ===== STATIC BACKGROUND ===== */
 
-.zh-cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border-radius: 50%;
-  background: rgba(180, 40, 40, 0.8);
-  box-shadow: 0 0 12px rgba(120, 20, 20, 0.6);
-  z-index: 9999;
-  pointer-events: none;
-  transition: opacity 0.3s;
-  mix-blend-mode: difference;
+.zh-bg-static {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(28, 18, 24, 0.5) 0%, transparent 65%),
+    radial-gradient(ellipse 100% 80% at 50% 100%, rgba(12, 8, 10, 0.9) 0%, transparent 55%),
+    linear-gradient(180deg, #0e0c0c 0%, #0a080a 50%, #080608 100%);
+  animation: bgPulse 12s ease-in-out infinite alternate;
 }
 
-.zh-cursor-trail {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 24px;
-  height: 24px;
-  margin: -12px 0 0 -12px;
-  border: 1px solid rgba(90, 30, 30, 0.3);
-  border-radius: 50%;
-  z-index: 9998;
-  pointer-events: none;
-  transition: opacity 0.3s;
+@keyframes bgPulse {
+  0% { filter: brightness(1); }
+  100% { filter: brightness(1.06); }
+}
+
+.zh-fx-layer:not(.zh-fx-layer--active) .zh-fx-canvas {
+  display: none !important;
 }
 
 /* ===== NAVIGATION ===== */
@@ -151,7 +141,7 @@ body.zh-dragging {
   display: flex;
   align-items: center;
   gap: 10px;
-  cursor: none;
+  cursor: pointer;
   opacity: 0.4;
   transition: opacity 0.4s, transform 0.4s;
   padding: 6px 0;
@@ -212,7 +202,7 @@ body.zh-dragging {
   height: 36px;
   border: 1px solid rgba(90, 30, 30, 0.4);
   border-radius: 50%;
-  cursor: none;
+  cursor: pointer;
   z-index: 200;
   display: flex;
   align-items: center;
@@ -247,6 +237,12 @@ body.zh-dragging {
   align-items: center;
   justify-content: center;
   padding: 80px 40px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 100vh;
+}
+
+.zh-scene:not(.zh-scene--visible) {
+  pointer-events: none;
 }
 
 .zh-scene__inner {
@@ -365,7 +361,7 @@ body.zh-dragging {
 
 .zh-hero__sigil {
   margin-top: 40px;
-  cursor: none;
+  cursor: pointer;
   position: relative;
 }
 
@@ -462,7 +458,16 @@ body.zh-dragging {
   border: 1px solid rgba(40, 30, 30, 0.4);
   transition: border-color 0.4s, transform 0.4s, box-shadow 0.4s;
   overflow: hidden;
-  cursor: none;
+  cursor: pointer;
+}
+
+.zh-archive__card--cursed {
+  border-color: rgba(80, 20, 20, 0.35);
+}
+
+.zh-archive__card--cursed:hover {
+  border-color: rgba(120, 30, 30, 0.7);
+  box-shadow: 0 0 40px rgba(60, 10, 10, 0.25);
 }
 
 .zh-archive__card--hover {
@@ -923,6 +928,73 @@ body.zh-invert-flash {
   filter: invert(0.08);
 }
 
+/* ===== SCARE / JUMPSCARE ===== */
+
+.zh-scare {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.04s linear, visibility 0s linear 0.2s;
+}
+
+.zh-scare--active {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.02s linear, visibility 0s;
+}
+
+.zh-scare__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.zh-scare__text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(18px, 4vw, 36px);
+  letter-spacing: 12px;
+  color: rgba(120, 30, 30, 0.7);
+  text-transform: uppercase;
+  text-shadow: 0 0 30px rgba(80, 10, 10, 0.8);
+  animation: scareText 0.9s ease forwards;
+}
+
+@keyframes scareText {
+  0% { opacity: 0; transform: scale(1.2); }
+  15% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.95); }
+}
+
+.zh-scare--static .zh-scare__canvas {
+  animation: scareStatic 0.35s steps(4);
+}
+
+@keyframes scareStatic {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+body.zh-scare-shake {
+  animation: scareShake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes scareShake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-6px, 2px); }
+  20% { transform: translate(5px, -3px); }
+  30% { transform: translate(-4px, 4px); }
+  40% { transform: translate(3px, -2px); }
+  50% { transform: translate(-2px, 1px); }
+}
+
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 768px) {
@@ -960,15 +1032,6 @@ body.zh-invert-flash {
 
   .zh-archive__grid {
     grid-template-columns: 1fr;
-  }
-
-  body {
-    cursor: auto;
-  }
-
-  .zh-cursor,
-  .zh-cursor-trail {
-    display: none !important;
   }
 }
 

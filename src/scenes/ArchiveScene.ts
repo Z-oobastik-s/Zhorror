@@ -1,5 +1,6 @@
 import { Scene } from './Scene';
 import { SCENE_IDS, RUNES } from '@/config/constants';
+import { events, EVT } from '@/core/EventBus';
 import { randInt } from '@/utils/math';
 
 const RECORDS = [
@@ -26,6 +27,7 @@ export class ArchiveScene extends Scene {
 
     for (const record of RECORDS) {
       const card = this.createEl('article', 'zh-archive__card');
+      if (record.id === 'ZH-666') card.classList.add('zh-archive__card--cursed');
       card.innerHTML = `
         <div class="zh-archive__card-id">${record.id}</div>
         <div class="zh-archive__card-rune">${RUNES[randInt(0, RUNES.length - 1)]}</div>
@@ -35,6 +37,13 @@ export class ArchiveScene extends Scene {
       `;
       card.addEventListener('mouseenter', () => card.classList.add('zh-archive__card--hover'));
       card.addEventListener('mouseleave', () => card.classList.remove('zh-archive__card--hover'));
+
+      if (record.id === 'ZH-666') {
+        card.addEventListener('click', () => {
+          events.emit(EVT.SCARE_REQUEST, { type: 'face' });
+        });
+      }
+
       this.cards.push(card);
       grid.appendChild(card);
     }
@@ -48,11 +57,11 @@ export class ArchiveScene extends Scene {
       const threshold = 0.1 + i * 0.08;
       const opacity = Math.max(0, Math.min(1, (this.progress - threshold) / 0.3));
       card.style.opacity = String(opacity);
-      card.style.transform = `translateY(${(1 - opacity) * 30}px) rotateX(${(1 - opacity) * 5}deg)`;
+      card.style.transform = `translateY(${(1 - opacity) * 30}px)`;
 
-      if (this.active && Math.random() < 0.0005) {
+      if (this.active && Math.random() < 0.0003) {
         card.classList.add('zh-archive__card--glitch');
-        setTimeout(() => card.classList.remove('zh-archive__card--glitch'), 150);
+        setTimeout(() => card.classList.remove('zh-archive__card--glitch'), 120);
       }
     });
   }

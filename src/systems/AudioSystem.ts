@@ -141,6 +141,38 @@ export class AudioSystem {
     osc.stop(this.ctx.currentTime + 3);
   }
 
+  playScare(type: 'face' | 'static' | 'eyes' | 'text'): void {
+    if (!this.ctx || !this.masterGain) return;
+    void this.ctx.resume();
+
+    const t = this.ctx.currentTime;
+    const burst = this.ctx.createOscillator();
+    const burstGain = this.ctx.createGain();
+    burst.type = 'sawtooth';
+    burst.frequency.setValueAtTime(type === 'face' ? 90 : 140, t);
+    burst.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+    burstGain.gain.setValueAtTime(0, t);
+    burstGain.gain.linearRampToValueAtTime(this.enabled ? 0.25 : 0.12, t + 0.02);
+    burstGain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    burst.connect(burstGain);
+    burstGain.connect(this.masterGain);
+    burst.start(t);
+    burst.stop(t + 0.4);
+
+    const noise = this.ctx.createBufferSource();
+    const buffer = this.ctx.createBuffer(1, this.ctx.sampleRate * 0.2, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    noise.buffer = buffer;
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0, t);
+    noiseGain.gain.linearRampToValueAtTime(this.enabled ? 0.15 : 0.08, t + 0.01);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    noise.connect(noiseGain);
+    noiseGain.connect(this.masterGain);
+    noise.start(t);
+  }
+
   isEnabled(): boolean {
     return this.enabled;
   }

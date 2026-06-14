@@ -5,7 +5,7 @@
 Цифровой архив проклятых записей. Не сайт, а портал в мрачную вселенную.
 ## Ссылка
 
-**URL:** https://z-oobastik-s.github.io/Zhorror/
+**URL:** zoobastik.me/Zhorror/
 
 ## Автор
 
