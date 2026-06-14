@@ -1,51 +1,67 @@
 import { Scene } from './Scene';
 import { SCENE_IDS, RUNES } from '@/config/constants';
+import { events, EVT } from '@/core/EventBus';
 
 export class RitualScene extends Scene {
   readonly id = SCENE_IDS.ritual;
   readonly label = 'Ритуал';
-  private circle!: HTMLElement;
+  private circleInner!: HTMLElement;
   private symbols: HTMLElement[] = [];
   private rotation = 0;
+  private activated = 0;
 
   protected build(): void {
     const inner = this.createEl('div', 'zh-scene__inner zh-ritual');
-
     const header = this.createEl('div', 'zh-ritual__header');
-    header.appendChild(this.createEl('span', 'zh-ritual__label', '◈ секция III'));
-    header.appendChild(this.createEl('h2', 'zh-ritual__title', 'Цифровой ритуал'));
+    header.append(
+      this.createEl('span', 'zh-ritual__label', '◈ секция III'),
+      this.createEl('h2', 'zh-ritual__title', 'Цифровой ритуал'),
+      this.createEl('p', 'zh-ritual__hint', 'активируй все 8 символов'),
+    );
 
-    this.circle = this.createEl('div', 'zh-ritual__circle');
+    const circleWrap = this.createEl('div', 'zh-ritual__circle-wrap');
+    this.circleInner = this.createEl('div', 'zh-ritual__circle');
 
-    const symbolCount = 8;
-    for (let i = 0; i < symbolCount; i++) {
-      const sym = this.createEl('span', 'zh-ritual__symbol', RUNES[i % RUNES.length]);
-      sym.style.setProperty('--angle', `${(360 / symbolCount) * i}deg`);
+    for (let i = 0; i < 8; i++) {
+      const sym = document.createElement('button');
+      sym.className = 'zh-ritual__symbol';
+      sym.type = 'button';
+      sym.textContent = RUNES[i % RUNES.length];
+      sym.style.setProperty('--angle', `${(360 / 8) * i}deg`);
+      sym.addEventListener('click', () => {
+        if (sym.classList.contains('zh-ritual__symbol--lit')) return;
+        sym.classList.add('zh-ritual__symbol--lit');
+        this.activated += 1;
+        events.emit(EVT.INTERACT, { type: 'rune' });
+        if (this.activated >= 8) {
+          setTimeout(() => events.emit(EVT.SCARE_REQUEST, { type: 'static' }), 400);
+        }
+      });
       this.symbols.push(sym);
-      this.circle.appendChild(sym);
+      this.circleInner.appendChild(sym);
     }
 
     const center = this.createEl('div', 'zh-ritual__center');
     center.innerHTML = '<span>Z</span><small>horror</small>';
-    this.circle.appendChild(center);
+    this.circleInner.appendChild(center);
+    circleWrap.appendChild(this.circleInner);
 
-    const desc = this.createEl('p', 'zh-ritual__desc',
-      'Каждый визит усиливает связь. Zoobastiks начертил символы. Вы завершили круг.');
-
-    inner.append(header, this.circle, desc);
+    inner.append(
+      header,
+      circleWrap,
+      this.createEl('p', 'zh-ritual__desc', 'Каждый символ усиливает связь. Zoobastiks начертил круг. Ты внутри.'),
+    );
     this.element.appendChild(inner);
   }
 
   protected onUpdate(dt: number): void {
-    this.setReveal(this.circle, 0.1);
-
-    if (this.active) {
-      this.rotation += dt * 5 * (1 + this.progress);
-      this.circle.style.transform = `rotate(${this.rotation}deg)`;
-    }
-
+    if (!this.active) return;
+    this.rotation += dt * 4;
+    this.circleInner.style.transform = `rotate(${this.rotation}deg)`;
     this.symbols.forEach((sym, i) => {
-      sym.style.opacity = String(0.3 + Math.sin(performance.now() * 0.002 + i) * 0.3);
+      if (!sym.classList.contains('zh-ritual__symbol--lit')) {
+        sym.style.opacity = String(0.5 + Math.sin(performance.now() * 0.003 + i) * 0.3);
+      }
     });
   }
 }

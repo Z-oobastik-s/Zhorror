@@ -14,7 +14,7 @@ export class ScareSystem {
   private textEl: HTMLElement;
   private active = false;
   private lastScare = 0;
-  private readonly minCooldown = 35000;
+  private readonly minCooldown = 22000;
 
   constructor(
     parent: HTMLElement,

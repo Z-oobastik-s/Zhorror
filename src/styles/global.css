@@ -16,7 +16,7 @@ body {
   overflow: hidden;
   height: 100%;
   background: #0c0a0a;
-  color: #a09890;
+  color: #c8c0b8;
   font-family: 'IBM Plex Mono', 'Courier New', monospace;
   cursor: default;
   -webkit-font-smoothing: antialiased;
@@ -108,15 +108,17 @@ body.zh-dragging {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(28, 18, 24, 0.5) 0%, transparent 65%),
-    radial-gradient(ellipse 100% 80% at 50% 100%, rgba(12, 8, 10, 0.9) 0%, transparent 55%),
-    linear-gradient(180deg, #0e0c0c 0%, #0a080a 50%, #080608 100%);
-  animation: bgPulse 12s ease-in-out infinite alternate;
+    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(45, 25, 35, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 70% at 50% 100%, rgba(20, 10, 15, 0.8) 0%, transparent 50%),
+    linear-gradient(165deg, #121018 0%, #0c0a0e 45%, #080608 100%);
 }
 
-@keyframes bgPulse {
-  0% { filter: brightness(1); }
-  100% { filter: brightness(1.06); }
+.zh-bg-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
 .zh-fx-layer:not(.zh-fx-layer--active) .zh-fx-canvas {
@@ -241,8 +243,8 @@ body.zh-dragging {
   contain-intrinsic-size: auto 100vh;
 }
 
-.zh-scene:not(.zh-scene--visible) {
-  pointer-events: none;
+.zh-scene:not(.zh-scene--visible):not(.zh-scene--active) {
+  content-visibility: auto;
 }
 
 .zh-scene__inner {
@@ -429,20 +431,36 @@ body.zh-dragging {
   margin-bottom: 60px;
 }
 
-.zh-archive__label {
+.zh-archive__label,
+.zh-entity__label,
+.zh-ritual__label,
+.zh-void__label {
   font-size: 10px;
   letter-spacing: 4px;
-  color: #3a3530;
+  color: #7a7068;
   display: block;
   margin-bottom: 12px;
 }
 
-.zh-archive__title {
+.zh-archive__title,
+.zh-entity__title,
+.zh-ritual__title,
+.zh-void__title {
   font-family: 'Cormorant Garamond', serif;
   font-size: clamp(32px, 5vw, 56px);
   font-weight: 300;
-  color: #7a706a;
+  color: #d4ccc4;
   letter-spacing: 4px;
+}
+
+.zh-archive__hint,
+.zh-entity__hint,
+.zh-ritual__hint {
+  margin-top: 16px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #8a7068;
+  text-transform: uppercase;
 }
 
 .zh-archive__grid {
@@ -454,11 +472,12 @@ body.zh-dragging {
 .zh-archive__card {
   position: relative;
   padding: 28px;
-  background: rgba(14, 12, 12, 0.6);
-  border: 1px solid rgba(40, 30, 30, 0.4);
-  transition: border-color 0.4s, transform 0.4s, box-shadow 0.4s;
+  background: rgba(22, 18, 20, 0.85);
+  border: 1px solid rgba(80, 60, 60, 0.45);
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
   overflow: hidden;
   cursor: pointer;
+  opacity: 1;
 }
 
 .zh-archive__card--cursed {
@@ -489,7 +508,7 @@ body.zh-dragging {
 .zh-archive__card-id {
   font-size: 9px;
   letter-spacing: 3px;
-  color: #3a3530;
+  color: #8a8078;
   margin-bottom: 16px;
 }
 
@@ -505,15 +524,36 @@ body.zh-dragging {
 .zh-archive__card-title {
   font-family: 'Cormorant Garamond', serif;
   font-size: 22px;
-  color: #8a807a;
+  color: #d8d0c8;
   margin-bottom: 12px;
   font-weight: 400;
 }
 
 .zh-archive__card-text {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #a09890;
+}
+
+.zh-archive__card-secret {
+  display: none;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(90, 30, 30, 0.4);
   font-size: 11px;
   line-height: 1.8;
-  color: #5a5550;
+  color: #9a5050;
+  letter-spacing: 1px;
+}
+
+.zh-archive__card--open .zh-archive__card-secret {
+  display: block;
+  animation: secretReveal 0.4s ease;
+}
+
+@keyframes secretReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
 }
 
 .zh-archive__card-corruption {
@@ -592,11 +632,10 @@ body.zh-dragging {
 }
 
 .zh-entity__text {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 2;
-  color: #5a5550;
+  color: #b0a8a0;
   letter-spacing: 2px;
-  transition: opacity 0.6s;
 }
 
 /* ===== RITUAL ===== */
@@ -625,23 +664,49 @@ body.zh-dragging {
   letter-spacing: 4px;
 }
 
+.zh-ritual__circle-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 40px 0;
+}
+
 .zh-ritual__circle {
   position: relative;
-  width: 280px;
-  height: 280px;
-  margin: 0 auto 40px;
-  border: 1px solid rgba(60, 20, 60, 0.3);
+  width: 300px;
+  height: 300px;
+  border: 1px solid rgba(120, 40, 80, 0.45);
   border-radius: 50%;
-  transition: opacity 0.8s, transform 0.8s;
+  box-shadow: 0 0 60px rgba(60, 15, 40, 0.25), inset 0 0 40px rgba(0, 0, 0, 0.5);
 }
 
 .zh-ritual__symbol {
   position: absolute;
   top: 50%;
   left: 50%;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
   font-size: 18px;
-  color: #3a2a4a;
-  transform: rotate(var(--angle)) translateY(-130px) rotate(calc(-1 * var(--angle)));
+  color: #9a8090;
+  background: rgba(20, 12, 18, 0.9);
+  border: 1px solid rgba(80, 40, 60, 0.5);
+  border-radius: 50%;
+  cursor: pointer;
+  transform: rotate(var(--angle)) translateY(-140px) rotate(calc(-1 * var(--angle)));
+  transition: color 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.zh-ritual__symbol:hover {
+  color: #d4a0a0;
+  border-color: rgba(140, 50, 50, 0.8);
+  box-shadow: 0 0 16px rgba(90, 20, 20, 0.4);
+}
+
+.zh-ritual__symbol--lit {
+  color: #ff6060 !important;
+  border-color: #8a2020 !important;
+  box-shadow: 0 0 20px rgba(180, 30, 30, 0.6) !important;
+  opacity: 1 !important;
 }
 
 .zh-ritual__center {
@@ -984,6 +1049,33 @@ body.zh-invert-flash {
 
 body.zh-scare-shake {
   animation: scareShake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+/* ===== AUDIO HINT ===== */
+
+.zh-audio-hint {
+  position: fixed;
+  bottom: 72px;
+  left: 24px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #8a6050;
+  text-transform: uppercase;
+  opacity: 1;
+  transition: opacity 0.8s;
+  z-index: 200;
+  pointer-events: none;
+  max-width: 200px;
+  line-height: 1.6;
+}
+
+.zh-audio-hint span {
+  color: #a04040;
+  margin-right: 6px;
+}
+
+.zh-audio-hint--hide {
+  opacity: 0;
 }
 
 @keyframes scareShake {

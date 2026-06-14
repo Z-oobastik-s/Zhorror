@@ -24,13 +24,26 @@ export abstract class Scene {
     this.progress = progress;
     this.active = active;
     this.visible = visible;
+    this.element.classList.toggle('zh-scene--active', active);
     this.element.classList.toggle('zh-scene--visible', visible);
     if (!visible && !active) return;
     this.onUpdate(dt);
   }
 
   protected onUpdate(_dt: number): void {
-    /* override in subclass */
+    /* override */
+  }
+
+  /** 1 когда секция активна, иначе плавно по скроллу */
+  protected reveal(stagger = 0): number {
+    if (this.active) return 1;
+    return Math.max(0, Math.min(1, (this.progress - stagger) / 0.35));
+  }
+
+  protected applyReveal(el: HTMLElement, stagger = 0): void {
+    const v = this.reveal(stagger);
+    el.style.opacity = String(v);
+    el.style.transform = v >= 1 ? 'none' : `translateY(${(1 - v) * 24}px)`;
   }
 
   protected createEl(tag: string, className: string, text?: string): HTMLElement {
@@ -38,12 +51,5 @@ export abstract class Scene {
     el.className = className;
     if (text) el.textContent = text;
     return el;
-  }
-
-  protected setReveal(el: HTMLElement, threshold = 0.2): void {
-    const opacity = Math.max(0, Math.min(1, (this.progress - threshold) / (1 - threshold)));
-    const translate = (1 - opacity) * 40;
-    el.style.opacity = String(opacity);
-    el.style.transform = `translateY(${translate}px)`;
   }
 }

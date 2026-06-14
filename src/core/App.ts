@@ -5,9 +5,9 @@ import { ScrollSystem } from '@/systems/ScrollSystem';
 import { AtmosphereSystem } from '@/systems/AtmosphereSystem';
 import { RandomEventSystem } from '@/systems/RandomEventSystem';
 import { AudioSystem } from '@/systems/AudioSystem';
+import { InteractionSystem } from '@/systems/InteractionSystem';
 import { ProtectionSystem } from '@/systems/ProtectionSystem';
 import { ScareSystem } from '@/systems/ScareSystem';
-import { CanvasRenderer } from '@/render/CanvasRenderer';
 import { HorrorNav } from '@/components/HorrorNav';
 import { BootSequence } from '@/components/BootSequence';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
@@ -23,7 +23,7 @@ export class App {
   private randomEvents!: RandomEventSystem;
   private scare!: ScareSystem;
   private audio!: AudioSystem;
-  private canvasFx!: CanvasRenderer;
+  private interaction!: InteractionSystem;
   private nav!: HorrorNav;
   private scrollIndicator!: ScrollIndicator;
   private scenes: Scene[] = [];
@@ -44,11 +44,11 @@ export class App {
 
     this.fxLayer = document.createElement('div');
     this.fxLayer.className = 'zh-fx-layer';
-
     const bg = document.createElement('div');
     bg.className = 'zh-bg-static';
-    this.fxLayer.appendChild(bg);
-
+    const grain = document.createElement('div');
+    grain.className = 'zh-bg-grain';
+    this.fxLayer.append(bg, grain);
     this.shell.appendChild(this.fxLayer);
 
     this.uiLayer = document.createElement('div');
@@ -57,7 +57,6 @@ export class App {
   }
 
   private initSystems(): void {
-    this.canvasFx = new CanvasRenderer(this.fxLayer);
     this.atmosphere = new AtmosphereSystem();
     this.scroll = new ScrollSystem(this.shell);
     this.randomEvents = new RandomEventSystem(this.uiLayer, this.atmosphere);
@@ -67,13 +66,14 @@ export class App {
     audioToggle.setAttribute('role', 'button');
     audioToggle.setAttribute('tabindex', '0');
     audioToggle.setAttribute('aria-label', 'Включить звук');
+    audioToggle.title = 'Звук архива';
     this.uiLayer.appendChild(audioToggle);
+
     this.audio = new AudioSystem(audioToggle);
+    this.interaction = new InteractionSystem(this.uiLayer, this.audio);
     this.scare = new ScareSystem(this.uiLayer, this.atmosphere, this.audio, perf);
 
-    this.nav = new HorrorNav(this.uiLayer, (id) => {
-      this.scroll.scrollToScene(id);
-    });
+    this.nav = new HorrorNav(this.uiLayer, (id) => this.scroll.scrollToScene(id));
     this.scrollIndicator = new ScrollIndicator(this.uiLayer, this.scroll);
   }
 
@@ -82,6 +82,9 @@ export class App {
     for (const scene of scenes) {
       const el = scene.create();
       this.scroll.registerSection(scene.id, el);
+      el.querySelectorAll('.zh-archive__card, .zh-hero__sigil, .zh-nav__sigil, .zh-ritual__symbol').forEach((node) => {
+        this.interaction.bindHover(node as HTMLElement, node.classList.contains('zh-archive__card') ? 'paper' : 'rune');
+      });
     }
     this.scroll.recalculate();
     perf.observeScenes(this.scenes.map((s) => s.getElement()));
@@ -94,9 +97,7 @@ export class App {
     this.shell.classList.add('zh-app--ready');
     events.emit(EVT.BOOT_COMPLETE);
     engine.start();
-
     engine.onUpdate((dt) => this.update(dt));
-    engine.onRender((dt) => this.render(dt));
   }
 
   private update(dt: number): void {
@@ -107,14 +108,6 @@ export class App {
 
     this.atmosphere.update(dt);
     this.atmosphere.tickIdle(dt);
-
-    const fxOn = perf.shouldRenderFx();
-    this.fxLayer.classList.toggle('zh-fx-layer--active', fxOn);
-    this.canvasFx.setEnabled(fxOn);
-    if (fxOn) {
-      this.canvasFx.update(dt, this.atmosphere);
-    }
-
     this.randomEvents.update(dt);
     this.scare.update(dt);
     this.audio.update(dt, this.atmosphere.getLevel());
@@ -127,11 +120,6 @@ export class App {
     }
   }
 
-  private render(dt: number): void {
-    if (!perf.consumeRenderFrame(dt)) return;
-    this.canvasFx.render(this.atmosphere);
-  }
-
   private bindGlobalEvents(): void {
     const onActivity = () => this.atmosphere.onActivity();
     window.addEventListener('mousemove', onActivity, { passive: true });
@@ -140,12 +128,8 @@ export class App {
     window.addEventListener('wheel', onActivity, { passive: true });
 
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        engine.stop();
-        this.canvasFx.setEnabled(false);
-      } else {
-        engine.start();
-      }
+      if (document.hidden) engine.stop();
+      else engine.start();
     });
 
     window.addEventListener('resize', () => {
@@ -154,18 +138,18 @@ export class App {
     });
 
     events.on(EVT.SCENE_CHANGE, (payload) => {
-      const { id } = payload as { id: string };
-      this.nav.setActive(id);
-      if (id === 'entity') {
-        setTimeout(() => events.emit(EVT.SCARE_REQUEST, { type: 'eyes' }), 800 + Math.random() * 1200);
-      }
+      this.nav.setActive((payload as { id: string }).id);
+    });
+
+    events.on(EVT.INTERACT, (payload) => {
+      const { type } = payload as { type: string };
+      if (type === 'rune' && this.audio.isEnabled()) this.audio.playSfx('rune');
     });
   }
 }
 
 export async function createApp(root: HTMLElement): Promise<App> {
   const app = new App(root);
-
   const [
     { HeroScene },
     { ArchiveScene },
@@ -179,7 +163,6 @@ export async function createApp(root: HTMLElement): Promise<App> {
     import('@/scenes/RitualScene'),
     import('@/scenes/VoidScene'),
   ]);
-
   await app.registerScenes([
     new HeroScene(),
     new ArchiveScene(),
@@ -187,7 +170,6 @@ export async function createApp(root: HTMLElement): Promise<App> {
     new RitualScene(),
     new VoidScene(),
   ]);
-
   await app.boot();
   return app;
 }

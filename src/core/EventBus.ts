@@ -40,6 +40,7 @@ export const EVT = {
   IDLE: 'user:idle',
   SCARE: 'scare',
   SCARE_REQUEST: 'scare:request',
+  INTERACT: 'interact',
   TRANSITION_START: 'transition:start',
   TRANSITION_END: 'transition:end',
   BOOT_COMPLETE: 'boot:complete',

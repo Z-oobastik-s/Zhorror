@@ -9,11 +9,10 @@ export class HeroScene extends Scene {
   private subtitleEl!: HTMLElement;
   private authorEl!: HTMLElement;
   private runeRing!: HTMLElement;
-  private enterSigil!: HTMLElement;
-  private eyeEl!: HTMLElement;
-  private glitchTimer = 0;
-  private titleScale = 0.96;
+  private eyePupil!: HTMLElement;
   private introTime = 0;
+  private pupilX = 0;
+  private pupilY = 0;
 
   protected build(): void {
     const inner = this.createEl('div', 'zh-scene__inner zh-hero');
@@ -25,72 +24,50 @@ export class HeroScene extends Scene {
       this.runeRing.appendChild(rune);
     }
 
-    this.eyeEl = this.createEl('div', 'zh-hero__eye');
-    this.eyeEl.innerHTML = '<div class="zh-hero__pupil"></div>';
+    const eye = this.createEl('div', 'zh-hero__eye');
+    this.eyePupil = this.createEl('div', 'zh-hero__pupil');
+    eye.appendChild(this.eyePupil);
 
     this.titleEl = this.createEl('h1', 'zh-hero__title', BRAND.name);
     this.subtitleEl = this.createEl('p', 'zh-hero__subtitle', BRAND.tagline);
     this.authorEl = this.createEl('p', 'zh-hero__author', `создано ${BRAND.author}`);
+    inner.append(this.runeRing, eye, this.titleEl, this.subtitleEl, this.authorEl);
 
-    this.enterSigil = this.createEl('div', 'zh-hero__sigil');
-    this.enterSigil.setAttribute('role', 'button');
-    this.enterSigil.setAttribute('tabindex', '0');
-    this.enterSigil.innerHTML = `
-      <span class="zh-hero__sigil-inner">
-        <span class="zh-hero__sigil-text">войти</span>
-        <span class="zh-hero__sigil-rune">ᛟ</span>
-      </span>
-    `;
-
-    const scrollHint = this.createEl('div', 'zh-hero__scroll-hint');
-    scrollHint.innerHTML = '<span></span><span>спускайся глубже</span>';
-
-    inner.append(this.runeRing, this.eyeEl, this.titleEl, this.subtitleEl, this.authorEl, this.enterSigil, scrollHint);
-    this.element.appendChild(inner);
-
-    this.enterSigil.addEventListener('click', () => {
+    const sigil = this.createEl('div', 'zh-hero__sigil');
+    sigil.setAttribute('role', 'button');
+    sigil.setAttribute('tabindex', '0');
+    sigil.innerHTML = '<span class="zh-hero__sigil-inner"><span class="zh-hero__sigil-text">войти в архив</span><span class="zh-hero__sigil-rune">ᛟ</span></span>';
+    sigil.addEventListener('click', () => {
       window.dispatchEvent(new CustomEvent('zh-navigate', { detail: { scene: SCENE_IDS.archive } }));
     });
-    this.enterSigil.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        this.enterSigil.click();
-      }
-    });
+
+    inner.appendChild(sigil);
+    const hint = this.createEl('div', 'zh-hero__scroll-hint');
+    hint.innerHTML = '<span></span><span>листай вниз</span>';
+    inner.appendChild(hint);
+    this.element.appendChild(inner);
+
+    window.addEventListener('mousemove', this.trackEye, { passive: true });
   }
 
+  private trackEye = (e: MouseEvent): void => {
+    if (!this.active) return;
+    const rect = this.element.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height * 0.38;
+    this.pupilX = damp(this.pupilX, (e.clientX - cx) / 35, 14, 0.016);
+    this.pupilY = damp(this.pupilY, (e.clientY - cy) / 35, 14, 0.016);
+    this.eyePupil.style.transform = `translate(${this.pupilX}px, ${this.pupilY}px)`;
+  };
+
   protected onUpdate(dt: number): void {
-    if (!this.active && this.progress < 0.01) return;
-
-    if (this.active) {
-      this.introTime = Math.min(this.introTime + dt, 2);
-    }
-
-    this.titleScale = damp(this.titleScale, 1, 2, dt);
-    this.titleEl.style.transform = `scale(${this.titleScale})`;
-
-    const intro = Math.min(1, this.introTime / 1.2);
-    if (this.active) {
-      this.titleEl.style.opacity = String(0.4 + intro * 0.6);
-      this.subtitleEl.style.opacity = String(0.35 + intro * 0.55);
-      this.authorEl.style.opacity = String(0.3 + intro * 0.45);
-    } else {
-      const fade = Math.max(0, 1 - this.progress * 2);
-      this.titleEl.style.opacity = String(fade);
-      this.subtitleEl.style.opacity = String(fade * 0.85);
-      this.authorEl.style.opacity = String(fade * 0.7);
-    }
-
-    this.glitchTimer -= dt;
-    if (this.glitchTimer <= 0 && Math.random() < 0.002) {
-      this.titleEl.classList.add('zh-glitch-active');
-      this.glitchTimer = 0.1;
-      setTimeout(() => this.titleEl.classList.remove('zh-glitch-active'), 100);
-    }
-
-    if (this.active) {
-      const ringRotation = performance.now() * 0.005;
-      this.runeRing.style.transform = `rotate(${ringRotation}deg)`;
-    }
+    if (!this.active) return;
+    this.introTime = Math.min(this.introTime + dt, 1.5);
+    const v = Math.min(1, this.introTime / 0.6);
+    this.titleEl.style.opacity = String(v);
+    this.subtitleEl.style.opacity = String(v * 0.9);
+    this.authorEl.style.opacity = String(v * 0.75);
+    this.runeRing.style.opacity = String(v * 0.55);
+    this.runeRing.style.transform = `rotate(${performance.now() * 0.004}deg)`;
   }
 }
