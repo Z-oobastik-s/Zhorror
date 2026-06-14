@@ -10,6 +10,9 @@ export const ACT3_BG = `${I}/3 glava.png`;
 /** Фон акта IV (мясник) */
 export const ACT4_BG = `${I}/4 glava.png`;
 
+/** Пентаграмма для финального ритуала */
+export const SATAN_CIRCLE = `${I}/satan.png`;
+
 export function mediaUrl(relativePath: string): string {
   const encoded = relativePath.split('/').map((p) => encodeURIComponent(p)).join('/');
   return `${BASE}assets/${encoded}`;

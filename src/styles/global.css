@@ -1336,10 +1336,10 @@ body.zh-scare-shake {
     height: 220px;
   }
 
-  .zh-finalrite .zh-ritual__circle {
+  .zh-finalrite__circle {
     width: min(320px, 92vw);
     height: min(320px, 92vw);
-    --orbit: calc(min(320px, 92vw) * 0.44);
+    --orbit: calc(min(320px, 92vw) * 0.46);
   }
 
   .zh-finalrite .zh-ritual__symbol {
@@ -1655,27 +1655,62 @@ body.zh-scare-shake {
   transform: rotate(var(--angle)) translateY(var(--orbit, -140px)) rotate(calc(-1 * var(--angle))) scale(1.12);
 }
 
-/* Финальный ритуал: крупнее круг, без вращения */
+/* Финальный ритуал: пентаграмма satan.png + крупные руны */
 .zh-finalrite .zh-ritual__circle-wrap {
   margin: 24px 0 32px;
 }
 
-.zh-finalrite .zh-ritual__circle {
+.zh-finalrite__circle {
+  border: none;
+  box-shadow: none;
+  background: transparent;
   width: min(420px, 88vw);
   height: min(420px, 88vw);
-  --orbit: calc(min(420px, 88vw) * 0.44);
+  --orbit: calc(min(420px, 88vw) * 0.46);
+}
+
+.zh-finalrite__rotor {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+  will-change: transform;
+}
+
+.zh-finalrite__satan {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 0 28px rgba(70, 8, 8, 0.5));
+  opacity: 0.92;
 }
 
 .zh-finalrite .zh-ritual__symbol {
+  z-index: 2;
   width: 48px;
   height: 48px;
   margin: -24px 0 0 -24px;
   font-size: 24px;
-  transform: rotate(var(--angle)) translateY(calc(-1 * var(--orbit))) rotate(calc(-1 * var(--angle)));
+  background: rgba(8, 2, 2, 0.88);
+  border-color: rgba(100, 25, 25, 0.55);
+  transform:
+    rotate(var(--angle))
+    translateY(calc(-1 * var(--orbit)))
+    rotate(calc(-1 * var(--angle)))
+    rotate(var(--spin, 0deg));
 }
 
 .zh-finalrite .zh-ritual__symbol--next {
-  transform: rotate(var(--angle)) translateY(calc(-1 * var(--orbit))) rotate(calc(-1 * var(--angle))) scale(1.15);
+  transform:
+    rotate(var(--angle))
+    translateY(calc(-1 * var(--orbit)))
+    rotate(calc(-1 * var(--angle)))
+    rotate(var(--spin, 0deg))
+    scale(1.15);
 }
 
 .zh-finalrite .zh-ritual__sequence {

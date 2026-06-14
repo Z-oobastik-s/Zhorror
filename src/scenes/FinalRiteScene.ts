@@ -5,6 +5,7 @@ import {
   SCENE_IDS,
 } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
+import { mediaUrl, SATAN_CIRCLE } from '@/config/media';
 import { quest } from '@/systems/QuestSystem';
 
 type Phase = 'memory' | 'input' | 'done';
@@ -23,6 +24,7 @@ export class FinalRiteScene extends Scene {
   private phaseTimer = 0;
   private inputLeft = 0;
   private inputSeconds = 0;
+  private rotation = 0;
   private ritualDone = false;
 
   protected build(): void {
@@ -45,7 +47,16 @@ export class FinalRiteScene extends Scene {
     this.timerBar.append(this.timerFill, this.timerText);
 
     const circleWrap = this.createEl('div', 'zh-ritual__circle-wrap');
-    this.circleInner = this.createEl('div', 'zh-ritual__circle');
+    const circleOuter = this.createEl('div', 'zh-ritual__circle zh-finalrite__circle');
+    this.circleInner = this.createEl('div', 'zh-finalrite__rotor');
+
+    const satanImg = document.createElement('img');
+    satanImg.className = 'zh-finalrite__satan';
+    satanImg.src = mediaUrl(SATAN_CIRCLE);
+    satanImg.alt = '';
+    satanImg.draggable = false;
+    this.circleInner.appendChild(satanImg);
+
     for (let i = 0; i < RITUAL_CIRCLE_RUNES.length; i++) {
       const sym = document.createElement('button');
       sym.className = 'zh-ritual__symbol';
@@ -57,7 +68,8 @@ export class FinalRiteScene extends Scene {
       this.symbols.push(sym);
       this.circleInner.appendChild(sym);
     }
-    circleWrap.appendChild(this.circleInner);
+    circleOuter.appendChild(this.circleInner);
+    circleWrap.appendChild(circleOuter);
     inner.append(header, this.sequenceEl, this.hintEl, this.timerBar, circleWrap);
     this.element.appendChild(inner);
 
@@ -67,6 +79,12 @@ export class FinalRiteScene extends Scene {
       this.hintEl.textContent = 'ритуал завершён';
       this.timerBar.classList.add('zh-ritual__timer--hidden');
     }
+  }
+
+  private applyRotation(): void {
+    this.circleInner.style.transform = `rotate(${this.rotation}deg)`;
+    const counter = `${-this.rotation}deg`;
+    this.symbols.forEach((s) => s.style.setProperty('--spin', counter));
   }
 
   private updateSequenceDisplay(): void {
@@ -108,6 +126,8 @@ export class FinalRiteScene extends Scene {
     this.symbols.forEach((s) => s.classList.remove(
       'zh-ritual__symbol--lit', 'zh-ritual__symbol--wrong', 'zh-ritual__symbol--next',
     ));
+    this.rotation = 0;
+    this.applyRotation();
     this.hintEl.textContent = 'сорвано. смотри снова.';
   }
 
@@ -147,6 +167,8 @@ export class FinalRiteScene extends Scene {
     if (!this.active || this.ritualDone) return;
     if (this.phase === 'memory') {
       this.phaseTimer += dt;
+      this.rotation += dt * 6;
+      this.applyRotation();
       if (this.phaseTimer > 0.5 && !this.sequenceEl.classList.contains('zh-ritual__sequence--visible')) this.showSequence();
       if (this.phaseTimer >= FINAL_RITUAL_SHOW_SECONDS + 0.5) this.startInput();
       return;
@@ -154,6 +176,8 @@ export class FinalRiteScene extends Scene {
     if (this.phase === 'input') {
       this.inputLeft -= dt;
       this.updateTimer();
+      this.rotation += dt * 9;
+      this.applyRotation();
       if (this.inputLeft <= 0) {
         quest.registerFail();
         events.emit(EVT.SCARE_REQUEST, { type: 'eyes' });
