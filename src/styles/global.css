@@ -1545,6 +1545,13 @@ body.zh-scare-shake {
   flex-wrap: wrap;
 }
 
+.zh-quest-hud__act3 {
+  display: none;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
 .zh-quest-hud__word {
   font-size: 10px;
   letter-spacing: 1px;
@@ -1964,6 +1971,308 @@ body.zh-scare-shake {
 
 .zh-collapse--complete .zh-collapse__message {
   color: #5a4048;
+}
+
+/* ===== ACT III SCENES ===== */
+
+.zh-gate3,
+.zh-catacombs,
+.zh-swarm,
+.zh-silence,
+.zh-finalrite,
+.zh-terminus {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.zh-gate3__label,
+.zh-catacombs__label,
+.zh-swarm__label,
+.zh-silence__label,
+.zh-finalrite__label,
+.zh-terminus__label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: #3a1520;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.zh-gate3__title,
+.zh-catacombs__title,
+.zh-swarm__title,
+.zh-silence__title,
+.zh-finalrite__title,
+.zh-terminus__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 300;
+  color: #6a4550;
+  letter-spacing: 4px;
+  margin-bottom: 12px;
+}
+
+.zh-gate3__text {
+  max-width: 480px;
+  font-size: 12px;
+  line-height: 2;
+  color: #6a5055;
+  letter-spacing: 1px;
+  margin: 16px 0 8px;
+}
+
+.zh-gate3__hint,
+.zh-catacombs__hint,
+.zh-swarm__hint,
+.zh-silence__hint,
+.zh-finalrite__hint,
+.zh-terminus__hint {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #4a3035;
+  text-transform: lowercase;
+}
+
+.zh-gate3__sigil {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 40px;
+  border: 1px solid rgba(70, 15, 25, 0.45);
+  cursor: pointer;
+  transition: border-color 0.4s, box-shadow 0.4s, transform 0.3s;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #7a5058;
+}
+
+.zh-gate3__sigil:hover {
+  border-color: rgba(100, 25, 35, 0.65);
+  box-shadow: 0 0 28px rgba(80, 15, 25, 0.35);
+  transform: scale(1.02);
+}
+
+.zh-gate3__rune {
+  font-size: 22px;
+  color: #6a1525;
+  text-shadow: 0 0 12px rgba(90, 20, 30, 0.5);
+}
+
+.zh-catacombs__header,
+.zh-swarm__header,
+.zh-finalrite__header,
+.zh-terminus__header {
+  margin-bottom: 20px;
+}
+
+.zh-catacombs__status,
+.zh-swarm__status,
+.zh-silence__status {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #6a4048;
+  margin-bottom: 20px;
+  min-height: 20px;
+}
+
+.zh-catacombs__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(72px, 1fr));
+  gap: 12px;
+  max-width: 420px;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .zh-catacombs__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.zh-catacombs__door {
+  aspect-ratio: 0.75;
+  background: rgba(8, 4, 6, 0.85);
+  border: 1px solid rgba(60, 15, 25, 0.35);
+  color: #7a5860;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+}
+
+.zh-catacombs__door:hover {
+  border-color: rgba(90, 25, 35, 0.5);
+}
+
+.zh-catacombs__door-id {
+  font-size: 9px;
+  letter-spacing: 2px;
+  opacity: 0.45;
+}
+
+.zh-catacombs__door-rune {
+  font-size: 18px;
+}
+
+.zh-catacombs__door--found {
+  border-color: rgba(90, 30, 40, 0.65);
+  box-shadow: 0 0 14px rgba(70, 20, 30, 0.35);
+  color: #a87078;
+}
+
+.zh-catacombs__door--wrong {
+  animation: echoWrong 0.4s ease;
+  border-color: #6a1525;
+}
+
+.zh-catacombs__door--done {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.zh-swarm__timer {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 36px;
+  letter-spacing: 4px;
+  color: #5a3038;
+  margin: 12px 0 8px;
+  transition: color 0.3s;
+}
+
+.zh-swarm__timer--urgent {
+  color: #8a2535;
+  animation: timerPulse 0.5s ease infinite;
+}
+
+.zh-swarm__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 56px);
+  gap: 16px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.zh-swarm__eye {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(60, 15, 25, 0.4);
+  background: rgba(6, 3, 4, 0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.zh-swarm__eye:hover {
+  border-color: rgba(90, 25, 35, 0.55);
+}
+
+.zh-swarm__pupil {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #4a1525;
+  box-shadow: 0 0 8px rgba(90, 20, 30, 0.4);
+}
+
+.zh-swarm__eye--hit .zh-swarm__pupil {
+  background: #8a2535;
+  box-shadow: 0 0 12px rgba(120, 30, 40, 0.6);
+}
+
+.zh-swarm__eye--hit {
+  border-color: rgba(90, 30, 40, 0.6);
+}
+
+.zh-silence__progress {
+  width: min(340px, 80vw);
+  height: 4px;
+  background: rgba(30, 10, 15, 0.4);
+  margin: 28px 0 16px;
+}
+
+.zh-silence__progress-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #3a1018, #7a2030);
+  box-shadow: 0 0 10px rgba(90, 20, 30, 0.35);
+  transition: width 0.15s linear;
+}
+
+.zh-terminus__message {
+  max-width: 480px;
+  font-size: 12px;
+  line-height: 2;
+  color: #6a5055;
+  letter-spacing: 1px;
+  margin: 20px 0;
+}
+
+.zh-terminus__form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.zh-terminus__input {
+  background: rgba(8, 4, 6, 0.9);
+  border: 1px solid rgba(70, 15, 25, 0.45);
+  color: #a89098;
+  padding: 12px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 3px;
+  min-width: 180px;
+  outline: none;
+}
+
+.zh-terminus__submit {
+  background: transparent;
+  border: 1px solid rgba(70, 15, 25, 0.5);
+  color: #8a7078;
+  padding: 12px 18px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.zh-terminus__feedback {
+  margin-top: 16px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #6a3540;
+  min-height: 20px;
+}
+
+.zh-terminus__footer {
+  margin-top: 60px;
+  display: flex;
+  gap: 20px;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #4a3035;
+}
+
+.zh-terminus--complete .zh-terminus__message {
+  color: #6a4550;
 }
 
 @media (prefers-reduced-motion: reduce) {

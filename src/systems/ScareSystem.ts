@@ -1,10 +1,11 @@
 import { chance, randPick, randRange } from '@/utils/math';
 import { WHISPERS } from '@/config/constants';
-import { SCREAM_GIFS, mediaUrl, pickRandom } from '@/config/media';
+import { SCREAM_GIFS, SCREAM_GIFS_ACT3, mediaUrl, pickScareGif } from '@/config/media';
 import { events, EVT } from '@/core/EventBus';
 import type { AtmosphereSystem } from './AtmosphereSystem';
 import type { AudioSystem } from './AudioSystem';
 import type { PerformanceManager } from './PerformanceManager';
+import { quest } from './QuestSystem';
 
 type ScareType = 'gif' | 'face' | 'static' | 'eyes' | 'text';
 
@@ -55,7 +56,7 @@ export class ScareSystem {
 
   private preloadGifs(): void {
     if (this.preloaded) return;
-    for (const gif of SCREAM_GIFS) {
+    for (const gif of [...SCREAM_GIFS, ...SCREAM_GIFS_ACT3]) {
       const img = new Image();
       img.src = mediaUrl(gif);
     }
@@ -100,7 +101,7 @@ export class ScareSystem {
   }
 
   private playGifScare(): void {
-    const gifPath = pickRandom(SCREAM_GIFS);
+    const gifPath = pickScareGif(quest.getAct());
     this.gifEl.src = mediaUrl(gifPath);
     this.textEl.textContent = '';
     this.overlay.classList.add('zh-scare--active', 'zh-scare--gif');

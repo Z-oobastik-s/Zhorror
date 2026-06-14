@@ -51,11 +51,11 @@ export class CollapseScene extends Scene {
     inner.append(header, this.messageEl, this.formEl, this.feedbackEl, footer);
     this.element.appendChild(inner);
 
-    if (quest.isComplete()) this.showEnding();
+    if (quest.isAct2Complete()) this.showEnding();
   }
 
   private tryCode(): void {
-    if (quest.isComplete()) return;
+    if (quest.isAct2Complete()) return;
 
     if (quest.submitCollapseCode(this.inputEl.value)) {
       this.showEnding();
@@ -70,8 +70,8 @@ export class CollapseScene extends Scene {
   }
 
   private showEnding(): void {
-    this.messageEl.textContent = 'Ты назвал архив. Он ответил твоим именем. Выхода по-прежнему нет.';
-    this.feedbackEl.textContent = 'оба акта пройдены. добро пожаловать в вечность.';
+    this.messageEl.textContent = 'Ты назвал архив. За коллапсом - ядро. Третий слой уже открыт.';
+    this.feedbackEl.textContent = 'акт II завершён. ядро ждёт.';
     this.formEl.style.display = 'none';
     this.element.classList.add('zh-collapse--complete');
   }

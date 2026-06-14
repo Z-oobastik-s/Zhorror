@@ -1,34 +1,49 @@
 import { events, EVT } from '@/core/EventBus';
 import { chance, randRange } from '@/utils/math';
+import { getDuration, isLongTrack, isMediumTrack } from '@/config/audioMeta';
 import { AUDIO, mediaUrl, pickRandom, type ScareAudioKind } from '@/config/media';
 
 type SfxKind = 'hover' | 'click' | 'paper' | 'rune' | 'heartbeat' | 'creak';
+
+const MAX_SHORT = 4;
 
 export class AudioSystem {
   private masterVolume = 0.55;
   private enabled = false;
   private primed = false;
+  private actProfile = 1;
   private ambientEl: HTMLAudioElement | null = null;
+  private longLockUntil = 0;
+  private mediumLockUntil = 0;
   private musicBoxTimer = 0;
   private eventTimer = 0;
   private whisperTimer = 0;
-  private activeOneShots: HTMLAudioElement[] = [];
+  private bedTimer = 0;
+  private activeShort: HTMLAudioElement[] = [];
 
   constructor(private toggleBtn: HTMLElement) {
     this.toggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      void this.primeAndEnable();
+      if (this.enabled) this.disable();
+      else void this.primeAndEnable();
     });
     this.toggleBtn.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        void this.primeAndEnable();
+        if (this.enabled) this.disable();
+        else void this.primeAndEnable();
       }
     });
 
     const primeOnce = () => { void this.primeAndEnable(); };
     document.addEventListener('click', primeOnce, { once: true, capture: true });
     document.addEventListener('keydown', primeOnce, { once: true, capture: true });
+  }
+
+  setActProfile(act: number): void {
+    if (act === this.actProfile) return;
+    this.actProfile = act;
+    if (this.enabled) this.startAmbience();
   }
 
   async primeAndEnable(): Promise<void> {
@@ -41,15 +56,10 @@ export class AudioSystem {
     events.emit(EVT.AUDIO_TOGGLE, { enabled: true });
   }
 
-  toggle(): void {
-    if (this.enabled) this.disable();
-    else void this.primeAndEnable();
-  }
-
   private disable(): void {
     this.enabled = false;
     this.stopAmbience();
-    this.stopAllOneShots();
+    this.stopAllShort();
     this.toggleBtn.classList.remove('zh-audio--on');
     this.toggleBtn.setAttribute('aria-label', 'Включить звук');
     events.emit(EVT.AUDIO_TOGGLE, { enabled: false });
@@ -63,18 +73,65 @@ export class AudioSystem {
     return el;
   }
 
+  private now(): number {
+    return performance.now();
+  }
+
+  private isLongOneShotBusy(): boolean {
+    return this.now() < this.longLockUntil;
+  }
+
+  private isMediumBusy(): boolean {
+    return this.now() < this.mediumLockUntil;
+  }
+
+  private lockDuration(src: string): void {
+    const ms = getDuration(src) * 1000;
+    if (isLongTrack(src)) {
+      this.longLockUntil = Math.max(this.longLockUntil, this.now() + ms + 600);
+    } else if (isMediumTrack(src)) {
+      this.mediumLockUntil = Math.max(this.mediumLockUntil, this.now() + ms + 350);
+    }
+  }
+
+  private canPlay(src: string): boolean {
+    if (isLongTrack(src) && this.isLongOneShotBusy()) return false;
+    if (isMediumTrack(src) && this.isMediumBusy()) return false;
+    if (!isLongTrack(src) && !isMediumTrack(src) && this.activeShort.length >= MAX_SHORT) return false;
+    return true;
+  }
+
+  private trackShort(el: HTMLAudioElement): void {
+    this.activeShort.push(el);
+    el.addEventListener('ended', () => {
+      this.activeShort = this.activeShort.filter((a) => a !== el);
+      el.src = '';
+    });
+  }
+
+  private playFile(src: string, volume: number, loop = false, force = false): HTMLAudioElement | null {
+    if (!this.enabled && !force) return null;
+    if (!force && !loop && !this.canPlay(src)) return null;
+
+    const el = this.createAudio(src, volume, loop);
+    if (!loop) this.lockDuration(src);
+    void el.play().catch(() => {});
+
+    if (loop) return el;
+    this.trackShort(el);
+    return el;
+  }
+
   private startAmbience(): void {
     this.stopAmbience();
-    const track = pickRandom(AUDIO.ambient);
-    this.ambientEl = this.createAudio(track, 0.35, true);
-    void this.ambientEl.play().catch(() => { /* autoplay */ });
-
-    setTimeout(() => {
-      if (!this.enabled) return;
-      const piano = this.createAudio(AUDIO.piano, 0.12, true);
-      void piano.play().catch(() => {});
-      this.activeOneShots.push(piano);
-    }, 3000);
+    const pool = this.actProfile >= 3 ? AUDIO.ambientLoopsAct3 : AUDIO.ambientLoops;
+    const track = pickRandom(pool);
+    this.ambientEl = this.playFile(track, this.actProfile >= 3 ? 0.42 : 0.35, true);
+    if (this.ambientEl) {
+      this.ambientEl.addEventListener('ended', () => {
+        if (this.ambientEl === null) return;
+      });
+    }
   }
 
   private stopAmbience(): void {
@@ -85,91 +142,91 @@ export class AudioSystem {
     }
   }
 
-  private stopAllOneShots(): void {
-    for (const el of this.activeOneShots) {
+  private stopAllShort(): void {
+    for (const el of this.activeShort) {
       el.pause();
       el.src = '';
     }
-    this.activeOneShots = [];
-  }
-
-  private playFile(src: string, volume: number, loop = false): HTMLAudioElement {
-    const el = this.createAudio(src, volume, loop);
-    void el.play().catch(() => {});
-    if (!loop) {
-      el.addEventListener('ended', () => {
-        this.activeOneShots = this.activeOneShots.filter((a) => a !== el);
-      });
-    }
-    this.activeOneShots.push(el);
-    return el;
+    this.activeShort = [];
   }
 
   update(dt: number, atmosphereLevel: number): void {
     if (!this.enabled) return;
+    const intensity = atmosphereLevel * (1 + (this.actProfile - 1) * 0.15);
+
+    this.bedTimer -= dt;
+    if (this.bedTimer <= 0 && !this.isLongOneShotBusy() && chance(0.0025 * (0.3 + intensity))) {
+      const bed = pickRandom(AUDIO.beds);
+      if (this.playFile(bed, 0.22)) {
+        this.bedTimer = getDuration(bed) + randRange(8, 20);
+      }
+    }
 
     this.musicBoxTimer -= dt;
-    if (this.musicBoxTimer <= 0 && chance(0.004 * (0.3 + atmosphereLevel))) {
-      this.playFile(AUDIO.musicBox, 0.25);
-      this.musicBoxTimer = 25 + randRange(0, 40);
+    if (this.musicBoxTimer <= 0 && !this.isLongOneShotBusy() && !this.isMediumBusy() && chance(0.003 * (0.25 + intensity))) {
+      if (this.playFile(AUDIO.musicBox, 0.24)) {
+        this.musicBoxTimer = getDuration(AUDIO.musicBox) + randRange(15, 35);
+      }
     }
 
     this.eventTimer -= dt;
-    if (this.eventTimer <= 0 && chance(0.006 * (0.4 + atmosphereLevel))) {
-      this.playRandomAmbientEvent();
-      this.eventTimer = 10 + randRange(0, 25);
+    if (this.eventTimer <= 0 && chance(0.005 * (0.35 + intensity))) {
+      const ev = pickRandom(AUDIO.events);
+      if (this.playFile(ev, 0.28)) {
+        this.eventTimer = getDuration(ev) + randRange(6, 14);
+      } else {
+        this.eventTimer = 4 + randRange(0, 6);
+      }
     }
 
     this.whisperTimer -= dt;
-    if (this.whisperTimer <= 0 && chance(0.005 * atmosphereLevel)) {
-      this.playFile(pickRandom(AUDIO.static), 0.15);
-      this.whisperTimer = 12 + randRange(0, 30);
+    if (this.whisperTimer <= 0 && chance(0.004 * (0.2 + intensity))) {
+      const w = pickRandom(AUDIO.whispers);
+      if (this.playFile(w, 0.2)) {
+        this.whisperTimer = getDuration(w) + randRange(8, 18);
+      } else {
+        this.whisperTimer = 6 + randRange(0, 8);
+      }
     }
-  }
-
-  private playRandomAmbientEvent(): void {
-    const roll = Math.random();
-    if (roll < 0.25) this.playFile(AUDIO.door, 0.35);
-    else if (roll < 0.45) this.playFile(AUDIO.heartbeat, 0.2);
-    else if (roll < 0.65) this.playFile(AUDIO.nervous, 0.22);
-    else if (roll < 0.8) this.playFile(AUDIO.clock, 0.18);
-    else this.playFile(pickRandom(AUDIO.static), 0.12);
   }
 
   playSfx(kind: SfxKind): void {
     if (!this.enabled) return;
     switch (kind) {
       case 'hover':
-        this.playFile(pickRandom(AUDIO.static), 0.08);
+        this.playFile(pickRandom(AUDIO.static), 0.07);
         break;
       case 'click':
-        this.playFile(pickRandom(AUDIO.impacts), 0.2);
+        this.playFile(pickRandom(AUDIO.impacts), 0.22);
         break;
       case 'paper':
-        this.playFile(AUDIO.door, 0.15);
+        this.playFile(pickRandom([AUDIO.door, ...AUDIO.impacts.slice(0, 3)]), 0.16);
         break;
       case 'rune':
-        this.playFile(AUDIO.piano, 0.18);
+        this.playFile(pickRandom(AUDIO.impacts), 0.14);
         break;
       case 'heartbeat':
-        this.playFile(AUDIO.heartbeat, 0.3);
+        this.playFile(AUDIO.heartbeat, 0.28);
         break;
       case 'creak':
-        this.playFile(AUDIO.door, 0.25);
+        this.playFile(AUDIO.door, 0.22);
         break;
     }
   }
 
   playScare(type: ScareAudioKind): void {
-    const vol = this.enabled ? 0.85 : 0.5;
-    this.playFile(pickRandom(AUDIO.screams), vol);
-    this.playFile(pickRandom(AUDIO.impacts), vol * 0.7);
+    const vol = this.enabled ? 0.88 : 0.5;
+    this.playFile(pickRandom(AUDIO.screams), vol, false, true);
+    this.playFile(pickRandom(AUDIO.impacts), vol * 0.65, false, true);
 
     if (type === 'static') {
-      this.playFile(pickRandom(AUDIO.static), 0.4);
+      this.playFile(pickRandom(AUDIO.static), 0.45, false, true);
     }
     if (type === 'eyes') {
-      this.playFile(AUDIO.heartbeat, 0.35);
+      this.playFile(AUDIO.heartbeat, 0.38, false, true);
+    }
+    if (type === 'gif' && this.actProfile >= 3) {
+      this.playFile(pickRandom(AUDIO.events), 0.35, false, true);
     }
   }
 

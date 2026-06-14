@@ -103,7 +103,7 @@ export class App {
       }
 
       el.querySelectorAll(
-        '.zh-archive__card, .zh-hero__sigil, .zh-abyss__sigil, .zh-nav__sigil, .zh-ritual__symbol, .zh-void__submit, .zh-collapse__submit, .zh-echo__word',
+        '.zh-archive__card, .zh-hero__sigil, .zh-abyss__sigil, .zh-gate3__sigil, .zh-nav__sigil, .zh-ritual__symbol, .zh-void__submit, .zh-collapse__submit, .zh-terminus__submit, .zh-echo__word, .zh-catacombs__door, .zh-swarm__eye',
       ).forEach((node) => {
         const elNode = node as HTMLElement;
         const kind = elNode.classList.contains('zh-archive__card') ? 'paper' : 'rune';
@@ -175,7 +175,10 @@ export class App {
       this.nav.setActive((payload as { id: string }).id);
     });
 
-    events.on(EVT.QUEST_UPDATE, () => this.nav.refreshLocks());
+    events.on(EVT.QUEST_UPDATE, () => {
+      this.nav.refreshLocks();
+      this.audio.setActProfile(quest.getAct());
+    });
     events.on(EVT.QUEST_CHAPTER, (payload) => {
       this.nav.refreshLocks();
       this.navigateToScene((payload as { scene?: string }).scene);
@@ -207,6 +210,12 @@ export async function createApp(root: HTMLElement): Promise<App> {
     { EchoScene },
     { MirrorScene },
     { CollapseScene },
+    { Gate3Scene },
+    { CatacombsScene },
+    { SwarmScene },
+    { SilenceScene },
+    { FinalRiteScene },
+    { TerminusScene },
   ] = await Promise.all([
     import('@/scenes/HeroScene'),
     import('@/scenes/ArchiveScene'),
@@ -217,6 +226,12 @@ export async function createApp(root: HTMLElement): Promise<App> {
     import('@/scenes/EchoScene'),
     import('@/scenes/MirrorScene'),
     import('@/scenes/CollapseScene'),
+    import('@/scenes/Gate3Scene'),
+    import('@/scenes/CatacombsScene'),
+    import('@/scenes/SwarmScene'),
+    import('@/scenes/SilenceScene'),
+    import('@/scenes/FinalRiteScene'),
+    import('@/scenes/TerminusScene'),
   ]);
   await app.registerScenes([
     new HeroScene(),
@@ -228,6 +243,12 @@ export async function createApp(root: HTMLElement): Promise<App> {
     new EchoScene(),
     new MirrorScene(),
     new CollapseScene(),
+    new Gate3Scene(),
+    new CatacombsScene(),
+    new SwarmScene(),
+    new SilenceScene(),
+    new FinalRiteScene(),
+    new TerminusScene(),
   ]);
   await app.boot();
   return app;

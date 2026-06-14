@@ -1,4 +1,4 @@
-import { ECHO_PHRASE, RITUAL_SEQUENCE } from '@/config/constants';
+import { CATACOMB_MARKS, ECHO_PHRASE, FINAL_RITUAL_SEQUENCE, RITUAL_SEQUENCE } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
 import type { QuestSystem } from '@/systems/QuestSystem';
 
@@ -10,6 +10,7 @@ export class QuestHUD {
   private fragmentsEl: HTMLElement;
   private ritualEl: HTMLElement;
   private echoEl: HTMLElement;
+  private act3El: HTMLElement;
   private resetBtn!: HTMLButtonElement;
   private resetModal!: HTMLElement;
   private resetConfirmBtn!: HTMLButtonElement;
@@ -28,6 +29,7 @@ export class QuestHUD {
       <div class="zh-quest-hud__fragments"></div>
       <div class="zh-quest-hud__ritual"></div>
       <div class="zh-quest-hud__echo"></div>
+      <div class="zh-quest-hud__act3"></div>
       <button type="button" class="zh-quest-hud__reset">сбросить прогресс</button>
     `;
     parent.appendChild(this.root);
@@ -38,6 +40,7 @@ export class QuestHUD {
     this.fragmentsEl = this.root.querySelector('.zh-quest-hud__fragments')!;
     this.ritualEl = this.root.querySelector('.zh-quest-hud__ritual')!;
     this.echoEl = this.root.querySelector('.zh-quest-hud__echo')!;
+    this.act3El = this.root.querySelector('.zh-quest-hud__act3')!;
     this.resetBtn = this.root.querySelector('.zh-quest-hud__reset') as HTMLButtonElement;
 
     this.resetModal = document.createElement('div');
@@ -128,7 +131,7 @@ export class QuestHUD {
     const act = this.quest.getAct();
     const info = this.quest.getChapterInfo();
 
-    this.actEl.textContent = `акт ${act === 1 ? 'I' : 'II'}`;
+    this.actEl.textContent = `акт ${act === 1 ? 'I' : act === 2 ? 'II' : 'III'}`;
     this.chapterEl.textContent = `глава ${info.index}: ${info.title}`;
     this.objectiveEl.textContent = this.quest.getObjective();
 
@@ -153,7 +156,7 @@ export class QuestHUD {
       this.ritualEl.style.display = 'none';
     }
 
-    if (act === 2 && this.quest.getEchoProgress() < ECHO_PHRASE.length && !this.quest.isComplete()) {
+    if (act === 2 && this.quest.getEchoProgress() < ECHO_PHRASE.length && !this.quest.isAct2Complete()) {
       this.echoEl.style.display = 'flex';
       const step = this.quest.getEchoProgress();
       this.echoEl.innerHTML = ECHO_PHRASE
@@ -161,6 +164,24 @@ export class QuestHUD {
         .join('');
     } else {
       this.echoEl.style.display = 'none';
+    }
+
+    if (act === 3 && !this.quest.isComplete()) {
+      this.act3El.style.display = 'flex';
+      const parts: string[] = [];
+      if ((this.quest.getAct() === 3 && this.quest.getChapterInfo().scene === 'catacombs') || this.quest.getCatacombMarks().length > 0) {
+        const marks = new Set(this.quest.getCatacombMarks());
+        parts.push(...CATACOMB_MARKS.map((m) =>
+          `<span class="zh-quest-hud__rune${marks.has(m) ? ' zh-quest-hud__rune--found' : ''}">${m}</span>`));
+      }
+      const fr = this.quest.getFinalRiteProgress();
+      if (fr > 0 || this.quest.getDepth() >= 13) {
+        parts.push(...FINAL_RITUAL_SEQUENCE.map((r, i) =>
+          `<span class="zh-quest-hud__rune${i < fr ? ' zh-quest-hud__rune--found' : ''}">${r}</span>`));
+      }
+      this.act3El.innerHTML = parts.join('') || `<span class="zh-quest-hud__rune">${this.quest.getSwarmProgress()}/6</span>`;
+    } else {
+      this.act3El.style.display = 'none';
     }
 
     this.root.classList.toggle('zh-quest-hud--complete', this.quest.isComplete());
@@ -175,6 +196,8 @@ export class QuestHUD {
   private flashAct(): void {
     this.root.classList.add('zh-quest-hud--pulse');
     setTimeout(() => this.root.classList.remove('zh-quest-hud--pulse'), 1600);
-    this.showToast('Акт II. Архив уходит глубже.');
+    const act = this.quest.getAct();
+    if (act >= 3) this.showToast('Акт III. Ядро архива.');
+    else this.showToast('Акт II. Архив уходит глубже.');
   }
 }
