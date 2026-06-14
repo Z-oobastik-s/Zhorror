@@ -14,7 +14,7 @@ export class InteractionSystem {
 
     this.hintEl = document.createElement('div');
     this.hintEl.className = 'zh-audio-hint';
-    this.hintEl.innerHTML = '<span>◉</span> нажми где угодно - услышишь архив';
+    this.hintEl.innerHTML = '<span>◉</span> нажми где угодно - включи звук и скримеры';
     parent.appendChild(this.hintEl);
 
     events.once(EVT.AUDIO_TOGGLE, () => {

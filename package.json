@@ -4,6 +4,9 @@
   "description": "Zhorror - премиальный интерактивный хоррор-проект от Zoobastiks",
   "type": "module",
   "scripts": {
+    "sync-assets": "node scripts/sync-assets.mjs",
+    "predev": "node scripts/sync-assets.mjs",
+    "prebuild": "node scripts/sync-assets.mjs",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"

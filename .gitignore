@@ -35,3 +35,6 @@ desktop.ini
 npm-debug.log*
 .tmp/
 *.local
+
+# Сгенерировано из assets/ скриптом sync-assets
+public/assets/
