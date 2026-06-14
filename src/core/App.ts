@@ -1,8 +1,8 @@
 import { engine } from '@/core/Engine';
 import { events, EVT } from '@/core/EventBus';
 import type { SceneId } from '@/config/constants';
-import { SCENE_IDS, SCENE_ORDER_ACT3 } from '@/config/constants';
-import { ACT3_BG, mediaUrl } from '@/config/media';
+import { SCENE_IDS, SCENE_ORDER_ACT3, SCENE_ORDER_ACT4 } from '@/config/constants';
+import { ACT3_BG, ACT4_BG, mediaUrl } from '@/config/media';
 import { perf } from '@/systems/PerformanceManager';
 import { ScrollSystem } from '@/systems/ScrollSystem';
 import { AtmosphereSystem } from '@/systems/AtmosphereSystem';
@@ -35,6 +35,7 @@ export class App {
   private scrollIndicator!: ScrollIndicator;
   private scenes: Scene[] = [];
   private bgAct3!: HTMLElement;
+  private bgAct4!: HTMLElement;
 
   constructor(rootEl: HTMLElement) {
     this.root = rootEl;
@@ -57,13 +58,18 @@ export class App {
     this.bgAct3 = document.createElement('div');
     this.bgAct3.className = 'zh-bg-act3';
     this.bgAct3.style.backgroundImage = `url("${mediaUrl(ACT3_BG)}")`;
+    this.bgAct4 = document.createElement('div');
+    this.bgAct4.className = 'zh-bg-act4';
+    this.bgAct4.style.backgroundImage = `url("${mediaUrl(ACT4_BG)}")`;
     const grain = document.createElement('div');
     grain.className = 'zh-bg-grain';
-    this.fxLayer.append(bg, this.bgAct3, grain);
+    this.fxLayer.append(bg, this.bgAct3, this.bgAct4, grain);
     this.shell.appendChild(this.fxLayer);
 
     const preloadAct3Bg = new Image();
     preloadAct3Bg.src = mediaUrl(ACT3_BG);
+    const preloadAct4Bg = new Image();
+    preloadAct4Bg.src = mediaUrl(ACT4_BG);
 
     this.uiLayer = document.createElement('div');
     this.uiLayer.className = 'zh-ui-layer';
@@ -117,7 +123,7 @@ export class App {
       }
 
       el.querySelectorAll(
-        '.zh-archive__card, .zh-hero__sigil, .zh-abyss__sigil, .zh-gate3__sigil, .zh-nav__sigil, .zh-ritual__symbol, .zh-void__submit, .zh-collapse__submit, .zh-terminus__submit, .zh-echo__word, .zh-catacombs__door, .zh-swarm__eye',
+        '.zh-archive__card, .zh-hero__sigil, .zh-abyss__sigil, .zh-gate3__sigil, .zh-gate4__sigil, .zh-nav__sigil, .zh-ritual__symbol, .zh-void__submit, .zh-collapse__submit, .zh-terminus__submit, .zh-abattoir__submit, .zh-echo__word, .zh-catacombs__door, .zh-swarm__eye, .zh-hooks__hook, .zh-butcher__cell, .zh-meatlock__mark-btn',
       ).forEach((node) => {
         const elNode = node as HTMLElement;
         const kind = elNode.classList.contains('zh-archive__card') ? 'paper' : 'rune';
@@ -188,7 +194,10 @@ export class App {
     events.on(EVT.SCENE_CHANGE, (payload) => {
       const id = (payload as { id: string }).id;
       this.nav.setActive(id);
-      this.shell.classList.toggle('zh-app--act3', (SCENE_ORDER_ACT3 as readonly string[]).includes(id));
+      const inAct3 = (SCENE_ORDER_ACT3 as readonly string[]).includes(id);
+      const inAct4 = (SCENE_ORDER_ACT4 as readonly string[]).includes(id);
+      this.shell.classList.toggle('zh-app--act3', inAct3);
+      this.shell.classList.toggle('zh-app--act4', inAct4);
     });
 
     events.on(EVT.QUEST_UPDATE, () => {
@@ -238,6 +247,12 @@ export async function createApp(root: HTMLElement): Promise<App> {
     { SilenceScene },
     { FinalRiteScene },
     { TerminusScene },
+    { Gate4Scene },
+    { HooksScene },
+    { ButcherScene },
+    { CorridorScene },
+    { MeatlockScene },
+    { AbattoirScene },
   ] = await Promise.all([
     import('@/scenes/HeroScene'),
     import('@/scenes/ArchiveScene'),
@@ -254,6 +269,12 @@ export async function createApp(root: HTMLElement): Promise<App> {
     import('@/scenes/SilenceScene'),
     import('@/scenes/FinalRiteScene'),
     import('@/scenes/TerminusScene'),
+    import('@/scenes/Gate4Scene'),
+    import('@/scenes/HooksScene'),
+    import('@/scenes/ButcherScene'),
+    import('@/scenes/CorridorScene'),
+    import('@/scenes/MeatlockScene'),
+    import('@/scenes/AbattoirScene'),
   ]);
   await app.registerScenes([
     new HeroScene(),
@@ -271,6 +292,12 @@ export async function createApp(root: HTMLElement): Promise<App> {
     new SilenceScene(),
     new FinalRiteScene(),
     new TerminusScene(),
+    new Gate4Scene(),
+    new HooksScene(),
+    new ButcherScene(),
+    new CorridorScene(),
+    new MeatlockScene(),
+    new AbattoirScene(),
   ]);
   await app.boot();
   return app;

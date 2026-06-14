@@ -49,11 +49,11 @@ export class TerminusScene extends Scene {
     inner.append(header, this.messageEl, this.hintEl, this.formEl, this.feedbackEl, footer);
     this.element.appendChild(inner);
 
-    if (quest.isComplete()) this.showEnding();
+    if (quest.isAct3Complete()) this.showEnding();
   }
 
   private tryCode(): void {
-    if (!quest.canInteract() || quest.isComplete()) return;
+    if (!quest.canInteract() || quest.isAct3Complete()) return;
     if (quest.submitTerminusCode(this.inputEl.value)) {
       this.showEnding();
       events.emit(EVT.SCARE_REQUEST, { type: 'face' });
@@ -64,8 +64,8 @@ export class TerminusScene extends Scene {
   }
 
   private showEnding(): void {
-    this.messageEl.textContent = 'Круг замкнулся. Три акта. Один архив. Ты - последняя запись.';
-    this.feedbackEl.textContent = 'Zhorror не отпускает. и не должен.';
+    this.messageEl.textContent = 'Круг замкнулся. Три слоя пройдены. За дверью - мясник.';
+    this.feedbackEl.textContent = 'Акт IV открыт. Не оглядывайся.';
     this.formEl.style.display = 'none';
     this.hintEl.style.display = 'none';
     this.element.classList.add('zh-terminus--complete');

@@ -10,6 +10,7 @@ export class QuestHUD {
   private ritualEl: HTMLElement;
   private echoEl: HTMLElement;
   private act3El: HTMLElement;
+  private act4El: HTMLElement;
   private cycleEl: HTMLElement;
   private resetBtn!: HTMLButtonElement;
   private resetModal!: HTMLElement;
@@ -31,6 +32,7 @@ export class QuestHUD {
       <div class="zh-quest-hud__ritual"></div>
       <div class="zh-quest-hud__echo"></div>
       <div class="zh-quest-hud__act3"></div>
+      <div class="zh-quest-hud__act4"></div>
       <button type="button" class="zh-quest-hud__reset">новый цикл</button>
     `;
     parent.appendChild(this.root);
@@ -43,6 +45,7 @@ export class QuestHUD {
     this.ritualEl = this.root.querySelector('.zh-quest-hud__ritual')!;
     this.echoEl = this.root.querySelector('.zh-quest-hud__echo')!;
     this.act3El = this.root.querySelector('.zh-quest-hud__act3')!;
+    this.act4El = this.root.querySelector('.zh-quest-hud__act4')!;
     this.resetBtn = this.root.querySelector('.zh-quest-hud__reset') as HTMLButtonElement;
 
     this.resetModal = document.createElement('div');
@@ -136,7 +139,8 @@ export class QuestHUD {
     const finalSeq = this.quest.getFinalRiteSequence();
     const catacombsTarget = this.quest.getCatacombMarksTarget();
 
-    this.actEl.textContent = `акт ${act === 1 ? 'I' : act === 2 ? 'II' : 'III'}`;
+    const actLabel = act === 1 ? 'I' : act === 2 ? 'II' : act === 3 ? 'III' : 'IV';
+    this.actEl.textContent = `акт ${actLabel}`;
     this.cycleEl.textContent = `цикл ${this.quest.getSeed().slice(0, 8)} · ошибок ${this.quest.getFailCount()}`;
     this.chapterEl.textContent = `глава ${info.index}: ${info.title}`;
     this.objectiveEl.textContent = this.quest.getObjective();
@@ -173,7 +177,7 @@ export class QuestHUD {
       this.echoEl.style.display = 'none';
     }
 
-    if (act === 3 && !this.quest.isComplete()) {
+    if (act === 3 && !this.quest.isAct3Complete()) {
       this.act3El.style.display = 'flex';
       const parts: string[] = [];
       if (this.quest.getCatacombMarks().length > 0 || this.quest.getChapterInfo().scene === 'catacombs') {
@@ -194,6 +198,30 @@ export class QuestHUD {
       this.act3El.style.display = 'none';
     }
 
+    if (act === 4 && !this.quest.isComplete()) {
+      this.act4El.style.display = 'flex';
+      const parts: string[] = [];
+      const scene = this.quest.getChapterInfo().scene;
+      if (scene === 'hooks' || this.quest.getHooksProgress() > 0) {
+        parts.push(`<span class="zh-quest-hud__rune">${this.quest.getHooksProgress()} / ${this.quest.getHookRealCount()}</span>`);
+      }
+      if (this.quest.isButcherWon()) {
+        parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">☒</span>`);
+      }
+      if (this.quest.isCorridorDone()) {
+        parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">⌇</span>`);
+      }
+      const meatSeq = this.quest.getMeatSequence();
+      const meatStep = this.quest.getMeatlockProgress();
+      if (meatStep > 0 || scene === 'meatlock') {
+        parts.push(...meatSeq.map((r, i) =>
+          `<span class="zh-quest-hud__rune${i < meatStep ? ' zh-quest-hud__rune--found' : ''}">${r}</span>`));
+      }
+      this.act4El.innerHTML = parts.join('');
+    } else {
+      this.act4El.style.display = 'none';
+    }
+
     this.root.classList.toggle('zh-quest-hud--complete', this.quest.isComplete());
   }
 
@@ -207,7 +235,8 @@ export class QuestHUD {
     this.root.classList.add('zh-quest-hud--pulse');
     setTimeout(() => this.root.classList.remove('zh-quest-hud--pulse'), 1600);
     const act = this.quest.getAct();
-    if (act >= 3) this.showToast('Акт III. Ядро архива. Раскладка новая.');
+    if (act >= 4) this.showToast('Акт IV. Бойня. Мясник смотрит.');
+    else if (act >= 3) this.showToast('Акт III. Ядро архива. Раскладка новая.');
     else this.showToast('Акт II. Архив уходит глубже.');
   }
 }

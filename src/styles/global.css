@@ -145,6 +145,42 @@ body.zh-dragging {
   text-shadow: 0 2px 16px rgba(0, 0, 0, 0.85);
 }
 
+.zh-bg-act4 {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+  pointer-events: none;
+}
+
+.zh-bg-act4::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(2, 1, 1, 0.82) 0%, rgba(8, 2, 2, 0.45) 40%, rgba(2, 0, 0, 0.88) 100%),
+    radial-gradient(ellipse 40% 60% at 50% 55%, rgba(60, 8, 8, 0.25) 0%, transparent 70%);
+}
+
+.zh-app--act4 .zh-bg-act4 {
+  opacity: 1;
+}
+
+.zh-app--act4 .zh-bg-act3 {
+  opacity: 0;
+}
+
+.zh-app--act4 .zh-bg-static {
+  opacity: 0.06;
+}
+
+.zh-app--act4 .zh-scene__inner {
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.92);
+}
+
 .zh-bg-grain {
   position: absolute;
   inset: 0;
@@ -1691,6 +1727,13 @@ body.zh-scare-shake {
   flex-wrap: wrap;
 }
 
+.zh-quest-hud__act4 {
+  display: none;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
 .zh-quest-hud__word {
   font-size: 10px;
   letter-spacing: 1px;
@@ -2468,4 +2511,352 @@ body.zh-scare-shake {
   font-size: 10px;
   letter-spacing: 2px;
   color: #5a5050;
+}
+
+/* ===== ACT IV SCENES (мясник) ===== */
+
+.zh-gate4,
+.zh-hooks,
+.zh-butcher,
+.zh-corridor,
+.zh-meatlock,
+.zh-abattoir {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.zh-gate4__label,
+.zh-hooks__label,
+.zh-butcher__label,
+.zh-corridor__label,
+.zh-meatlock__label,
+.zh-abattoir__label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: #4a1010;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.zh-gate4__title,
+.zh-hooks__title,
+.zh-butcher__title,
+.zh-corridor__title,
+.zh-meatlock__title,
+.zh-abattoir__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 300;
+  color: #8a3030;
+  letter-spacing: 4px;
+  margin-bottom: 12px;
+}
+
+.zh-gate4__text {
+  max-width: 480px;
+  font-size: 12px;
+  line-height: 2;
+  color: #6a4040;
+  letter-spacing: 1px;
+  margin: 16px 0 8px;
+}
+
+.zh-gate4__hint,
+.zh-hooks__hint,
+.zh-butcher__hint,
+.zh-corridor__hint,
+.zh-meatlock__hint,
+.zh-abattoir__hint {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #5a2525;
+  text-transform: lowercase;
+}
+
+.zh-gate4__sigil {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 40px;
+  border: 1px solid rgba(90, 15, 15, 0.5);
+  cursor: pointer;
+  transition: border-color 0.4s, box-shadow 0.4s, transform 0.3s;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #8a4040;
+}
+
+.zh-gate4__sigil:hover {
+  border-color: rgba(120, 25, 25, 0.7);
+  box-shadow: 0 0 32px rgba(90, 10, 10, 0.45);
+  transform: scale(1.02);
+}
+
+.zh-gate4__mark {
+  font-size: 24px;
+  color: #7a1515;
+  text-shadow: 0 0 14px rgba(100, 15, 15, 0.55);
+}
+
+.zh-hooks__header,
+.zh-butcher__header,
+.zh-corridor__header,
+.zh-meatlock__header,
+.zh-abattoir__header {
+  margin-bottom: 20px;
+}
+
+.zh-hooks__status,
+.zh-butcher__status,
+.zh-corridor__status {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #7a3535;
+  margin-bottom: 20px;
+  min-height: 20px;
+}
+
+.zh-hooks__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  max-width: 520px;
+}
+
+.zh-hooks__hook {
+  width: 56px;
+  height: 72px;
+  background: rgba(6, 2, 2, 0.9);
+  border: 1px solid rgba(80, 15, 15, 0.4);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 8px;
+  font-family: inherit;
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+}
+
+.zh-hooks__hook:hover {
+  border-color: rgba(110, 25, 25, 0.55);
+}
+
+.zh-hooks__chain {
+  width: 2px;
+  height: 16px;
+  background: rgba(90, 30, 30, 0.5);
+}
+
+.zh-hooks__blade {
+  font-size: 22px;
+  color: #6a2020;
+  margin-top: 4px;
+}
+
+.zh-hooks__hook--hit {
+  border-color: rgba(120, 35, 35, 0.7);
+  box-shadow: 0 0 16px rgba(90, 20, 20, 0.4);
+}
+
+.zh-hooks__hook--hit .zh-hooks__blade {
+  color: #a83030;
+}
+
+.zh-hooks__hook--wrong {
+  animation: echoWrong 0.4s ease;
+  border-color: #8a1515;
+}
+
+.zh-butcher__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.zh-butcher__cell {
+  width: 72px;
+  height: 72px;
+  background: rgba(6, 2, 2, 0.92);
+  border: 1px solid rgba(70, 12, 12, 0.45);
+  color: #8a3535;
+  font-size: 28px;
+  font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.zh-butcher__cell:hover:not(:disabled) {
+  border-color: rgba(100, 25, 25, 0.6);
+  background: rgba(12, 4, 4, 0.95);
+}
+
+.zh-butcher__cell--x {
+  color: #a82020;
+  text-shadow: 0 0 10px rgba(120, 20, 20, 0.5);
+}
+
+.zh-butcher__cell--o {
+  color: #6a5050;
+}
+
+.zh-butcher__code-hint,
+.zh-abattoir__code-hint {
+  margin-top: 16px;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #7a3030;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.zh-corridor__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--corridor-size, 14), 14px);
+  gap: 2px;
+  padding: 8px;
+  background: rgba(4, 1, 1, 0.85);
+  border: 1px solid rgba(60, 10, 10, 0.35);
+  margin-top: 8px;
+}
+
+.zh-corridor__cell {
+  width: 14px;
+  height: 14px;
+  background: rgba(12, 4, 4, 0.6);
+  border-radius: 1px;
+}
+
+.zh-corridor__cell--wall {
+  background: rgba(50, 10, 10, 0.85);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+.zh-corridor__cell--snake {
+  background: #6a2020;
+  box-shadow: 0 0 6px rgba(100, 20, 20, 0.5);
+}
+
+.zh-corridor__cell--food {
+  background: #a83030;
+  box-shadow: 0 0 8px rgba(140, 30, 30, 0.6);
+  animation: timerPulse 0.8s ease infinite;
+}
+
+.zh-meatlock__pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  max-width: 360px;
+  margin-top: 20px;
+}
+
+.zh-meatlock__mark-btn {
+  width: 48px;
+  height: 48px;
+  background: rgba(6, 2, 2, 0.9);
+  border: 1px solid rgba(70, 12, 12, 0.4);
+  color: #7a3535;
+  font-size: 20px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.zh-meatlock__mark-btn:hover {
+  border-color: rgba(100, 25, 25, 0.55);
+}
+
+.zh-meatlock__mark-btn--lit {
+  border-color: rgba(120, 35, 35, 0.7);
+  box-shadow: 0 0 12px rgba(90, 20, 20, 0.4);
+  color: #a83030;
+}
+
+.zh-meatlock__mark-btn--wrong {
+  animation: echoWrong 0.4s ease;
+  border-color: #8a1515;
+}
+
+.zh-abattoir__message {
+  max-width: 480px;
+  font-size: 12px;
+  line-height: 2;
+  color: #6a4040;
+  letter-spacing: 1px;
+  margin: 20px 0;
+}
+
+.zh-abattoir__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.zh-abattoir__input {
+  width: min(280px, 80vw);
+  background: rgba(6, 2, 2, 0.9);
+  border: 1px solid rgba(70, 12, 12, 0.45);
+  color: #8a4040;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-align: center;
+  padding: 12px 16px;
+  text-transform: uppercase;
+}
+
+.zh-abattoir__submit {
+  background: transparent;
+  border: 1px solid rgba(80, 15, 15, 0.5);
+  color: #7a3535;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.zh-abattoir__submit:hover {
+  border-color: rgba(110, 25, 25, 0.65);
+  box-shadow: 0 0 20px rgba(80, 10, 10, 0.35);
+}
+
+.zh-abattoir__feedback {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #6a3030;
+  margin-top: 16px;
+  min-height: 20px;
+}
+
+.zh-abattoir__footer {
+  margin-top: 60px;
+  display: flex;
+  gap: 20px;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #4a2525;
+}
+
+.zh-abattoir--complete .zh-abattoir__message {
+  color: #6a3535;
+}
+
+.zh-app--act4 .zh-scare--active .zh-scare__flash {
+  background: rgba(120, 10, 10, 0.85);
 }

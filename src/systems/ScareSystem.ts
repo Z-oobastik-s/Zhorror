@@ -1,6 +1,6 @@
 import { chance, randPick, randRange } from '@/utils/math';
 import { WHISPERS } from '@/config/constants';
-import { SCREAM_GIFS, SCREAM_GIFS_ACT3, mediaUrl, pickScareGif } from '@/config/media';
+import { SCREAM_GIFS, SCREAM_GIFS_ACT3, SCREAM_GIFS_ACT4, mediaUrl, pickScareGif } from '@/config/media';
 import { events, EVT } from '@/core/EventBus';
 import type { AtmosphereSystem } from './AtmosphereSystem';
 import type { AudioSystem } from './AudioSystem';
@@ -56,7 +56,7 @@ export class ScareSystem {
 
   private preloadGifs(): void {
     if (this.preloaded) return;
-    for (const gif of [...SCREAM_GIFS, ...SCREAM_GIFS_ACT3]) {
+    for (const gif of [...SCREAM_GIFS, ...SCREAM_GIFS_ACT3, ...SCREAM_GIFS_ACT4]) {
       const img = new Image();
       img.src = mediaUrl(gif);
     }
@@ -71,13 +71,15 @@ export class ScareSystem {
 
     const level = this.atmosphere.getLevel();
     const idle = this.atmosphere.isIdle();
+    const act = quest.getAct();
+    const actBoost = act >= 4 ? 2.2 : act >= 3 ? 1.5 : 1;
 
-    if (idle && chance(0.002 * (1 + level * 1.5))) {
+    if (idle && chance(0.002 * (1 + level * actBoost))) {
       this.trigger('gif');
       return;
     }
 
-    if (level > 0.25 && chance(0.0008 * (0.5 + level))) {
+    if (level > 0.25 && chance(0.0008 * (0.5 + level) * actBoost)) {
       this.trigger(randPick(['gif', 'gif', 'text'] as const));
     }
   }
@@ -109,7 +111,7 @@ export class ScareSystem {
 
     this.audio.playScare('gif');
 
-    const duration = 900 + randRange(0, 400);
+    const duration = quest.getAct() >= 4 ? 1100 + randRange(0, 500) : 900 + randRange(0, 400);
     setTimeout(() => {
       this.overlay.classList.remove('zh-scare--active', 'zh-scare--gif');
       this.flash.classList.remove('zh-scare__flash--on');

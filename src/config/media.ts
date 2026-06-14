@@ -7,6 +7,9 @@ const I = 'Image';
 /** Фон акта III */
 export const ACT3_BG = `${I}/3 glava.png`;
 
+/** Фон акта IV (мясник) */
+export const ACT4_BG = `${I}/4 glava.png`;
+
 export function mediaUrl(relativePath: string): string {
   const encoded = relativePath.split('/').map((p) => encodeURIComponent(p)).join('/');
   return `${BASE}assets/${encoded}`;
@@ -66,6 +69,25 @@ export const SCREAM_GIFS_ACT3 = [
   `${G}/WKL.gif`,
 ] as const;
 
+/** Ещё жёстче для акта IV */
+export const SCREAM_GIFS_ACT4 = [
+  `${G}/4FZS.gif`,
+  `${G}/6GuV.gif`,
+  `${G}/6PTw.gif`,
+  `${G}/PVnW.gif`,
+  `${G}/QhxH.gif`,
+  `${G}/SNmy.gif`,
+  `${G}/X1UD.gif`,
+  `${G}/BCQz.gif`,
+  `${G}/ENnM.gif`,
+  `${G}/BbLb.gif`,
+  `${G}/ndT.gif`,
+  `${G}/6Kn6.gif`,
+  `${G}/9hw9.gif`,
+  `${G}/VhkF.gif`,
+  `${G}/GHFp.gif`,
+] as const;
+
 const S = 'sound';
 
 export const AUDIO = {
@@ -80,6 +102,12 @@ export const AUDIO = {
     `${S}/Low Frequency Hum.mp3`,
     `${S}/Dark Horror Pulsing Background.mp3`,
     `${S}/Horror Background Atmosphere.mp3`,
+  ],
+  ambientLoopsAct4: [
+    `${S}/Low Frequency Hum.mp3`,
+    `${S}/Flesh Growing.mp3`,
+    `${S}/Low hum, dark horror, recording.mp3`,
+    `${S}/Sfx6 - Horror Suspense [Hiding - Heartbeat].mp3`,
   ],
   /** Длинные one-shot (> 12 сек), не накладываются */
   beds: [
@@ -145,6 +173,9 @@ export function pickRandom<T>(arr: readonly T[]): T {
 }
 
 export function pickScareGif(act: number): string {
+  if (act >= 4) {
+    return pickRandom(Math.random() > 0.25 ? SCREAM_GIFS_ACT4 : SCREAM_GIFS_ACT3);
+  }
   if (act >= 3) {
     return pickRandom(Math.random() > 0.35 ? SCREAM_GIFS_ACT3 : SCREAM_GIFS);
   }

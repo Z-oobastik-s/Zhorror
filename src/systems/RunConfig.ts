@@ -16,6 +16,11 @@ import {
   SWARM_EYE_COUNT,
   SWARM_REAL_COUNT,
   SWARM_TIME_SECONDS,
+  HOOK_COUNT,
+  HOOK_REAL_COUNT,
+  ABATTOIR_CODE_POOL,
+  MEAT_MARK_POOL,
+  MEATLOCK_COUNT,
 } from '@/config/constants';
 
 export interface RunConfig {
@@ -33,6 +38,10 @@ export interface RunConfig {
   catacombMarks: string[];
   catacombDoors: string[];
   swarmRealIndices: number[];
+  hookRealIndices: number[];
+  abattoirCode: string;
+  meatSequence: string[];
+  corridorWalls: boolean[][];
   ritualInputSeconds: number;
   finalRiteInputSeconds: number;
   swarmTimeSeconds: number;
@@ -134,6 +143,13 @@ export function generateRunConfig(seed: string): RunConfig {
   const eyeIndices = Array.from({ length: SWARM_EYE_COUNT }, (_, i) => i);
   const swarmRealIndices = pickN(rng, eyeIndices, SWARM_REAL_COUNT).sort((a, b) => a - b);
 
+  const hookIndices = Array.from({ length: HOOK_COUNT }, (_, i) => i);
+  const hookRealIndices = pickN(rng, hookIndices, HOOK_REAL_COUNT).sort((a, b) => a - b);
+
+  const abattoirCode = pickN(rng, ABATTOIR_CODE_POOL, 1)[0];
+  const meatSequence: string[] = shuffle(rng, pickN(rng, MEAT_MARK_POOL, MEATLOCK_COUNT));
+  const corridorWalls = generateCorridorWalls(rng);
+
   return {
     seed,
     archiveMap,
@@ -149,6 +165,10 @@ export function generateRunConfig(seed: string): RunConfig {
     catacombMarks,
     catacombDoors,
     swarmRealIndices,
+    hookRealIndices,
+    abattoirCode,
+    meatSequence,
+    corridorWalls,
     ritualInputSeconds: RITUAL_INPUT_SECONDS,
     finalRiteInputSeconds: FINAL_RITUAL_INPUT_SECONDS,
     swarmTimeSeconds: SWARM_TIME_SECONDS,
@@ -160,4 +180,23 @@ export function generateRunConfig(seed: string): RunConfig {
 
 export function collapseHint(code: string): string {
   return code.split('').join(' · ');
+}
+
+/** Стены для змейки: true = стена */
+function generateCorridorWalls(rng: () => number): boolean[][] {
+  const size = 14;
+  const grid: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      if (x === 0 || y === 0 || x === size - 1 || y === size - 1) grid[y][x] = true;
+      else if (rng() < 0.14) grid[y][x] = true;
+    }
+  }
+  grid[1][1] = false;
+  grid[1][2] = false;
+  grid[2][1] = false;
+  grid[size - 2][size - 2] = false;
+  grid[size - 2][size - 3] = false;
+  grid[size - 3][size - 2] = false;
+  return grid;
 }

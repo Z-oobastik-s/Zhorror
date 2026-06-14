@@ -2,11 +2,13 @@ import {
   CHAPTERS_ACT1,
   CHAPTERS_ACT2,
   CHAPTERS_ACT3,
+  CHAPTERS_ACT4,
   SCENE_IDS,
   SCENE_ORDER,
   SCENE_ORDER_ACT1,
   SCENE_ORDER_ACT2,
   SCENE_ORDER_ACT3,
+  SCENE_ORDER_ACT4,
   TERMINUS_CODE,
 } from '@/config/constants';
 import type { SceneId } from '@/config/constants';
@@ -20,7 +22,7 @@ import {
   type RunConfig,
 } from '@/systems/RunConfig';
 
-const STORAGE_KEY = 'zh-quest-v4';
+const STORAGE_KEY = 'zh-quest-v5';
 
 interface QuestState {
   seed: string;
@@ -28,6 +30,7 @@ interface QuestState {
   chapter: number;
   act2Chapter: number;
   act3Chapter: number;
+  act4Chapter: number;
   fragments: string[];
   catacombMarks: string[];
   ritualStep: number;
@@ -35,10 +38,15 @@ interface QuestState {
   entityFails: number;
   echoStep: number;
   swarmFound: number;
+  hooksFound: number;
+  butcherWon: boolean;
+  corridorDone: boolean;
+  meatlockStep: number;
   failCount: number;
   voidComplete: boolean;
   act2Complete: boolean;
   act3Complete: boolean;
+  act4Complete: boolean;
 }
 
 export class QuestSystem {
@@ -47,6 +55,7 @@ export class QuestSystem {
   private chapter = 0;
   private act2Chapter = 0;
   private act3Chapter = 0;
+  private act4Chapter = 0;
   private unlocked = new Set<SceneId>([SCENE_IDS.hero]);
   private fragments = new Set<string>();
   private catacombMarks = new Set<string>();
@@ -55,10 +64,15 @@ export class QuestSystem {
   private entityFails = 0;
   private echoStep = 0;
   private swarmFound = 0;
+  private hooksFound = 0;
+  private butcherWon = false;
+  private corridorDone = false;
+  private meatlockStep = 0;
   private failCount = 0;
   private voidComplete = false;
   private act2Complete = false;
   private act3Complete = false;
+  private act4Complete = false;
   private seals: Map<SceneId, HTMLElement> = new Map();
 
   constructor() {
@@ -127,6 +141,51 @@ export class QuestSystem {
     return this.run.swarmRealIndices.length;
   }
 
+  isHookReal(index: number): boolean {
+    return this.run.hookRealIndices.includes(index);
+  }
+
+  getHookRealCount(): number {
+    return this.run.hookRealIndices.length;
+  }
+
+  getHooksProgress(): number {
+    return this.hooksFound;
+  }
+
+  isButcherWon(): boolean {
+    return this.butcherWon;
+  }
+
+  isCorridorDone(): boolean {
+    return this.corridorDone;
+  }
+
+  getMeatSequence(): readonly string[] {
+    return this.run.meatSequence;
+  }
+
+  getMeatlockProgress(): number {
+    return this.meatlockStep;
+  }
+
+  getCorridorWalls(): readonly boolean[][] {
+    return this.run.corridorWalls;
+  }
+
+  getAbattoirCode(): string {
+    return this.run.abattoirCode;
+  }
+
+  getAbattoirHint(): string {
+    if (!this.butcherWon) return '';
+    return collapseHint(this.run.abattoirCode);
+  }
+
+  getMeatlockInputSeconds(): number {
+    return Math.max(5, 8 - this.failCount * 0.8);
+  }
+
   getVoidCode(): string {
     return this.run.voidCode;
   }
@@ -181,19 +240,28 @@ export class QuestSystem {
   }
 
   getDepth(): number {
-    if (this.act === 1) return this.chapter;
+    if (this.act === 4) return 15 + this.act4Chapter;
+    if (this.act === 3) return 9 + this.act3Chapter;
     if (this.act === 2) return 5 + this.act2Chapter;
-    return 9 + this.act3Chapter;
+    return this.chapter;
   }
 
   getChapterInfo() {
+    if (this.act === 4) return CHAPTERS_ACT4[Math.min(this.act4Chapter, CHAPTERS_ACT4.length - 1)];
     if (this.act === 3) return CHAPTERS_ACT3[Math.min(this.act3Chapter, CHAPTERS_ACT3.length - 1)];
     if (this.act === 2) return CHAPTERS_ACT2[Math.min(this.act2Chapter, CHAPTERS_ACT2.length - 1)];
     return CHAPTERS_ACT1[Math.min(this.chapter, CHAPTERS_ACT1.length - 1)];
   }
 
   getObjective(): string {
-    if (this.act3Complete) return 'Все три акта пройдены. Архив не закрывается.';
+    if (this.act4Complete) return 'Архив замкнут. Мясник доволен. Ты - последняя запись.';
+    if (this.act === 4) {
+      if (this.act4Chapter === 2 && !this.butcherWon) return 'Выиграй у мясника. Проигрыш = скример.';
+      if (this.act4Chapter === 3 && !this.corridorDone) return 'Стрелки на клавиатуре. 10 кусков. Стена = смерть.';
+      if (this.act4Chapter === 5 && this.butcherWon) return `Код мясника: ${this.getAbattoirHint()}`;
+      return this.getChapterInfo().objective;
+    }
+    if (this.act3Complete && this.act < 4) return 'Терминус пройден. Мясник ждёт за дверью.';
     if (this.act === 3) {
       if (this.act3Chapter === 4) return 'Повтори 6 символов. Время сокращается с каждой ошибкой.';
       if (this.act3Chapter === 5 && this.finalRiteStep >= this.run.finalRiteSequence.length) {
@@ -222,11 +290,13 @@ export class QuestSystem {
   isUnlocked(id: SceneId): boolean { return this.unlocked.has(id); }
   isAct1Complete(): boolean { return this.voidComplete; }
   isAct2Complete(): boolean { return this.act2Complete; }
-  isComplete(): boolean { return this.act3Complete; }
+  isAct3Complete(): boolean { return this.act3Complete; }
+  isComplete(): boolean { return this.act4Complete; }
 
   getMaxUnlockedSceneId(): SceneId {
-    let order = SCENE_ORDER_ACT1;
-    if (this.act >= 3) order = SCENE_ORDER;
+    let order: SceneId[] = SCENE_ORDER_ACT1;
+    if (this.act >= 4) order = SCENE_ORDER;
+    else if (this.act >= 3) order = [...SCENE_ORDER_ACT1, ...SCENE_ORDER_ACT2, ...SCENE_ORDER_ACT3];
     else if (this.act >= 2) order = [...SCENE_ORDER_ACT1, ...SCENE_ORDER_ACT2];
     let max: SceneId = order[0];
     for (const id of order) {
@@ -497,8 +567,113 @@ export class QuestSystem {
       return false;
     }
     this.act3Complete = true;
+    this.act = 4;
+    this.act4Chapter = 0;
+    this.unlock(SCENE_IDS.gate4);
     this.save();
     events.emit(EVT.QUEST_COMPLETE, { act: 3 });
+    events.emit(EVT.QUEST_ACT_START, { act: 4, scene: SCENE_IDS.gate4 });
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return true;
+  }
+
+  enterGate4(): void {
+    if (!this.canInteract() || this.act !== 4 || this.act4Chapter > 0) return;
+    this.act4Chapter = 1;
+    this.unlock(SCENE_IDS.hooks);
+    this.save();
+    events.emit(EVT.QUEST_CHAPTER, { act: 4, chapter: 1, scene: SCENE_IDS.hooks });
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  registerHookHit(index: number): 'ok' | 'wrong' | 'done' {
+    if (!this.isHookReal(index)) {
+      this.registerFail();
+      this.hooksFound = 0;
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'wrong';
+    }
+    this.hooksFound += 1;
+    if (this.hooksFound >= this.run.hookRealIndices.length && this.act4Chapter === 1) {
+      this.act4Chapter = 2;
+      this.unlock(SCENE_IDS.butcher);
+      this.save();
+      events.emit(EVT.QUEST_CHAPTER, { act: 4, chapter: 2, scene: SCENE_IDS.butcher });
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'done';
+    }
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return 'ok';
+  }
+
+  resetHooksProgress(): void {
+    this.hooksFound = 0;
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  completeButcherTrial(): void {
+    if (this.act !== 4 || this.act4Chapter !== 2) return;
+    this.butcherWon = true;
+    this.act4Chapter = 3;
+    this.unlock(SCENE_IDS.corridor);
+    this.save();
+    events.emit(EVT.QUEST_CHAPTER, { act: 4, chapter: 3, scene: SCENE_IDS.corridor });
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  completeCorridorTrial(): void {
+    if (this.act !== 4 || this.act4Chapter !== 3) return;
+    this.corridorDone = true;
+    this.act4Chapter = 4;
+    this.unlock(SCENE_IDS.meatlock);
+    this.save();
+    events.emit(EVT.QUEST_CHAPTER, { act: 4, chapter: 4, scene: SCENE_IDS.meatlock });
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  advanceMeatlock(symbol: string): 'ok' | 'wrong' | 'done' {
+    const expected = this.run.meatSequence[this.meatlockStep];
+    if (symbol !== expected) {
+      this.registerFail();
+      this.meatlockStep = 0;
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'wrong';
+    }
+    this.meatlockStep += 1;
+    if (this.meatlockStep >= this.run.meatSequence.length) {
+      if (this.act4Chapter === 4) {
+        this.act4Chapter = 5;
+        this.unlock(SCENE_IDS.abattoir);
+        events.emit(EVT.QUEST_CHAPTER, { act: 4, chapter: 5, scene: SCENE_IDS.abattoir });
+      }
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'done';
+    }
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return 'ok';
+  }
+
+  resetMeatlockProgress(): void {
+    this.meatlockStep = 0;
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  submitAbattoirCode(code: string): boolean {
+    const norm = code.trim().toUpperCase().replace(/\s/g, '');
+    if (norm !== this.run.abattoirCode) {
+      this.registerFail();
+      return false;
+    }
+    this.act4Complete = true;
+    this.save();
+    events.emit(EVT.QUEST_COMPLETE, { act: 4 });
     events.emit(EVT.QUEST_UPDATE, this.snapshot());
     return true;
   }
@@ -511,6 +686,7 @@ export class QuestSystem {
   resetProgress(): void {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('zh-quest-v4');
       localStorage.removeItem('zh-quest-v3');
       localStorage.removeItem('zh-quest-v2');
       localStorage.removeItem('zh-quest-v1');
@@ -560,6 +736,17 @@ export class QuestSystem {
       if (this.act3Chapter >= 4) this.finalRiteStep = this.run.finalRiteSequence.length;
     }
 
+    if (this.act >= 4) {
+      this.unlocked.add(SCENE_IDS.gate4);
+      for (let i = 0; i <= this.act4Chapter && i < SCENE_ORDER_ACT4.length; i++) {
+        this.unlocked.add(SCENE_ORDER_ACT4[i]);
+      }
+      if (this.act4Chapter >= 2) this.hooksFound = this.run.hookRealIndices.length;
+      if (this.act4Chapter >= 3) this.butcherWon = true;
+      if (this.act4Chapter >= 4) this.corridorDone = true;
+      if (this.act4Chapter >= 5) this.meatlockStep = this.run.meatSequence.length;
+    }
+
     this.refreshSeals();
   }
 
@@ -569,10 +756,12 @@ export class QuestSystem {
       chapter: this.chapter,
       act2Chapter: this.act2Chapter,
       act3Chapter: this.act3Chapter,
+      act4Chapter: this.act4Chapter,
       objective: this.getObjective(),
       voidComplete: this.voidComplete,
       act2Complete: this.act2Complete,
       act3Complete: this.act3Complete,
+      act4Complete: this.act4Complete,
       seed: this.run.seed,
       failCount: this.failCount,
     };
@@ -581,7 +770,8 @@ export class QuestSystem {
   private loadSeed(): string {
     try {
       let raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) raw = localStorage.getItem('zh-quest-v3');
+      if (!raw) raw = localStorage.getItem('zh-quest-v5');
+      if (!raw) raw = localStorage.getItem('zh-quest-v4');
       if (raw) {
         const data = JSON.parse(raw) as QuestState;
         if (data.seed) return data.seed;
@@ -593,7 +783,8 @@ export class QuestSystem {
   private load(): void {
     try {
       let raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) raw = localStorage.getItem('zh-quest-v3');
+      if (!raw) raw = localStorage.getItem('zh-quest-v5');
+      if (!raw) raw = localStorage.getItem('zh-quest-v4');
       if (!raw) return;
       const data = JSON.parse(raw) as QuestState;
       if (data.seed) {
@@ -611,6 +802,7 @@ export class QuestSystem {
       this.chapter = data.chapter ?? 0;
       this.act2Chapter = data.act2Chapter ?? 0;
       this.act3Chapter = data.act3Chapter ?? 0;
+      this.act4Chapter = data.act4Chapter ?? 0;
       this.fragments = new Set(data.fragments ?? []);
       this.catacombMarks = new Set(data.catacombMarks ?? []);
       this.ritualStep = data.ritualStep ?? 0;
@@ -618,12 +810,18 @@ export class QuestSystem {
       this.entityFails = data.entityFails ?? 0;
       this.echoStep = data.echoStep ?? 0;
       this.swarmFound = data.swarmFound ?? 0;
+      this.hooksFound = data.hooksFound ?? 0;
+      this.butcherWon = data.butcherWon ?? false;
+      this.corridorDone = data.corridorDone ?? false;
+      this.meatlockStep = data.meatlockStep ?? 0;
       this.failCount = data.failCount ?? 0;
       this.voidComplete = data.voidComplete ?? false;
       this.act2Complete = data.act2Complete ?? false;
       this.act3Complete = data.act3Complete ?? false;
+      this.act4Complete = data.act4Complete ?? false;
       if (this.voidComplete && this.act < 2) this.act = 2;
       if (this.act2Complete && this.act < 3) this.act = 3;
+      if (this.act3Complete && this.act < 4 && !this.act4Complete) this.act = 4;
     } catch { /* ignore */ }
   }
 
@@ -635,6 +833,7 @@ export class QuestSystem {
         chapter: this.chapter,
         act2Chapter: this.act2Chapter,
         act3Chapter: this.act3Chapter,
+        act4Chapter: this.act4Chapter,
         fragments: [...this.fragments],
         catacombMarks: [...this.catacombMarks],
         ritualStep: this.ritualStep,
@@ -642,10 +841,15 @@ export class QuestSystem {
         entityFails: this.entityFails,
         echoStep: this.echoStep,
         swarmFound: this.swarmFound,
+        hooksFound: this.hooksFound,
+        butcherWon: this.butcherWon,
+        corridorDone: this.corridorDone,
+        meatlockStep: this.meatlockStep,
         failCount: this.failCount,
         voidComplete: this.voidComplete,
         act2Complete: this.act2Complete,
         act3Complete: this.act3Complete,
+        act4Complete: this.act4Complete,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch { /* ignore */ }
