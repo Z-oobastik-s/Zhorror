@@ -2,7 +2,7 @@ import { Scene } from './Scene';
 import { SCENE_IDS } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
 import { quest } from '@/systems/QuestSystem';
-import { bestMove, checkWinner, type Board } from '@/utils/tictactoe';
+import { butcherMove, checkWinner, type Board } from '@/utils/tictactoe';
 
 export class ButcherScene extends Scene {
   readonly id = SCENE_IDS.butcher;
@@ -20,7 +20,7 @@ export class ButcherScene extends Scene {
     header.append(
       this.createEl('span', 'zh-butcher__label', '◈ акт IV · II'),
       this.createEl('h2', 'zh-butcher__title', 'Мясник'),
-      this.createEl('p', 'zh-butcher__hint', 'крестики-нолики. ты - O. мясник - X. проигрыш = скример'),
+      this.createEl('p', 'zh-butcher__hint', 'крестики-нолики. ты - O, ходишь первым. мясник иногда ошибается'),
     );
     this.statusEl = this.createEl('p', 'zh-butcher__status', 'твой ход');
     this.hintEl = this.createEl('p', 'zh-butcher__code-hint', '');
@@ -70,14 +70,14 @@ export class ButcherScene extends Scene {
       return;
     }
     if (w === 'draw') {
-      this.loseGame('ничья. мясник смеётся.');
+      this.drawGame();
       return;
     }
 
     this.locked = true;
     this.statusEl.textContent = 'мясник думает...';
     window.setTimeout(() => {
-      const move = bestMove(this.board, 'X');
+      const move = butcherMove(this.board, quest.getFailCount());
       if (move < 0) return;
       this.board[move] = 'X';
       const butcherCell = this.cells[move];
@@ -91,7 +91,7 @@ export class ButcherScene extends Scene {
         return;
       }
       if (bw === 'draw') {
-        this.loseGame('ничья. снова.');
+        this.drawGame();
         return;
       }
       this.locked = false;
@@ -107,6 +107,12 @@ export class ButcherScene extends Scene {
     quest.completeButcherTrial();
     events.emit(EVT.INTERACT, { type: 'rune' });
     window.setTimeout(() => events.emit(EVT.SCARE_REQUEST, { type: 'static' }), 500);
+  }
+
+  private drawGame(): void {
+    this.locked = false;
+    this.statusEl.textContent = 'ничья. мясник скрипит. ещё раз.';
+    window.setTimeout(() => this.resetBoard(), 900);
   }
 
   private loseGame(msg: string): void {

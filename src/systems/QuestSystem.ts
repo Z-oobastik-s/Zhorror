@@ -256,7 +256,7 @@ export class QuestSystem {
   getObjective(): string {
     if (this.act4Complete) return 'Архив замкнут. Мясник доволен. Ты - последняя запись.';
     if (this.act === 4) {
-      if (this.act4Chapter === 2 && !this.butcherWon) return 'Выиграй у мясника. Проигрыш = скример.';
+      if (this.act4Chapter === 2 && !this.butcherWon) return 'Выиграй у мясника. Ничья - просто заново. Проигрыш = скример.';
       if (this.act4Chapter === 3 && !this.corridorDone) return 'Стрелки на клавиатуре. 10 кусков. Стена = смерть.';
       if (this.act4Chapter === 5 && this.butcherWon) return `Код мясника: ${this.getAbattoirHint()}`;
       return this.getChapterInfo().objective;
