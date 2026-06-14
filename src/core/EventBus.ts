@@ -44,4 +44,8 @@ export const EVT = {
   TRANSITION_START: 'transition:start',
   TRANSITION_END: 'transition:end',
   BOOT_COMPLETE: 'boot:complete',
+  QUEST_UPDATE: 'quest:update',
+  QUEST_CHAPTER: 'quest:chapter',
+  QUEST_FRAGMENT: 'quest:fragment',
+  QUEST_COMPLETE: 'quest:complete',
 } as const;

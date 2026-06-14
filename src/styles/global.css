@@ -1175,10 +1175,401 @@ body.zh-scare-shake {
   }
 }
 
+.zh-nav__sigil--locked {
+  opacity: 0.18;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
+.zh-nav__sigil--locked .zh-nav__sigil-mark {
+  color: #2a2020;
+}
+
+.zh-nav__sigil--locked:hover {
+  opacity: 0.25;
+}
+
+/* ===== QUEST HUD ===== */
+
+.zh-quest-hud {
+  position: fixed;
+  top: 24px;
+  left: 72px;
+  z-index: 210;
+  max-width: 280px;
+  padding: 14px 16px;
+  border: 1px solid rgba(60, 20, 20, 0.25);
+  background: rgba(8, 6, 6, 0.72);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+
+.zh-quest-hud--pulse {
+  animation: questPulse 1.2s ease;
+}
+
+@keyframes questPulse {
+  0%, 100% { box-shadow: none; border-color: rgba(60, 20, 20, 0.25); }
+  50% { box-shadow: 0 0 24px rgba(90, 20, 20, 0.35); border-color: rgba(90, 30, 30, 0.5); }
+}
+
+.zh-quest-hud--complete {
+  border-color: rgba(40, 30, 50, 0.4);
+}
+
+.zh-quest-hud__chapter {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #5c1a1a;
+  margin-bottom: 6px;
+}
+
+.zh-quest-hud__objective {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #8a8078;
+  letter-spacing: 1px;
+}
+
+.zh-quest-hud__fragments,
+.zh-quest-hud__ritual {
+  display: none;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.zh-quest-hud__rune {
+  font-size: 16px;
+  opacity: 0.25;
+  transition: opacity 0.3s, text-shadow 0.3s;
+}
+
+.zh-quest-hud__rune--found {
+  opacity: 1;
+  color: #8a3030;
+  text-shadow: 0 0 10px rgba(90, 20, 20, 0.5);
+}
+
+.zh-quest-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 300;
+  padding: 16px 24px;
+  background: rgba(10, 8, 8, 0.9);
+  border: 1px solid rgba(90, 30, 30, 0.4);
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #a89890;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+
+.zh-quest-toast--visible {
+  opacity: 1;
+}
+
+/* ===== SCENE SEAL ===== */
+
+.zh-scene-seal {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 3, 3, 0.82);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.6s, visibility 0.6s;
+  pointer-events: all;
+}
+
+.zh-scene-seal--visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.zh-scene-seal__inner {
+  text-align: center;
+  padding: 32px;
+}
+
+.zh-scene-seal__mark {
+  font-size: 32px;
+  color: #3a1515;
+  display: block;
+  margin-bottom: 16px;
+  text-shadow: 0 0 20px rgba(90, 20, 20, 0.4);
+}
+
+.zh-scene-seal__inner p {
+  font-size: 12px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #6a5550;
+  margin-bottom: 8px;
+}
+
+.zh-scene-seal__inner small {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #4a4040;
+}
+
+.zh-scene {
+  position: relative;
+}
+
+/* ===== ARCHIVE QUEST ===== */
+
+.zh-archive__card-mark {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 18px;
+  opacity: 0;
+  transition: opacity 0.4s, text-shadow 0.4s;
+}
+
+.zh-archive__card--open .zh-archive__card-mark {
+  opacity: 0.35;
+}
+
+.zh-archive__card--found .zh-archive__card-mark {
+  opacity: 1;
+  color: #8a3030;
+  text-shadow: 0 0 12px rgba(90, 20, 20, 0.6);
+}
+
+.zh-archive__card--marked {
+  border-color: rgba(60, 25, 25, 0.35);
+}
+
+/* ===== ENTITY QUEST ===== */
+
+.zh-entity__progress {
+  width: min(320px, 80vw);
+  height: 3px;
+  background: rgba(40, 20, 20, 0.3);
+  margin: 24px auto 12px;
+  overflow: hidden;
+}
+
+.zh-entity__progress-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #3a1515, #6a2020);
+  box-shadow: 0 0 12px rgba(90, 20, 20, 0.5);
+  transition: width 0.1s linear;
+}
+
+.zh-entity__status {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #6a4545;
+  text-align: center;
+  min-height: 20px;
+}
+
+.zh-entity--cleared .zh-entity__eye {
+  opacity: 0.4;
+}
+
+/* ===== RITUAL QUEST ===== */
+
+.zh-ritual__sequence {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  min-height: 48px;
+  margin: 16px 0 8px;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.zh-ritual__sequence--visible {
+  opacity: 1;
+}
+
+.zh-ritual__seq-rune {
+  font-size: 28px;
+  color: #8a4040;
+  text-shadow: 0 0 16px rgba(90, 20, 20, 0.5);
+  animation: seqPulse 1.2s ease infinite;
+}
+
+.zh-ritual__seq-rune:nth-child(2) { animation-delay: 0.15s; }
+.zh-ritual__seq-rune:nth-child(3) { animation-delay: 0.3s; }
+.zh-ritual__seq-rune:nth-child(4) { animation-delay: 0.45s; }
+
+@keyframes seqPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+.zh-ritual__sequence-hint {
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #5a4545;
+  margin-bottom: 16px;
+}
+
+.zh-ritual__symbol--wrong {
+  animation: ritualWrong 0.5s ease;
+  color: #ff2020 !important;
+}
+
+@keyframes ritualWrong {
+  0%, 100% { transform: rotate(var(--angle)) translateY(-130px) scale(1); }
+  50% { transform: rotate(var(--angle)) translateY(-130px) scale(1.2); }
+}
+
+/* ===== VOID QUEST ===== */
+
+.zh-void__hint {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #4a4040;
+  margin-top: 12px;
+}
+
+.zh-void__form {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.zh-void__input {
+  background: rgba(10, 8, 8, 0.8);
+  border: 1px solid rgba(60, 20, 20, 0.35);
+  color: #a89890;
+  padding: 12px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 2px;
+  min-width: 160px;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.zh-void__input:focus {
+  border-color: rgba(90, 30, 30, 0.6);
+  box-shadow: 0 0 16px rgba(90, 20, 20, 0.2);
+}
+
+.zh-void__submit {
+  background: transparent;
+  border: 1px solid rgba(60, 20, 20, 0.4);
+  color: #8a7068;
+  padding: 12px 20px;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+
+.zh-void__submit:hover {
+  border-color: rgba(90, 30, 30, 0.6);
+  color: #a89088;
+  background: rgba(30, 10, 10, 0.3);
+}
+
+.zh-void__feedback {
+  margin-top: 20px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #6a4545;
+  min-height: 20px;
+}
+
+.zh-void__form--reject {
+  animation: voidReject 0.5s ease;
+}
+
+@keyframes voidReject {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.zh-void--complete .zh-void__timer {
+  color: #4a3030;
+  letter-spacing: 8px;
+}
+
+@media (max-width: 768px) {
+  .zh-quest-hud {
+    left: 16px;
+    right: 16px;
+    max-width: none;
+    top: 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ===== UPDATE OVERLAY ===== */
+
+.zh-update {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 3, 3, 0.88);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: all;
+}
+
+.zh-update--visible {
+  opacity: 1;
+}
+
+.zh-update__inner {
+  text-align: center;
+  padding: 32px 40px;
+  border: 1px solid rgba(90, 30, 30, 0.35);
+  background: rgba(8, 6, 6, 0.92);
+}
+
+.zh-update__mark {
+  display: block;
+  font-size: 28px;
+  color: #5c1a1a;
+  margin-bottom: 12px;
+  text-shadow: 0 0 16px rgba(90, 20, 20, 0.5);
+}
+
+.zh-update__title {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #8a7068;
+  margin-bottom: 8px;
+}
+
+.zh-update__text {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #5a5050;
 }

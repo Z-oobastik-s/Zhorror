@@ -38,6 +38,35 @@ export const SCENE_IDS = {
 
 export type SceneId = (typeof SCENE_IDS)[keyof typeof SCENE_IDS];
 
+export const SCENE_ORDER: SceneId[] = [
+  SCENE_IDS.hero,
+  SCENE_IDS.archive,
+  SCENE_IDS.entity,
+  SCENE_IDS.ritual,
+  SCENE_IDS.void,
+];
+
+export const CHAPTERS = [
+  { index: 0, scene: SCENE_IDS.hero, title: 'Порог', objective: 'Нажми «войти в архив»' },
+  { index: 1, scene: SCENE_IDS.archive, title: 'Архив', objective: 'Открой записи и собери 4 метки' },
+  { index: 2, scene: SCENE_IDS.entity, title: 'Наблюдение', objective: 'Застыть на 4 секунды, пока оно смотрит' },
+  { index: 3, scene: SCENE_IDS.ritual, title: 'Ритуал', objective: 'Повтори последовательность символов' },
+  { index: 4, scene: SCENE_IDS.void, title: 'Пустота', objective: 'Введи запретный код архива' },
+] as const;
+
+export const ARCHIVE_FRAGMENTS: Record<string, string> = {
+  'ZH-001': 'ᛟ',
+  'ZH-047': 'ᚦ',
+  'ZH-112': '◈',
+  'ZH-666': '⬡',
+};
+
+export const RITUAL_SEQUENCE = ['ᛟ', 'ᚦ', '◈', '⬡'] as const;
+
+export const VOID_CODE = 'ZH-666';
+
+export const ENTITY_HOLD_SECONDS = 4;
+
 export const RUNES = ['ᛟ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᛞ', 'ᛉ', 'ᛊ', 'ᚹ', '◈', '⬡', '☍', '⟁', '⧫', '⌬', '⍟'] as const;
 
 export const WHISPERS = [

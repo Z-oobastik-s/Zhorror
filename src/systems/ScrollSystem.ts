@@ -111,6 +111,21 @@ export class ScrollSystem {
     return clamp(rel / t.height, 0, 1);
   }
 
+  getScrollCapForScene(maxUnlockedId: string): number {
+    const idx = this.targets.findIndex((t) => t.id === maxUnlockedId);
+    if (idx < 0 || idx >= this.targets.length - 1) return this.maxScroll;
+    const next = this.targets[idx + 1];
+    return Math.max(0, next.offset - window.innerHeight * 0.12);
+  }
+
+  applyScrollCap(cap: number): void {
+    const limit = clamp(cap, 0, this.maxScroll);
+    if (this.targetScrollY > limit) this.targetScrollY = limit;
+    if (this.scrollY > limit && !this.transitioning) {
+      this.scrollY = limit;
+    }
+  }
+
   getSceneAtScroll(y: number): string {
     for (let i = this.targets.length - 1; i >= 0; i--) {
       if (y >= this.targets[i].offset - window.innerHeight * 0.5) {

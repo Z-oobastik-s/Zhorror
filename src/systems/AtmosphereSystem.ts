@@ -12,6 +12,8 @@ export class AtmosphereSystem {
   private flickerTarget = 1;
   private flickerTimer = 0;
 
+  private questDepth = 0;
+
   constructor() {
     events.on(EVT.IDLE, (payload) => {
       this.idleState = (payload as { idle: boolean }).idle;
@@ -24,7 +26,8 @@ export class AtmosphereSystem {
 
     const timeFactor = clamp(this.sessionTime / 120000, 0, 1);
     const idleFactor = this.idleState ? 0.15 : 0;
-    this.targetLevel = clamp(timeFactor + idleFactor, 0, 1);
+    const questFactor = clamp(this.questDepth * 0.11, 0, 0.55);
+    this.targetLevel = clamp(timeFactor + idleFactor + questFactor, 0, 1);
 
     this.level = damp(this.level, this.targetLevel, 0.8, dt);
 
@@ -66,6 +69,10 @@ export class AtmosphereSystem {
 
   boost(amount: number): void {
     this.targetLevel = clamp(this.targetLevel + amount, 0, 1);
+  }
+
+  setQuestDepth(depth: number): void {
+    this.questDepth = depth;
   }
 
   resetIdle(): void {
