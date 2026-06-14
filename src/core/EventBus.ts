@@ -48,4 +48,6 @@ export const EVT = {
   QUEST_CHAPTER: 'quest:chapter',
   QUEST_FRAGMENT: 'quest:fragment',
   QUEST_COMPLETE: 'quest:complete',
+  QUEST_ACT_START: 'quest:act:start',
+  QUEST_RESET: 'quest:reset',
 } as const;

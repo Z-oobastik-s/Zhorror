@@ -113,10 +113,8 @@ export class VoidScene extends Scene {
 
 
 
-    if (quest.isComplete()) {
-
+    if (quest.isAct1Complete()) {
       this.showEnding();
-
     }
 
   }
@@ -124,8 +122,7 @@ export class VoidScene extends Scene {
 
 
   private tryCode(): void {
-
-    if (quest.isComplete()) return;
+    if (quest.isAct1Complete()) return;
 
 
 
@@ -154,15 +151,10 @@ export class VoidScene extends Scene {
 
 
   private showEnding(): void {
-
-    this.messageEl.textContent = 'Печать снята. Но выхода нет. Архив помнит каждого, кто дошёл до конца.';
-
-    this.feedbackEl.textContent = 'ты прошёл все главы. или они прошли через тебя.';
-
+    this.messageEl.textContent = 'Печать снята. Архив открывает нижний слой. Спуск неизбежен.';
+    this.feedbackEl.textContent = 'акт I завершён. бездна ждёт ниже.';
     this.formEl.style.display = 'none';
-
     this.element.classList.add('zh-void--complete');
-
   }
 
 
