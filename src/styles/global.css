@@ -2843,7 +2843,37 @@ body.zh-scare-shake {
   padding: 8px;
   background: rgba(4, 1, 1, 0.85);
   border: 1px solid rgba(60, 10, 10, 0.35);
+}
+
+.zh-corridor__play {
+  position: relative;
+  display: inline-block;
   margin-top: 8px;
+}
+
+.zh-corridor__gate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 1, 1, 0.82);
+  border: 1px solid rgba(80, 20, 20, 0.45);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.zh-corridor__gate--hidden {
+  display: none;
+}
+
+.zh-corridor__gate-text {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #a84040;
+  text-shadow: 0 0 16px rgba(120, 30, 30, 0.5);
+  animation: seqPulse 1.4s ease infinite;
 }
 
 .zh-corridor__cell {

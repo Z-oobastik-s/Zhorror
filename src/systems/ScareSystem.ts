@@ -6,6 +6,7 @@ import type { AtmosphereSystem } from './AtmosphereSystem';
 import type { AudioSystem } from './AudioSystem';
 import type { PerformanceManager } from './PerformanceManager';
 import { quest } from './QuestSystem';
+import { isAmbientScareBlocked } from './MinigameFocus';
 
 type ScareType = 'gif' | 'face' | 'static' | 'eyes' | 'text';
 
@@ -65,6 +66,7 @@ export class ScareSystem {
 
   update(_dt: number): void {
     if (!this.performance.shouldRunAmbientSystems() || this.active) return;
+    if (isAmbientScareBlocked()) return;
 
     const elapsed = performance.now();
     if (elapsed - this.lastScare < this.minCooldown) return;
@@ -82,6 +84,10 @@ export class ScareSystem {
     if (level > 0.25 && chance(0.0008 * (0.5 + level) * actBoost)) {
       this.trigger(randPick(['gif', 'gif', 'text'] as const));
     }
+  }
+
+  isScareActive(): boolean {
+    return this.active;
   }
 
   trigger(type: ScareType, force = false): void {
@@ -136,5 +142,6 @@ export class ScareSystem {
   private finish(): void {
     document.body.classList.remove('zh-scare-shake');
     this.active = false;
+    events.emit(EVT.SCARE_END);
   }
 }

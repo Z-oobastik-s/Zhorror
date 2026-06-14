@@ -39,6 +39,7 @@ export const EVT = {
   AUDIO_TOGGLE: 'audio:toggle',
   IDLE: 'user:idle',
   SCARE: 'scare',
+  SCARE_END: 'scare:end',
   SCARE_REQUEST: 'scare:request',
   INTERACT: 'interact',
   TRANSITION_START: 'transition:start',
