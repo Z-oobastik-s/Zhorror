@@ -4,7 +4,9 @@ import type { QuestSystem } from '@/systems/QuestSystem';
 
 export class QuestHUD {
   private root: HTMLElement;
-  private actEl: HTMLElement;
+  private toggleBtn!: HTMLButtonElement;
+  private toggleTextEl!: HTMLElement;
+  private actEl!: HTMLElement;
   private chapterEl: HTMLElement;
   private objectiveEl: HTMLElement;
   private fragmentsEl: HTMLElement;
@@ -20,24 +22,33 @@ export class QuestHUD {
   private toastEl: HTMLElement;
   private toastTimer = 0;
   private resetOpen = false;
+  private mobileMq = window.matchMedia('(max-width: 768px)');
 
   constructor(parent: HTMLElement, private quest: QuestSystem) {
     this.root = document.createElement('div');
-    this.root.className = 'zh-quest-hud';
+    this.root.className = 'zh-quest-hud zh-quest-hud--collapsed';
     this.root.innerHTML = `
-      <div class="zh-quest-hud__act"></div>
-      <div class="zh-quest-hud__cycle"></div>
-      <div class="zh-quest-hud__chapter"></div>
-      <div class="zh-quest-hud__objective"></div>
-      <div class="zh-quest-hud__fragments"></div>
-      <div class="zh-quest-hud__ritual"></div>
-      <div class="zh-quest-hud__echo"></div>
-      <div class="zh-quest-hud__act3"></div>
-      <div class="zh-quest-hud__act4"></div>
-      <button type="button" class="zh-quest-hud__reset">новый цикл</button>
+      <button type="button" class="zh-quest-hud__toggle" aria-expanded="false" aria-label="Задание">
+        <span class="zh-quest-hud__toggle-text">задание</span>
+        <span class="zh-quest-hud__toggle-icon">▾</span>
+      </button>
+      <div class="zh-quest-hud__body">
+        <div class="zh-quest-hud__act"></div>
+        <div class="zh-quest-hud__cycle"></div>
+        <div class="zh-quest-hud__chapter"></div>
+        <div class="zh-quest-hud__objective"></div>
+        <div class="zh-quest-hud__fragments"></div>
+        <div class="zh-quest-hud__ritual"></div>
+        <div class="zh-quest-hud__echo"></div>
+        <div class="zh-quest-hud__act3"></div>
+        <div class="zh-quest-hud__act4"></div>
+        <button type="button" class="zh-quest-hud__reset">новый цикл</button>
+      </div>
     `;
     parent.appendChild(this.root);
 
+    this.toggleBtn = this.root.querySelector('.zh-quest-hud__toggle') as HTMLButtonElement;
+    this.toggleTextEl = this.root.querySelector('.zh-quest-hud__toggle-text')!;
     this.actEl = this.root.querySelector('.zh-quest-hud__act')!;
     this.cycleEl = this.root.querySelector('.zh-quest-hud__cycle')!;
     this.chapterEl = this.root.querySelector('.zh-quest-hud__chapter')!;
@@ -48,6 +59,16 @@ export class QuestHUD {
     this.act3El = this.root.querySelector('.zh-quest-hud__act3')!;
     this.act4El = this.root.querySelector('.zh-quest-hud__act4')!;
     this.resetBtn = this.root.querySelector('.zh-quest-hud__reset') as HTMLButtonElement;
+
+    this.toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!this.mobileMq.matches) return;
+      const collapsed = this.root.classList.toggle('zh-quest-hud--collapsed');
+      this.toggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    });
+
+    this.applyMobileMode();
+    this.mobileMq.addEventListener('change', () => this.applyMobileMode());
 
     this.resetModal = document.createElement('div');
     this.resetModal.className = 'zh-reset-modal';
@@ -87,6 +108,18 @@ export class QuestHUD {
     events.on(EVT.QUEST_CHAPTER, () => this.flashChapter());
     events.on(EVT.QUEST_ACT_START, () => this.flashAct());
     this.render();
+  }
+
+  private applyMobileMode(): void {
+    const mobile = this.mobileMq.matches;
+    this.root.classList.toggle('zh-quest-hud--mobile', mobile);
+    if (mobile) {
+      this.root.classList.add('zh-quest-hud--collapsed');
+      this.toggleBtn.setAttribute('aria-expanded', 'false');
+    } else {
+      this.root.classList.remove('zh-quest-hud--collapsed');
+      this.toggleBtn.setAttribute('aria-expanded', 'true');
+    }
   }
 
   update(dt: number): void {
@@ -145,6 +178,7 @@ export class QuestHUD {
     this.cycleEl.textContent = `цикл ${this.quest.getSeed().slice(0, 8)} · ошибок ${this.quest.getFailCount()}`;
     this.chapterEl.textContent = `глава ${info.index}: ${info.title}`;
     this.objectiveEl.textContent = this.quest.getObjective();
+    this.toggleTextEl.textContent = `акт ${actLabel} · ${info.title}`;
 
     const depth = this.quest.getDepth();
     if (act === 1 && depth >= 1 && depth < 2) {

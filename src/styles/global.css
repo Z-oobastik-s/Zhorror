@@ -21,6 +21,7 @@ body {
   cursor: default;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 #zhorror-root {
@@ -1305,60 +1306,279 @@ body.zh-scare-shake {
 
 @media (max-width: 768px) {
   .zh-scene {
-    padding: 60px 20px;
+    padding: 72px 16px 96px;
+    align-items: flex-start;
+  }
+
+  .zh-scene__inner {
+    padding-top: 8px;
   }
 
   .zh-nav {
-    right: 12px;
-    gap: 10px;
+    top: auto;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 10px;
+    right: 10px;
+    transform: none;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 6px;
+    padding: 8px 10px;
+    max-width: none;
+    background: rgba(4, 2, 2, 0.88);
+    border: 1px solid rgba(60, 20, 20, 0.35);
+    border-radius: 2px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .zh-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .zh-nav__sigil {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    min-width: 36px;
+    min-height: 36px;
+    justify-content: center;
   }
 
   .zh-nav__sigil-label {
     display: none;
   }
 
+  .zh-scroll-indicator {
+    display: none;
+  }
+
+  .zh-audio-toggle {
+    bottom: max(68px, calc(58px + env(safe-area-inset-bottom)));
+    left: 12px;
+    width: 40px;
+    height: 40px;
+  }
+
   .zh-hero__title {
-    letter-spacing: 8px;
+    letter-spacing: 6px;
+    font-size: clamp(48px, 14vw, 88px);
   }
 
   .zh-hero__rune-ring {
-    width: 240px;
-    height: 240px;
-    margin: -120px 0 0 -120px;
+    width: 220px;
+    height: 220px;
+    margin: -110px 0 0 -110px;
   }
 
   .zh-entity__form {
-    gap: 20px;
+    gap: 16px;
   }
 
   .zh-ritual__circle {
-    width: 220px;
-    height: 220px;
+    width: min(260px, 78vw);
+    height: min(260px, 78vw);
+  }
+
+  .zh-ritual__symbol {
+    transform: rotate(var(--angle)) translateY(calc(min(260px, 78vw) * -0.46)) rotate(calc(-1 * var(--angle)));
   }
 
   .zh-finalrite__circle {
-    width: min(320px, 92vw);
-    height: min(320px, 92vw);
-    --orbit: calc(min(320px, 92vw) * 0.46);
+    width: min(300px, 88vw);
+    height: min(300px, 88vw);
+    --orbit: calc(min(300px, 88vw) * 0.46);
   }
 
   .zh-finalrite .zh-ritual__symbol {
-    width: 42px;
-    height: 42px;
-    margin: -21px 0 0 -21px;
-    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    font-size: 18px;
   }
 
   .zh-finalrite .zh-ritual__seq-rune {
-    font-size: 26px;
+    font-size: 22px;
   }
 
   .zh-finalrite .zh-ritual__seq-rune--current {
-    font-size: 30px;
+    font-size: 26px;
   }
 
   .zh-archive__grid {
     grid-template-columns: 1fr;
+  }
+
+  .zh-gate3__title,
+  .zh-gate4__title,
+  .zh-catacombs__title,
+  .zh-swarm__title,
+  .zh-butcher__title,
+  .zh-corridor__title,
+  .zh-finalrite__title,
+  .zh-terminus__title,
+  .zh-abattoir__title {
+    font-size: clamp(22px, 7vw, 36px);
+    letter-spacing: 2px;
+  }
+
+  .zh-gate3,
+  .zh-gate4,
+  .zh-catacombs,
+  .zh-swarm,
+  .zh-silence,
+  .zh-finalrite,
+  .zh-terminus,
+  .zh-hooks,
+  .zh-butcher,
+  .zh-corridor,
+  .zh-meatlock,
+  .zh-abattoir {
+    padding: 24px 12px 16px;
+    min-height: auto;
+  }
+
+  .zh-butcher__grid {
+    grid-template-columns: repeat(3, min(64px, 24vw));
+    gap: 6px;
+  }
+
+  .zh-butcher__cell {
+    width: min(64px, 24vw);
+    height: min(64px, 24vw);
+    font-size: 22px;
+  }
+
+  .zh-corridor__grid {
+    grid-template-columns: repeat(var(--corridor-size, 14), min(11px, 2.4vw));
+  }
+
+  .zh-corridor__cell {
+    width: min(11px, 2.4vw);
+    height: min(11px, 2.4vw);
+  }
+
+  .zh-hooks__hook {
+    width: 48px;
+    height: 62px;
+  }
+
+  .zh-meatlock__mark-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .zh-catacombs__grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 100%;
+  }
+
+  .zh-swarm__grid {
+    grid-template-columns: repeat(4, min(48px, 20vw));
+    gap: 10px;
+  }
+
+  .zh-swarm__eye {
+    width: min(48px, 20vw);
+    height: min(48px, 20vw);
+  }
+
+  .zh-audio-gate__panel {
+    margin: 16px;
+    padding: 24px 20px;
+    max-width: none;
+    width: calc(100% - 32px);
+  }
+
+  .zh-audio-gate__text {
+    font-size: 10px;
+    line-height: 1.7;
+  }
+
+  .zh-quest-toast {
+    width: calc(100% - 32px);
+    max-width: 320px;
+    text-align: center;
+    font-size: 10px;
+  }
+
+  .zh-quest-hud {
+    top: max(10px, env(safe-area-inset-top));
+    left: 10px;
+    right: auto;
+    max-width: min(210px, 58vw);
+    padding: 8px 10px;
+  }
+
+  .zh-quest-hud--mobile .zh-quest-hud__toggle {
+    display: flex;
+  }
+
+  .zh-quest-hud--mobile.zh-quest-hud--collapsed {
+    max-width: min(210px, 58vw);
+  }
+
+  .zh-quest-hud--mobile:not(.zh-quest-hud--collapsed) {
+    max-width: min(300px, 88vw);
+    max-height: min(42vh, 320px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .zh-quest-hud--mobile:not(.zh-quest-hud--collapsed) .zh-quest-hud__body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 8px;
+    max-height: calc(42vh - 36px);
+  }
+
+  .zh-quest-hud--mobile.zh-quest-hud--collapsed .zh-quest-hud__body {
+    display: none;
+  }
+
+  .zh-quest-hud__cycle {
+    display: none;
+  }
+
+  .zh-quest-hud__objective {
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .zh-quest-hud__chapter {
+    font-size: 9px;
+  }
+
+  .zh-scare__gif {
+    max-width: 100vw;
+    max-height: 70vh;
+    object-fit: contain;
+  }
+}
+
+@media (max-width: 480px) {
+  .zh-scene {
+    padding-top: 64px;
+    padding-bottom: 88px;
+  }
+
+  .zh-quest-hud--mobile:not(.zh-quest-hud--collapsed) {
+    max-width: calc(100vw - 20px);
+  }
+
+  .zh-nav {
+    left: 6px;
+    right: 6px;
+    padding: 6px 8px;
+  }
+
+  .zh-nav__sigil {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 6px 8px;
   }
 }
 
@@ -1408,7 +1628,48 @@ body.zh-scare-shake {
   background: rgba(8, 6, 6, 0.72);
   backdrop-filter: blur(4px);
   pointer-events: none;
-  transition: border-color 0.4s, box-shadow 0.4s;
+  transition: border-color 0.4s, box-shadow 0.4s, max-width 0.3s ease;
+}
+
+.zh-quest-hud__toggle {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  pointer-events: all;
+  text-align: left;
+}
+
+.zh-quest-hud__toggle-text {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #7a4545;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zh-quest-hud__toggle-icon {
+  font-size: 10px;
+  color: #5a3535;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.zh-quest-hud--collapsed .zh-quest-hud__toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.zh-quest-hud__body {
+  pointer-events: all;
 }
 
 .zh-quest-hud--pulse {
@@ -1809,15 +2070,6 @@ body.zh-scare-shake {
 .zh-void--complete .zh-void__timer {
   color: #4a3030;
   letter-spacing: 8px;
-}
-
-@media (max-width: 768px) {
-  .zh-quest-hud {
-    left: 16px;
-    right: 16px;
-    max-width: none;
-    top: 16px;
-  }
 }
 
 /* ===== QUEST HUD EXTRAS ===== */
