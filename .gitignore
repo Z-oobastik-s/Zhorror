@@ -1,0 +1,37 @@
+# Зависимости и сборка
+node_modules/
+.node/
+node.zip
+.git-tools/
+mingit.zip
+dist/
+dist-ssr/
+*.tsbuildinfo
+.vite/
+
+# Секреты и деплой (никогда не пушить)
+push.bat
+push-api.mjs
+github-token.txt
+deploy.bat
+deploy.key
+*.secret
+.env
+.env.*
+
+# IDE и служебное
+.cursor/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Логи и временное
+*.log
+npm-debug.log*
+.tmp/
+*.local
