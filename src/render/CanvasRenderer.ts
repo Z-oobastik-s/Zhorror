@@ -1,4 +1,4 @@
-import { randRange, randInt, clamp } from '@/utils/math';
+import { randRange, randInt } from '@/utils/math';
 import type { AtmosphereSystem } from '@/systems/AtmosphereSystem';
 import type { CursorSystem } from '@/systems/CursorSystem';
 
@@ -127,7 +127,7 @@ export class CanvasRenderer {
       this.glitchOffset = dampGlitch(this.glitchOffset, 0, dt);
     }
 
-    const { nx, ny } = cursor.getNormalized();
+    const { nx } = cursor.getNormalized();
     for (const p of this.particles) {
       p.x += p.vx + nx * 0.2;
       p.y += p.vy;

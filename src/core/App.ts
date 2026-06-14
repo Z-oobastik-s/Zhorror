@@ -15,9 +15,9 @@ import type { Scene } from '@/scenes/Scene';
 
 export class App {
   private root: HTMLElement;
-  private shell: HTMLElement;
-  private fxLayer: HTMLElement;
-  private uiLayer: HTMLElement;
+  private shell!: HTMLElement;
+  private fxLayer!: HTMLElement;
+  private uiLayer!: HTMLElement;
   private scroll!: ScrollSystem;
   private atmosphere!: AtmosphereSystem;
   private randomEvents!: RandomEventSystem;

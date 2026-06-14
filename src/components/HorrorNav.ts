@@ -6,7 +6,6 @@ interface NavItem {
 export class HorrorNav {
   private container: HTMLElement;
   private items: HTMLElement[] = [];
-  private activeId = '';
   private onNavigate: (id: string) => void;
 
   constructor(parent: HTMLElement, onNavigate: (id: string) => void) {
@@ -53,7 +52,6 @@ export class HorrorNav {
   }
 
   setActive(id: string): void {
-    this.activeId = id;
     this.items.forEach((item) => {
       item.classList.toggle('zh-nav__sigil--active', item.dataset.scene === id);
     });
