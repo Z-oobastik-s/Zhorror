@@ -23,6 +23,7 @@ export class AbyssScene extends Scene {
     sigil.setAttribute('tabindex', '0');
     sigil.innerHTML = '<span class="zh-abyss__sigil-inner"><span>спуститься</span><span class="zh-abyss__sigil-rune">☍</span></span>';
     sigil.addEventListener('click', () => {
+      if (!quest.canInteract()) return;
       quest.enterAbyss();
       window.dispatchEvent(new CustomEvent('zh-navigate', { detail: { scene: SCENE_IDS.echo } }));
     });

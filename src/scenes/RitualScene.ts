@@ -1,7 +1,6 @@
 import { Scene } from './Scene';
 import {
-  RITUAL_INPUT_SECONDS,
-  RITUAL_SEQUENCE,
+  RITUAL_CIRCLE_RUNES,
   RITUAL_SHOW_SECONDS,
   SCENE_IDS,
 } from '@/config/constants';
@@ -23,16 +22,21 @@ export class RitualScene extends Scene {
   private rotation = 0;
   private phase: RitualPhase = 'memory';
   private phaseTimer = 0;
-  private inputLeft = RITUAL_INPUT_SECONDS;
+  private inputLeft = 0;
+  private inputSeconds = 0;
   private ritualDone = false;
 
   protected build(): void {
+    this.inputSeconds = quest.getRitualInputSeconds();
+    this.inputLeft = this.inputSeconds;
+    const sequence = quest.getRitualSequence();
+
     const inner = this.createEl('div', 'zh-scene__inner zh-ritual');
     const header = this.createEl('div', 'zh-ritual__header');
     header.append(
       this.createEl('span', 'zh-ritual__label', '◈ секция III'),
       this.createEl('h2', 'zh-ritual__title', 'Цифровой ритуал'),
-      this.createEl('p', 'zh-ritual__hint', 'запомни символы. затем повтори их до истечения таймера'),
+      this.createEl('p', 'zh-ritual__hint', 'символы меняются каждый цикл. запомни и повтори'),
     );
 
     this.sequenceEl = this.createEl('div', 'zh-ritual__sequence');
@@ -40,20 +44,19 @@ export class RitualScene extends Scene {
 
     this.timerBar = this.createEl('div', 'zh-ritual__timer');
     this.timerFill = this.createEl('div', 'zh-ritual__timer-fill');
-    this.timerText = this.createEl('span', 'zh-ritual__timer-text', String(RITUAL_INPUT_SECONDS));
+    this.timerText = this.createEl('span', 'zh-ritual__timer-text', String(Math.ceil(this.inputSeconds)));
     this.timerBar.append(this.timerFill, this.timerText);
 
     const circleWrap = this.createEl('div', 'zh-ritual__circle-wrap');
     this.circleInner = this.createEl('div', 'zh-ritual__circle');
 
-    const circleSymbols = ['ᛟ', 'ᚦ', '◈', '⬡', 'ᚨ', 'ᚱ', 'ᛞ', 'ᛉ'] as const;
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < RITUAL_CIRCLE_RUNES.length; i++) {
       const sym = document.createElement('button');
       sym.className = 'zh-ritual__symbol';
       sym.type = 'button';
-      sym.textContent = circleSymbols[i];
-      sym.dataset.rune = circleSymbols[i];
-      sym.style.setProperty('--angle', `${(360 / 8) * i}deg`);
+      sym.textContent = RITUAL_CIRCLE_RUNES[i];
+      sym.dataset.rune = RITUAL_CIRCLE_RUNES[i];
+      sym.style.setProperty('--angle', `${(360 / RITUAL_CIRCLE_RUNES.length) * i}deg`);
       sym.addEventListener('click', () => this.onSymbolClick(sym));
       this.symbols.push(sym);
       this.circleInner.appendChild(sym);
@@ -74,7 +77,7 @@ export class RitualScene extends Scene {
     );
     this.element.appendChild(inner);
 
-    if (quest.getRitualProgress() >= RITUAL_SEQUENCE.length || quest.getDepth() >= 4) {
+    if (quest.getRitualProgress() >= sequence.length || quest.getDepth() >= 4) {
       this.phase = 'done';
       this.ritualDone = true;
       this.hintEl.textContent = 'круг уже разорван.';
@@ -83,7 +86,7 @@ export class RitualScene extends Scene {
   }
 
   private showSequence(): void {
-    this.sequenceEl.innerHTML = RITUAL_SEQUENCE
+    this.sequenceEl.innerHTML = quest.getRitualSequence()
       .map((r) => `<span class="zh-ritual__seq-rune">${r}</span>`)
       .join('');
     this.sequenceEl.classList.add('zh-ritual__sequence--visible');
@@ -92,8 +95,9 @@ export class RitualScene extends Scene {
 
   private startInputPhase(): void {
     this.phase = 'input';
+    this.inputSeconds = quest.getRitualInputSeconds();
+    this.inputLeft = this.inputSeconds;
     this.sequenceEl.classList.remove('zh-ritual__sequence--visible');
-    this.inputLeft = RITUAL_INPUT_SECONDS;
     this.timerBar.classList.add('zh-ritual__timer--active');
     this.hintEl.textContent = 'повтори последовательность. время идёт.';
     this.updateTimerUi();
@@ -103,21 +107,22 @@ export class RitualScene extends Scene {
     quest.resetRitualProgress();
     this.phase = 'memory';
     this.phaseTimer = 0;
-    this.inputLeft = RITUAL_INPUT_SECONDS;
+    this.inputSeconds = quest.getRitualInputSeconds();
+    this.inputLeft = this.inputSeconds;
     this.timerBar.classList.remove('zh-ritual__timer--active');
     this.symbols.forEach((s) => s.classList.remove('zh-ritual__symbol--lit', 'zh-ritual__symbol--wrong'));
     this.hintEl.textContent = 'ритуал сорван. смотри снова.';
   }
 
   private updateTimerUi(): void {
-    const ratio = this.inputLeft / RITUAL_INPUT_SECONDS;
+    const ratio = this.inputLeft / this.inputSeconds;
     this.timerFill.style.width = `${ratio * 100}%`;
     this.timerText.textContent = String(Math.ceil(this.inputLeft));
     this.timerBar.classList.toggle('zh-ritual__timer--urgent', this.inputLeft <= 4);
   }
 
   private onSymbolClick(sym: HTMLElement): void {
-    if (this.ritualDone || this.phase !== 'input') return;
+    if (!quest.canInteract() || this.ritualDone || this.phase !== 'input') return;
 
     const rune = sym.dataset.rune ?? sym.textContent ?? '';
     const result = quest.advanceRitual(rune);
@@ -140,7 +145,7 @@ export class RitualScene extends Scene {
       this.hintEl.textContent = 'круг разорван. пустота ждёт.';
       setTimeout(() => events.emit(EVT.SCARE_REQUEST, { type: 'static' }), 500);
     } else {
-      this.hintEl.textContent = `${quest.getRitualProgress()} / ${RITUAL_SEQUENCE.length}`;
+      this.hintEl.textContent = `${quest.getRitualProgress()} / ${quest.getRitualSequence().length}`;
     }
   }
 
@@ -163,6 +168,7 @@ export class RitualScene extends Scene {
       this.updateTimerUi();
 
       if (this.inputLeft <= 0) {
+        quest.registerFail();
         events.emit(EVT.SCARE_REQUEST, { type: 'eyes' });
         this.restartRitual();
         return;

@@ -1,4 +1,5 @@
 import { events, EVT } from '@/core/EventBus';
+import { audioGate } from '@/systems/AudioGateState';
 import { chance, randRange } from '@/utils/math';
 import { getDuration, isLongTrack, isMediumTrack } from '@/config/audioMeta';
 import { AUDIO, mediaUrl, pickRandom, type ScareAudioKind } from '@/config/media';
@@ -24,20 +25,14 @@ export class AudioSystem {
   constructor(private toggleBtn: HTMLElement) {
     this.toggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (this.enabled) this.disable();
-      else void this.primeAndEnable();
+      if (!this.enabled) void this.primeAndEnable();
     });
     this.toggleBtn.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        if (this.enabled) this.disable();
-        else void this.primeAndEnable();
+        if (!this.enabled) void this.primeAndEnable();
       }
     });
-
-    const primeOnce = () => { void this.primeAndEnable(); };
-    document.addEventListener('click', primeOnce, { once: true, capture: true });
-    document.addEventListener('keydown', primeOnce, { once: true, capture: true });
   }
 
   setActProfile(act: number): void {
@@ -50,19 +45,12 @@ export class AudioSystem {
     if (this.enabled) return;
     this.primed = true;
     this.enabled = true;
+    audioGate.setOpen(true);
     this.startAmbience();
-    this.toggleBtn.classList.add('zh-audio--on');
-    this.toggleBtn.setAttribute('aria-label', 'Отключить звук');
+    this.toggleBtn.classList.add('zh-audio--on', 'zh-audio-toggle--locked');
+    this.toggleBtn.setAttribute('aria-label', 'Звук архива включён');
+    this.toggleBtn.setAttribute('aria-disabled', 'true');
     events.emit(EVT.AUDIO_TOGGLE, { enabled: true });
-  }
-
-  private disable(): void {
-    this.enabled = false;
-    this.stopAmbience();
-    this.stopAllShort();
-    this.toggleBtn.classList.remove('zh-audio--on');
-    this.toggleBtn.setAttribute('aria-label', 'Включить звук');
-    events.emit(EVT.AUDIO_TOGGLE, { enabled: false });
   }
 
   private createAudio(src: string, volume: number, loop = false): HTMLAudioElement {
@@ -127,11 +115,6 @@ export class AudioSystem {
     const pool = this.actProfile >= 3 ? AUDIO.ambientLoopsAct3 : AUDIO.ambientLoops;
     const track = pickRandom(pool);
     this.ambientEl = this.playFile(track, this.actProfile >= 3 ? 0.42 : 0.35, true);
-    if (this.ambientEl) {
-      this.ambientEl.addEventListener('ended', () => {
-        if (this.ambientEl === null) return;
-      });
-    }
   }
 
   private stopAmbience(): void {
@@ -140,14 +123,6 @@ export class AudioSystem {
       this.ambientEl.src = '';
       this.ambientEl = null;
     }
-  }
-
-  private stopAllShort(): void {
-    for (const el of this.activeShort) {
-      el.pause();
-      el.src = '';
-    }
-    this.activeShort = [];
   }
 
   update(dt: number, atmosphereLevel: number): void {
@@ -215,7 +190,8 @@ export class AudioSystem {
   }
 
   playScare(type: ScareAudioKind): void {
-    const vol = this.enabled ? 0.88 : 0.5;
+    if (!this.enabled) return;
+    const vol = 0.88;
     this.playFile(pickRandom(AUDIO.screams), vol, false, true);
     this.playFile(pickRandom(AUDIO.impacts), vol * 0.65, false, true);
 

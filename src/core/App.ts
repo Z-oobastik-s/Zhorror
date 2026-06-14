@@ -14,6 +14,7 @@ import { ScareSystem } from '@/systems/ScareSystem';
 import { quest } from '@/systems/QuestSystem';
 import { HorrorNav } from '@/components/HorrorNav';
 import { QuestHUD } from '@/components/QuestHUD';
+import { AudioGate } from '@/components/AudioGate';
 import { BootSequence } from '@/components/BootSequence';
 import { ScrollIndicator } from '@/components/ScrollIndicator';
 import type { Scene } from '@/scenes/Scene';
@@ -83,13 +84,18 @@ export class App {
     this.uiLayer.appendChild(audioToggle);
 
     this.audio = new AudioSystem(audioToggle);
+    new AudioGate(this.uiLayer, this.audio);
+    this.scroll.setInputLocked(!this.audio.isEnabled());
     this.interaction = new InteractionSystem(this.uiLayer, this.audio);
     this.scare = new ScareSystem(this.uiLayer, this.atmosphere, this.audio, perf);
 
     this.questHud = new QuestHUD(this.uiLayer, quest);
     this.nav = new HorrorNav(
       this.uiLayer,
-      (id) => this.scroll.scrollToScene(id),
+      (id) => {
+        if (!this.audio.isEnabled()) return;
+        this.scroll.scrollToScene(id);
+      },
       (id) => quest.tryNavigate(id as SceneId),
       () => this.questHud.showLocked(),
     );
@@ -199,6 +205,12 @@ export class App {
     });
     events.on(EVT.QUEST_RESET, () => {
       window.location.reload();
+    });
+
+    events.on(EVT.AUDIO_TOGGLE, (payload) => {
+      const enabled = (payload as { enabled?: boolean }).enabled ?? false;
+      this.scroll.setInputLocked(!enabled);
+      this.shell.classList.toggle('zh-app--audio-locked', !enabled);
     });
 
     events.on(EVT.INTERACT, (payload) => {

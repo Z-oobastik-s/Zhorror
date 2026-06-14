@@ -10,6 +10,7 @@ export class TerminusScene extends Scene {
   private feedbackEl!: HTMLElement;
   private formEl!: HTMLElement;
   private inputEl!: HTMLInputElement;
+  private hintEl!: HTMLElement;
 
   protected build(): void {
     const inner = this.createEl('div', 'zh-scene__inner zh-terminus');
@@ -22,6 +23,11 @@ export class TerminusScene extends Scene {
 
     this.messageEl = this.createEl('p', 'zh-terminus__message',
       'Три слоя пройдены. Архив требует имя. Не название сайта. Имя автора.');
+
+    this.hintEl = this.createEl('p', 'zh-terminus__rune-hint', '');
+    if (quest.getFinalRiteProgress() >= quest.getFinalRiteSequence().length) {
+      this.hintEl.textContent = `подсказка ритуала: ${quest.getTerminusHint()}`;
+    }
 
     this.formEl = this.createEl('form', 'zh-terminus__form');
     this.inputEl = document.createElement('input');
@@ -40,14 +46,14 @@ export class TerminusScene extends Scene {
     const footer = this.createEl('div', 'zh-terminus__footer');
     footer.append(this.createEl('span', '', BRAND.name), this.createEl('span', '', 'акт III · конец'));
 
-    inner.append(header, this.messageEl, this.formEl, this.feedbackEl, footer);
+    inner.append(header, this.messageEl, this.hintEl, this.formEl, this.feedbackEl, footer);
     this.element.appendChild(inner);
 
     if (quest.isComplete()) this.showEnding();
   }
 
   private tryCode(): void {
-    if (quest.isComplete()) return;
+    if (!quest.canInteract() || quest.isComplete()) return;
     if (quest.submitTerminusCode(this.inputEl.value)) {
       this.showEnding();
       events.emit(EVT.SCARE_REQUEST, { type: 'face' });
@@ -61,6 +67,7 @@ export class TerminusScene extends Scene {
     this.messageEl.textContent = 'Круг замкнулся. Три акта. Один архив. Ты - последняя запись.';
     this.feedbackEl.textContent = 'Zhorror не отпускает. и не должен.';
     this.formEl.style.display = 'none';
+    this.hintEl.style.display = 'none';
     this.element.classList.add('zh-terminus--complete');
   }
 

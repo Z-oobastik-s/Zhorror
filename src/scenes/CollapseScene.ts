@@ -17,11 +17,11 @@ export class CollapseScene extends Scene {
     header.append(
       this.createEl('span', 'zh-collapse__label', '◈ финал акта II'),
       this.createEl('h2', 'zh-collapse__title', 'Коллапс архива'),
-      this.createEl('p', 'zh-collapse__hint', 'введи слово, которым всё началось'),
+      this.createEl('p', 'zh-collapse__hint', 'введи код, который эхо прошептало'),
     );
 
     this.messageEl = this.createEl('p', 'zh-collapse__message',
-      'Нижний слой рушится. Чтобы выжить внутри архива, назови его.');
+      'Нижний слой рушится. Код скрыт в комнате эха. Без пробелов, латиница.');
 
     this.formEl = this.createEl('form', 'zh-collapse__form');
     this.inputEl = document.createElement('input');
@@ -55,7 +55,7 @@ export class CollapseScene extends Scene {
   }
 
   private tryCode(): void {
-    if (quest.isAct2Complete()) return;
+    if (!quest.canInteract() || quest.isAct2Complete()) return;
 
     if (quest.submitCollapseCode(this.inputEl.value)) {
       this.showEnding();

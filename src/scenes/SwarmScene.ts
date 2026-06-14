@@ -1,5 +1,5 @@
 import { Scene } from './Scene';
-import { SCENE_IDS, SWARM_REAL_INDICES, SWARM_TIME_SECONDS } from '@/config/constants';
+import { SCENE_IDS } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
 import { quest } from '@/systems/QuestSystem';
 
@@ -9,20 +9,26 @@ export class SwarmScene extends Scene {
   private eyes: HTMLElement[] = [];
   private timerEl!: HTMLElement;
   private statusEl!: HTMLElement;
-  private timeLeft = SWARM_TIME_SECONDS;
+  private timeLeft = 0;
+  private swarmSeconds = 0;
+  private realCount = 0;
   private done = false;
   private failed = false;
 
   protected build(): void {
+    this.swarmSeconds = quest.getSwarmTimeSeconds();
+    this.timeLeft = this.swarmSeconds;
+    this.realCount = quest.getSwarmRealCount();
+
     const inner = this.createEl('div', 'zh-scene__inner zh-swarm');
     const header = this.createEl('div', 'zh-swarm__header');
     header.append(
       this.createEl('span', 'zh-swarm__label', '◈ акт III · II'),
       this.createEl('h2', 'zh-swarm__title', 'Рой глаз'),
-      this.createEl('p', 'zh-swarm__hint', 'найди 6 настоящих. ложные сбрасывают прогресс'),
+      this.createEl('p', 'zh-swarm__hint', `найди ${this.realCount} настоящих. ложные сбрасывают прогресс`),
     );
-    this.timerEl = this.createEl('div', 'zh-swarm__timer', String(SWARM_TIME_SECONDS));
-    this.statusEl = this.createEl('p', 'zh-swarm__status', '0 / 6');
+    this.timerEl = this.createEl('div', 'zh-swarm__timer', String(Math.ceil(this.swarmSeconds)));
+    this.statusEl = this.createEl('p', 'zh-swarm__status', `0 / ${this.realCount}`);
 
     const grid = this.createEl('div', 'zh-swarm__grid');
     for (let i = 0; i < 12; i++) {
@@ -30,9 +36,6 @@ export class SwarmScene extends Scene {
       eye.type = 'button';
       eye.dataset.index = String(i);
       eye.innerHTML = '<span class="zh-swarm__pupil"></span>';
-      if (SWARM_REAL_INDICES.includes(i as typeof SWARM_REAL_INDICES[number])) {
-        eye.classList.add('zh-swarm__eye--real');
-      }
       eye.addEventListener('click', () => this.onEye(i, eye));
       this.eyes.push(eye);
       grid.appendChild(eye);
@@ -41,14 +44,14 @@ export class SwarmScene extends Scene {
     inner.append(header, this.timerEl, this.statusEl, grid);
     this.element.appendChild(inner);
 
-    if (quest.getSwarmProgress() >= SWARM_REAL_INDICES.length) {
+    if (quest.getSwarmProgress() >= this.realCount) {
       this.done = true;
       this.statusEl.textContent = 'рой рассеян';
     }
   }
 
   private onEye(index: number, eye: HTMLElement): void {
-    if (this.done || this.failed) return;
+    if (!quest.canInteract() || this.done || this.failed) return;
     if (eye.classList.contains('zh-swarm__eye--hit')) return;
 
     const result = quest.registerSwarmHit(index);
@@ -62,7 +65,7 @@ export class SwarmScene extends Scene {
 
     eye.classList.add('zh-swarm__eye--hit');
     events.emit(EVT.INTERACT, { type: 'rune' });
-    this.statusEl.textContent = `${quest.getSwarmProgress()} / 6`;
+    this.statusEl.textContent = `${quest.getSwarmProgress()} / ${this.realCount}`;
     if (result === 'done') {
       this.done = true;
       this.statusEl.textContent = 'тишина перед тишиной...';
@@ -77,9 +80,11 @@ export class SwarmScene extends Scene {
 
     if (this.timeLeft <= 0 && !this.done) {
       this.failed = true;
+      quest.registerFail();
       quest.resetSwarmProgress();
       this.eyes.forEach((e) => e.classList.remove('zh-swarm__eye--hit'));
-      this.timeLeft = SWARM_TIME_SECONDS;
+      this.swarmSeconds = quest.getSwarmTimeSeconds();
+      this.timeLeft = this.swarmSeconds;
       this.failed = false;
       this.statusEl.textContent = 'время. снова.';
       events.emit(EVT.SCARE_REQUEST, { type: 'static' });

@@ -1,5 +1,5 @@
 import { Scene } from './Scene';
-import { SCENE_IDS, SILENCE_HOLD_SECONDS } from '@/config/constants';
+import { SCENE_IDS } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
 import { quest } from '@/systems/QuestSystem';
 
@@ -13,10 +13,11 @@ export class SilenceScene extends Scene {
 
   protected build(): void {
     const inner = this.createEl('div', 'zh-scene__inner zh-silence');
+    const holdSeconds = quest.getSilenceHoldSeconds();
     inner.append(
       this.createEl('span', 'zh-silence__label', '◈ акт III · III'),
       this.createEl('h2', 'zh-silence__title', 'Абсолютная тишина'),
-      this.createEl('p', 'zh-silence__hint', `не двигай курсор ${SILENCE_HOLD_SECONDS} секунд. архив слушает.`),
+      this.createEl('p', 'zh-silence__hint', `не двигай курсор ${Math.ceil(holdSeconds)} секунд. архив слушает.`),
     );
     const progress = this.createEl('div', 'zh-silence__progress');
     this.progressFill = this.createEl('div', 'zh-silence__progress-fill');
@@ -45,7 +46,8 @@ export class SilenceScene extends Scene {
   protected onUpdate(dt: number): void {
     if (!this.active || this.completed) return;
     this.holdTime += dt;
-    const p = Math.min(1, this.holdTime / SILENCE_HOLD_SECONDS);
+    const holdSeconds = quest.getSilenceHoldSeconds();
+    const p = Math.min(1, this.holdTime / holdSeconds);
     this.progressFill.style.width = `${p * 100}%`;
     if (p >= 1) {
       this.completed = true;

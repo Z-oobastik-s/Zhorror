@@ -31,6 +31,11 @@ export class ScrollSystem {
   private transitionFrom = 0;
   private transitionTo = 0;
   private transitionDuration = 1.8;
+  private inputLocked = true;
+
+  setInputLocked(locked: boolean): void {
+    this.inputLocked = locked;
+  }
 
   constructor(parent: HTMLElement) {
     this.container = document.createElement('div');
@@ -148,7 +153,7 @@ export class ScrollSystem {
 
   private onWheel = (e: WheelEvent): void => {
     e.preventDefault();
-    if (this.transitioning) return;
+    if (this.inputLocked || this.transitioning) return;
     this.wheelAccumulator += e.deltaY * 0.8;
     this.targetScrollY = clamp(this.targetScrollY + this.wheelAccumulator, 0, this.maxScroll);
     this.wheelAccumulator *= 0.85;
@@ -163,6 +168,7 @@ export class ScrollSystem {
 
   private onTouchMove = (e: TouchEvent): void => {
     e.preventDefault();
+    if (this.inputLocked) return;
     const dy = this.touchStartY - e.touches[0].clientY;
     this.targetScrollY = clamp(this.touchStartScroll + dy * 1.2, 0, this.maxScroll);
   };
@@ -172,7 +178,7 @@ export class ScrollSystem {
   };
 
   private onMouseDown = (e: MouseEvent): void => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || this.inputLocked) return;
     this.isDragging = true;
     this.dragStartY = e.clientY;
     this.dragStartScroll = this.targetScrollY;

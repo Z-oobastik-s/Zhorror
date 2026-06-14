@@ -1,6 +1,6 @@
 import { Scene } from './Scene';
 
-import { ENTITY_HOLD_SECONDS, SCENE_IDS } from '@/config/constants';
+import { SCENE_IDS } from '@/config/constants';
 
 import { events, EVT } from '@/core/EventBus';
 
@@ -44,7 +44,7 @@ export class EntityScene extends Scene {
 
       this.createEl('h2', 'zh-entity__title', 'Оно наблюдает'),
 
-      this.createEl('p', 'zh-entity__hint', 'не двигай курсор. выдержи 4 секунды.'),
+      this.createEl('p', 'zh-entity__hint', `не двигай курсор. выдержи ${Math.ceil(quest.getEntityHoldSeconds())} секунд.`),
 
     );
 
@@ -145,7 +145,8 @@ export class EntityScene extends Scene {
 
     this.holdTime += dt;
 
-    const progress = Math.min(1, this.holdTime / ENTITY_HOLD_SECONDS);
+    const holdSeconds = quest.getEntityHoldSeconds();
+    const progress = Math.min(1, this.holdTime / holdSeconds);
 
     this.progressFill.style.width = `${progress * 100}%`;
 

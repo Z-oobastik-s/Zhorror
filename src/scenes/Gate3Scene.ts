@@ -18,6 +18,7 @@ export class Gate3Scene extends Scene {
     sigil.setAttribute('role', 'button');
     sigil.innerHTML = '<span>войти в ядро</span><span class="zh-gate3__rune">⍟</span>';
     sigil.addEventListener('click', () => {
+      if (!quest.canInteract()) return;
       quest.enterGate3();
       window.dispatchEvent(new CustomEvent('zh-navigate', { detail: { scene: SCENE_IDS.catacombs } }));
     });

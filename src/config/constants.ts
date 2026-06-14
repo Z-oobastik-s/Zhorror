@@ -88,14 +88,41 @@ export const CHAPTERS_ACT3 = [
 
 export const CHAPTERS = CHAPTERS_ACT1;
 
+/** Статичная карта для обратной совместимости (логика квеста берёт RunConfig) */
 export const ARCHIVE_FRAGMENTS: Record<string, string> = {
   'ZH-001': 'ᛟ', 'ZH-047': 'ᚦ', 'ZH-112': '◈', 'ZH-666': '⬡',
 };
 
+export const ARCHIVE_RECORD_META = [
+  { id: 'ZH-001', title: 'Первая запись', text: 'Архив был открыт по ошибке. Никто не должен был найти эти файлы.', secret: 'Запись помечена: наблюдение активно.' },
+  { id: 'ZH-047', title: 'След наблюдателя', text: 'Каждый, кто читает это, уже отмечен.', secret: 'IP не существует. Существуете вы.' },
+  { id: 'ZH-112', title: 'Цифровой культ', text: 'Zhorror не проект. Это ритуал.', secret: 'Zoobastiks не создал архив. Архив создал Zoobastiks.' },
+  { id: 'ZH-204', title: 'Ложный след', text: 'Здесь ничего нет. Или ты слишком рано поверил.', secret: 'не каждая метка настоящая.' },
+  { id: 'ZH-319', title: 'Обратный отсчёт', text: 'Слои архива ссылаются друг на друга.', secret: 'ключ не там, где кажется.' },
+  { id: 'ZH-666', title: 'Запретный фрагмент', text: 'Текст повреждён. Символы стёрты.', secret: 'НЕ ОТКРЫВАЙ. ...слишком поздно.' },
+  { id: 'ZH-???', title: 'Пустая запись', text: '...', secret: 'ты здесь один? проверь за спиной.' },
+] as const;
+
 export const CATACOMB_MARKS = ['☍', '⟁', '⧫', '⌬'] as const;
+export const CATACOMB_MARK_POOL = ['☍', '⟁', '⧫', '⌬', '⍟', '◈', '⬡', 'ᛟ'] as const;
+
+export const RITUAL_RUNE_POOL = ['ᛟ', 'ᚦ', '◈', '⬡', '☍', '⟁', '⧫', '⌬'] as const;
+export const RITUAL_RUNE_COUNT = 4;
+export const FINAL_RITUAL_RUNE_COUNT = 6;
 
 export const RITUAL_SEQUENCE = ['ᛟ', 'ᚦ', '◈', '⬡'] as const;
 export const FINAL_RITUAL_SEQUENCE = ['ᛟ', 'ᚦ', '◈', '⬡', '☍', '⟁'] as const;
+
+export const COLLAPSE_CODE_POOL = ['ARCHIVE', 'ABYSS', 'HOLLOW', 'STATIC', 'CORRUPT', 'DEEPER', 'SHARD', 'VOIDED'] as const;
+
+export const ECHO_WORD_POOL = [
+  'они', 'зовут', 'тебя', 'вниз', 'тень', 'зовёт', 'тьму', 'глубже',
+  'архив', 'должны', 'идти', 'сюда', 'слушай', 'ближе', 'тише',
+] as const;
+
+export const ECHO_DECOY_POOL = [
+  'слушай', 'ближе', 'глубже', 'тише', 'дальше', 'здесь', 'позже', 'снова', 'никогда',
+] as const;
 
 export const RITUAL_SHOW_SECONDS = 3;
 export const RITUAL_INPUT_SECONDS = 14;
@@ -110,9 +137,13 @@ export const ENTITY_HOLD_SECONDS = 4;
 export const MIRROR_HOLD_SECONDS = 6;
 export const SILENCE_HOLD_SECONDS = 8;
 export const SWARM_TIME_SECONDS = 25;
+export const SWARM_EYE_COUNT = 12;
+export const SWARM_REAL_COUNT = 6;
 export const SWARM_REAL_INDICES = [0, 2, 3, 5, 8, 10] as const;
 
 export const ECHO_PHRASE = ['они', 'зовут', 'тебя', 'вниз'] as const;
+
+export const RITUAL_CIRCLE_RUNES = ['ᛟ', 'ᚦ', '◈', '⬡', '☍', '⟁', '⧫', '⌬', 'ᚨ', 'ᚱ'] as const;
 
 export const RUNES = ['ᛟ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᛞ', 'ᛉ', 'ᛊ', 'ᚹ', '◈', '⬡', '☍', '⟁', '⧫', '⌬', '⍟'] as const;
 

@@ -1,28 +1,29 @@
 import {
-  ARCHIVE_FRAGMENTS,
-  CATACOMB_MARKS,
   CHAPTERS_ACT1,
   CHAPTERS_ACT2,
   CHAPTERS_ACT3,
-  COLLAPSE_CODE,
-  ECHO_PHRASE,
-  FINAL_RITUAL_SEQUENCE,
-  RITUAL_SEQUENCE,
   SCENE_IDS,
   SCENE_ORDER,
   SCENE_ORDER_ACT1,
   SCENE_ORDER_ACT2,
   SCENE_ORDER_ACT3,
-  SWARM_REAL_INDICES,
   TERMINUS_CODE,
-  VOID_CODE,
 } from '@/config/constants';
 import type { SceneId } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
+import { audioGate } from '@/systems/AudioGateState';
+import {
+  collapseHint,
+  createRng,
+  createSeed,
+  generateRunConfig,
+  type RunConfig,
+} from '@/systems/RunConfig';
 
-const STORAGE_KEY = 'zh-quest-v3';
+const STORAGE_KEY = 'zh-quest-v4';
 
 interface QuestState {
+  seed: string;
   act: number;
   chapter: number;
   act2Chapter: number;
@@ -34,12 +35,14 @@ interface QuestState {
   entityFails: number;
   echoStep: number;
   swarmFound: number;
+  failCount: number;
   voidComplete: boolean;
   act2Complete: boolean;
   act3Complete: boolean;
 }
 
 export class QuestSystem {
+  private run: RunConfig;
   private act = 1;
   private chapter = 0;
   private act2Chapter = 0;
@@ -52,14 +55,120 @@ export class QuestSystem {
   private entityFails = 0;
   private echoStep = 0;
   private swarmFound = 0;
+  private failCount = 0;
   private voidComplete = false;
   private act2Complete = false;
   private act3Complete = false;
   private seals: Map<SceneId, HTMLElement> = new Map();
 
   constructor() {
+    const seed = this.loadSeed();
+    this.run = generateRunConfig(seed);
     this.load();
     this.syncUnlocks();
+  }
+
+  getRun(): Readonly<RunConfig> {
+    return this.run;
+  }
+
+  getSeed(): string {
+    return this.run.seed;
+  }
+
+  getFailCount(): number {
+    return this.failCount;
+  }
+
+  canInteract(): boolean {
+    return audioGate.isOpen();
+  }
+
+  registerFail(): void {
+    this.failCount += 1;
+    this.save();
+  }
+
+  getRitualSequence(): readonly string[] {
+    return this.run.ritualSequence;
+  }
+
+  getFinalRiteSequence(): readonly string[] {
+    return this.run.finalRiteSequence;
+  }
+
+  getEchoPhrase(): readonly string[] {
+    return this.run.echoPhrase;
+  }
+
+  getEchoWordPool(): string[] {
+    const rng = createRng(`${this.run.seed}-echo-ui`);
+    const words = [...this.run.echoPhrase, ...this.run.echoDecoys];
+    for (let i = words.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [words[i], words[j]] = [words[j], words[i]];
+    }
+    return words;
+  }
+
+  getCatacombMarksTarget(): readonly string[] {
+    return this.run.catacombMarks;
+  }
+
+  getCatacombDoors(): readonly string[] {
+    return this.run.catacombDoors;
+  }
+
+  isSwarmReal(index: number): boolean {
+    return this.run.swarmRealIndices.includes(index);
+  }
+
+  getSwarmRealCount(): number {
+    return this.run.swarmRealIndices.length;
+  }
+
+  getVoidCode(): string {
+    return this.run.voidCode;
+  }
+
+  getVoidRecordId(): string {
+    return this.run.voidRecordId;
+  }
+
+  getCollapseCode(): string {
+    return this.run.collapseCode;
+  }
+
+  getCollapseHint(): string {
+    return collapseHint(this.run.collapseCode);
+  }
+
+  getTerminusHint(): string {
+    return `Z${'○'.repeat(TERMINUS_CODE.length - 2)}S · ${TERMINUS_CODE.length} букв`;
+  }
+
+  getRitualInputSeconds(): number {
+    return Math.max(8, this.run.ritualInputSeconds - this.failCount * 1.5);
+  }
+
+  getFinalRiteInputSeconds(): number {
+    return Math.max(6, this.run.finalRiteInputSeconds - this.failCount * 1.2);
+  }
+
+  getSwarmTimeSeconds(): number {
+    return Math.max(14, this.run.swarmTimeSeconds - this.failCount * 2);
+  }
+
+  getSilenceHoldSeconds(): number {
+    return this.run.silenceHoldSeconds + this.failCount * 0.4;
+  }
+
+  getEntityHoldSeconds(): number {
+    return this.run.entityHoldSeconds + this.failCount * 0.35;
+  }
+
+  getMirrorHoldSeconds(): number {
+    return this.run.mirrorHoldSeconds + this.failCount * 0.45;
   }
 
   registerSeal(sceneId: SceneId, el: HTMLElement): void {
@@ -85,10 +194,21 @@ export class QuestSystem {
 
   getObjective(): string {
     if (this.act3Complete) return 'Все три акта пройдены. Архив не закрывается.';
-    if (this.act === 3) return this.getChapterInfo().objective;
+    if (this.act === 3) {
+      if (this.act3Chapter === 4) return 'Повтори 6 символов. Время сокращается с каждой ошибкой.';
+      if (this.act3Chapter === 5 && this.finalRiteStep >= this.run.finalRiteSequence.length) {
+        return 'Назови автора. Подсказка открыта после ритуала.';
+      }
+      return this.getChapterInfo().objective;
+    }
     if (this.act2Complete) return 'Акт II завершён. Ядро архива ждёт.';
-    if (this.act === 2) return this.getChapterInfo().objective;
+    if (this.act === 2) {
+      if (this.act2Chapter === 3) return 'Введи код, который эхо прошептало.';
+      return this.getChapterInfo().objective;
+    }
     if (this.voidComplete) return 'Акт I завершён. Спускайся глубже.';
+    if (this.chapter === 4) return 'Введи id записи-печати из архива.';
+    if (this.chapter === 1) return 'Открой записи и собери 4 метки. Не все метки настоящие.';
     return this.getChapterInfo().objective;
   }
 
@@ -116,7 +236,7 @@ export class QuestSystem {
   }
 
   enterArchive(): void {
-    if (this.chapter > 0) return;
+    if (!this.canInteract() || this.chapter > 0) return;
     this.chapter = 1;
     this.unlock(SCENE_IDS.archive);
     this.save();
@@ -125,11 +245,12 @@ export class QuestSystem {
   }
 
   collectFragment(recordId: string): boolean {
-    const rune = ARCHIVE_FRAGMENTS[recordId];
+    if (!this.canInteract()) return false;
+    const rune = this.run.archiveMap[recordId];
     if (!rune || this.fragments.has(rune)) return false;
     this.fragments.add(rune);
     events.emit(EVT.QUEST_FRAGMENT, { rune, total: this.fragments.size });
-    if (this.fragments.size >= Object.keys(ARCHIVE_FRAGMENTS).length && this.chapter === 1) {
+    if (this.fragments.size >= this.run.ritualSequence.length && this.chapter === 1) {
       this.chapter = 2;
       this.unlock(SCENE_IDS.entity);
       events.emit(EVT.QUEST_CHAPTER, { act: 1, chapter: 2, scene: SCENE_IDS.entity });
@@ -137,6 +258,28 @@ export class QuestSystem {
     this.save();
     events.emit(EVT.QUEST_UPDATE, this.snapshot());
     return true;
+  }
+
+  isDecoyRecord(recordId: string): boolean {
+    return this.run.decoyRecordIds.includes(recordId);
+  }
+
+  hasArchiveMark(recordId: string): boolean {
+    return recordId in this.run.archiveMap || this.run.decoyRecordIds.includes(recordId);
+  }
+
+  getArchiveRune(recordId: string): string {
+    return this.run.archiveMap[recordId] ?? '';
+  }
+
+  getArchiveSecret(recordId: string, baseSecret: string): string {
+    if (recordId === this.run.voidRecordId) {
+      return `${baseSecret} ключ печати: ${this.run.voidCode}`;
+    }
+    if (this.run.decoyRecordIds.includes(recordId)) {
+      return `${baseSecret} метка ложная.`;
+    }
+    return baseSecret;
   }
 
   completeEntityTrial(): void {
@@ -170,15 +313,16 @@ export class QuestSystem {
   resetSwarmProgress(): void { this.swarmFound = 0; this.save(); events.emit(EVT.QUEST_UPDATE, this.snapshot()); }
 
   advanceRitual(symbol: string): 'ok' | 'wrong' | 'done' {
-    const expected = RITUAL_SEQUENCE[this.ritualStep];
+    const expected = this.run.ritualSequence[this.ritualStep];
     if (symbol !== expected) {
+      this.registerFail();
       this.ritualStep = 0;
       this.save();
       events.emit(EVT.QUEST_UPDATE, this.snapshot());
       return 'wrong';
     }
     this.ritualStep += 1;
-    if (this.ritualStep >= RITUAL_SEQUENCE.length) {
+    if (this.ritualStep >= this.run.ritualSequence.length) {
       if (this.chapter === 3) {
         this.chapter = 4;
         this.unlock(SCENE_IDS.void);
@@ -194,7 +338,11 @@ export class QuestSystem {
   }
 
   submitVoidCode(code: string): boolean {
-    if (code.trim().toUpperCase().replace(/\s/g, '') !== VOID_CODE) return false;
+    const norm = code.trim().toUpperCase().replace(/\s/g, '');
+    if (norm !== this.run.voidCode.toUpperCase()) {
+      this.registerFail();
+      return false;
+    }
     this.voidComplete = true;
     this.act = 2;
     this.act2Chapter = 0;
@@ -207,7 +355,7 @@ export class QuestSystem {
   }
 
   enterAbyss(): void {
-    if (this.act !== 2 || this.act2Chapter > 0) return;
+    if (!this.canInteract() || this.act !== 2 || this.act2Chapter > 0) return;
     this.act2Chapter = 1;
     this.unlock(SCENE_IDS.echo);
     this.save();
@@ -216,15 +364,16 @@ export class QuestSystem {
   }
 
   advanceEcho(word: string): 'ok' | 'wrong' | 'done' {
-    const expected = ECHO_PHRASE[this.echoStep];
+    const expected = this.run.echoPhrase[this.echoStep];
     if (word !== expected) {
+      this.registerFail();
       this.echoStep = 0;
       this.save();
       events.emit(EVT.QUEST_UPDATE, this.snapshot());
       return 'wrong';
     }
     this.echoStep += 1;
-    if (this.echoStep >= ECHO_PHRASE.length) {
+    if (this.echoStep >= this.run.echoPhrase.length) {
       if (this.act2Chapter === 1) {
         this.act2Chapter = 2;
         this.unlock(SCENE_IDS.mirror);
@@ -240,7 +389,11 @@ export class QuestSystem {
   }
 
   submitCollapseCode(code: string): boolean {
-    if (code.trim().toUpperCase().replace(/\s/g, '') !== COLLAPSE_CODE) return false;
+    const norm = code.trim().toUpperCase().replace(/\s/g, '');
+    if (norm !== this.run.collapseCode) {
+      this.registerFail();
+      return false;
+    }
     this.act2Complete = true;
     this.act = 3;
     this.act3Chapter = 0;
@@ -253,7 +406,7 @@ export class QuestSystem {
   }
 
   enterGate3(): void {
-    if (this.act !== 3 || this.act3Chapter > 0) return;
+    if (!this.canInteract() || this.act !== 3 || this.act3Chapter > 0) return;
     this.act3Chapter = 1;
     this.unlock(SCENE_IDS.catacombs);
     this.save();
@@ -262,10 +415,13 @@ export class QuestSystem {
   }
 
   collectCatacombMark(mark: string): 'ok' | 'wrong' | 'done' {
-    if (!CATACOMB_MARKS.includes(mark as typeof CATACOMB_MARKS[number])) return 'wrong';
+    if (!this.run.catacombMarks.includes(mark)) {
+      this.registerFail();
+      return 'wrong';
+    }
     if (this.catacombMarks.has(mark)) return 'ok';
     this.catacombMarks.add(mark);
-    if (this.catacombMarks.size >= CATACOMB_MARKS.length && this.act3Chapter === 1) {
+    if (this.catacombMarks.size >= this.run.catacombMarks.length && this.act3Chapter === 1) {
       this.act3Chapter = 2;
       this.unlock(SCENE_IDS.swarm);
       this.save();
@@ -279,15 +435,15 @@ export class QuestSystem {
   }
 
   registerSwarmHit(index: number): 'ok' | 'wrong' | 'done' {
-    const isReal = SWARM_REAL_INDICES.includes(index as typeof SWARM_REAL_INDICES[number]);
-    if (!isReal) {
+    if (!this.isSwarmReal(index)) {
+      this.registerFail();
       this.swarmFound = 0;
       this.save();
       events.emit(EVT.QUEST_UPDATE, this.snapshot());
       return 'wrong';
     }
     this.swarmFound += 1;
-    if (this.swarmFound >= SWARM_REAL_INDICES.length && this.act3Chapter === 2) {
+    if (this.swarmFound >= this.run.swarmRealIndices.length && this.act3Chapter === 2) {
       this.act3Chapter = 3;
       this.unlock(SCENE_IDS.silence);
       this.save();
@@ -310,15 +466,16 @@ export class QuestSystem {
   }
 
   advanceFinalRite(symbol: string): 'ok' | 'wrong' | 'done' {
-    const expected = FINAL_RITUAL_SEQUENCE[this.finalRiteStep];
+    const expected = this.run.finalRiteSequence[this.finalRiteStep];
     if (symbol !== expected) {
+      this.registerFail();
       this.finalRiteStep = 0;
       this.save();
       events.emit(EVT.QUEST_UPDATE, this.snapshot());
       return 'wrong';
     }
     this.finalRiteStep += 1;
-    if (this.finalRiteStep >= FINAL_RITUAL_SEQUENCE.length) {
+    if (this.finalRiteStep >= this.run.finalRiteSequence.length) {
       if (this.act3Chapter === 4) {
         this.act3Chapter = 5;
         this.unlock(SCENE_IDS.terminus);
@@ -334,7 +491,11 @@ export class QuestSystem {
   }
 
   submitTerminusCode(code: string): boolean {
-    if (code.trim().toUpperCase().replace(/\s/g, '') !== TERMINUS_CODE) return false;
+    const norm = code.trim().toUpperCase().replace(/\s/g, '');
+    if (norm !== TERMINUS_CODE) {
+      this.registerFail();
+      return false;
+    }
     this.act3Complete = true;
     this.save();
     events.emit(EVT.QUEST_COMPLETE, { act: 3 });
@@ -342,11 +503,15 @@ export class QuestSystem {
     return true;
   }
 
-  tryNavigate(id: SceneId): boolean { return this.isUnlocked(id); }
+  tryNavigate(id: SceneId): boolean {
+    if (!this.canInteract()) return false;
+    return this.isUnlocked(id);
+  }
 
   resetProgress(): void {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('zh-quest-v3');
       localStorage.removeItem('zh-quest-v2');
       localStorage.removeItem('zh-quest-v1');
     } catch { /* ignore */ }
@@ -371,16 +536,16 @@ export class QuestSystem {
       this.unlocked.add(SCENE_ORDER_ACT1[i]);
     }
     if (this.chapter >= 2) {
-      for (const rune of Object.values(ARCHIVE_FRAGMENTS)) this.fragments.add(rune);
+      for (const rune of Object.values(this.run.archiveMap)) this.fragments.add(rune);
     }
-    if (this.chapter >= 4) this.ritualStep = RITUAL_SEQUENCE.length;
+    if (this.chapter >= 4) this.ritualStep = this.run.ritualSequence.length;
 
     if (this.act >= 2) {
       this.unlocked.add(SCENE_IDS.abyss);
       for (let i = 0; i <= this.act2Chapter && i < SCENE_ORDER_ACT2.length; i++) {
         this.unlocked.add(SCENE_ORDER_ACT2[i]);
       }
-      if (this.act2Chapter >= 2) this.echoStep = ECHO_PHRASE.length;
+      if (this.act2Chapter >= 2) this.echoStep = this.run.echoPhrase.length;
     }
 
     if (this.act >= 3) {
@@ -389,10 +554,10 @@ export class QuestSystem {
         this.unlocked.add(SCENE_ORDER_ACT3[i]);
       }
       if (this.act3Chapter >= 2) {
-        for (const m of CATACOMB_MARKS) this.catacombMarks.add(m);
+        for (const m of this.run.catacombMarks) this.catacombMarks.add(m);
       }
-      if (this.act3Chapter >= 2) this.swarmFound = SWARM_REAL_INDICES.length;
-      if (this.act3Chapter >= 4) this.finalRiteStep = FINAL_RITUAL_SEQUENCE.length;
+      if (this.act3Chapter >= 2) this.swarmFound = this.run.swarmRealIndices.length;
+      if (this.act3Chapter >= 4) this.finalRiteStep = this.run.finalRiteSequence.length;
     }
 
     this.refreshSeals();
@@ -408,15 +573,40 @@ export class QuestSystem {
       voidComplete: this.voidComplete,
       act2Complete: this.act2Complete,
       act3Complete: this.act3Complete,
+      seed: this.run.seed,
+      failCount: this.failCount,
     };
+  }
+
+  private loadSeed(): string {
+    try {
+      let raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) raw = localStorage.getItem('zh-quest-v3');
+      if (raw) {
+        const data = JSON.parse(raw) as QuestState;
+        if (data.seed) return data.seed;
+      }
+    } catch { /* ignore */ }
+    return createSeed();
   }
 
   private load(): void {
     try {
       let raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) raw = localStorage.getItem('zh-quest-v2');
+      if (!raw) raw = localStorage.getItem('zh-quest-v3');
       if (!raw) return;
       const data = JSON.parse(raw) as QuestState;
+      if (data.seed) {
+        this.run = generateRunConfig(data.seed);
+      } else {
+        this.fragments.clear();
+        this.catacombMarks.clear();
+        this.ritualStep = 0;
+        this.finalRiteStep = 0;
+        this.echoStep = 0;
+        this.swarmFound = 0;
+        this.failCount = 0;
+      }
       this.act = data.act ?? 1;
       this.chapter = data.chapter ?? 0;
       this.act2Chapter = data.act2Chapter ?? 0;
@@ -428,6 +618,7 @@ export class QuestSystem {
       this.entityFails = data.entityFails ?? 0;
       this.echoStep = data.echoStep ?? 0;
       this.swarmFound = data.swarmFound ?? 0;
+      this.failCount = data.failCount ?? 0;
       this.voidComplete = data.voidComplete ?? false;
       this.act2Complete = data.act2Complete ?? false;
       this.act3Complete = data.act3Complete ?? false;
@@ -439,6 +630,7 @@ export class QuestSystem {
   private save(): void {
     try {
       const data: QuestState = {
+        seed: this.run.seed,
         act: this.act,
         chapter: this.chapter,
         act2Chapter: this.act2Chapter,
@@ -450,6 +642,7 @@ export class QuestSystem {
         entityFails: this.entityFails,
         echoStep: this.echoStep,
         swarmFound: this.swarmFound,
+        failCount: this.failCount,
         voidComplete: this.voidComplete,
         act2Complete: this.act2Complete,
         act3Complete: this.act3Complete,

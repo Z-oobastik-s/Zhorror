@@ -1,5 +1,5 @@
 import { Scene } from './Scene';
-import { MIRROR_HOLD_SECONDS, SCENE_IDS } from '@/config/constants';
+import { SCENE_IDS } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
 import { quest } from '@/systems/QuestSystem';
 
@@ -18,7 +18,7 @@ export class MirrorScene extends Scene {
     header.append(
       this.createEl('span', 'zh-mirror__label', '◈ акт II · II'),
       this.createEl('h2', 'zh-mirror__title', 'Зеркальный зал'),
-      this.createEl('p', 'zh-mirror__hint', 'не двигай курсор. 6 секунд. отражение смотрит в ответ.'),
+      this.createEl('p', 'zh-mirror__hint', `не двигай курсор. ${Math.ceil(quest.getMirrorHoldSeconds())} секунд. отражение смотрит в ответ.`),
     );
 
     const row = this.createEl('div', 'zh-mirror__eyes');
@@ -61,7 +61,8 @@ export class MirrorScene extends Scene {
     if (!this.active || this.completed) return;
 
     this.holdTime += dt;
-    const progress = Math.min(1, this.holdTime / MIRROR_HOLD_SECONDS);
+    const holdSeconds = quest.getMirrorHoldSeconds();
+    const progress = Math.min(1, this.holdTime / holdSeconds);
     this.progressFill.style.width = `${progress * 100}%`;
 
     if (progress >= 1) {
