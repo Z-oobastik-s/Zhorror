@@ -357,80 +357,263 @@ body.zh-dragging {
 /* ===== AUDIO GATE ===== */
 
 .zh-audio-gate {
+  --zh-tear-clip: polygon(
+    0% 3%, 2% 0%, 6% 2%, 11% 0%, 17% 3%, 23% 0%, 29% 2%, 36% 0%, 43% 3%, 50% 0%, 57% 2%, 64% 0%, 71% 3%, 78% 0%, 85% 2%, 92% 0%, 97% 3%, 100% 1%,
+    100% 7%, 98% 13%, 100% 19%, 99% 26%, 100% 33%, 98% 40%, 100% 47%, 99% 54%, 100% 61%, 98% 68%, 100% 75%, 99% 82%, 100% 89%, 97% 95%, 100% 100%,
+    94% 98%, 87% 100%, 80% 97%, 73% 100%, 66% 98%, 59% 100%, 52% 97%, 45% 100%, 38% 98%, 31% 100%, 24% 97%, 17% 100%, 10% 98%, 4% 100%, 0% 96%,
+    1% 89%, 0% 82%, 2% 75%, 0% 68%, 1% 61%, 0% 54%, 2% 47%, 0% 40%, 1% 33%, 0% 26%, 2% 19%, 0% 12%, 1% 6%
+  );
+  --zh-tear-clip-inner: polygon(
+    1% 4%, 3% 1%, 7% 3%, 12% 1%, 18% 4%, 24% 1%, 30% 3%, 37% 1%, 44% 4%, 51% 1%, 58% 3%, 65% 1%, 72% 4%, 79% 1%, 86% 3%, 93% 1%, 98% 4%, 99% 2%,
+    99% 8%, 97% 14%, 99% 20%, 98% 27%, 99% 34%, 97% 41%, 99% 48%, 98% 55%, 99% 62%, 97% 69%, 99% 76%, 98% 83%, 99% 90%, 96% 96%, 99% 99%,
+    93% 97%, 86% 99%, 79% 96%, 72% 99%, 65% 97%, 58% 99%, 51% 96%, 44% 99%, 37% 97%, 30% 99%, 23% 96%, 16% 99%, 9% 97%, 3% 99%, 1% 95%,
+    2% 88%, 1% 81%, 3% 74%, 1% 67%, 2% 60%, 1% 53%, 3% 46%, 1% 39%, 2% 32%, 1% 25%, 3% 18%, 1% 11%, 2% 5%
+  );
+
   position: fixed;
   inset: 0;
   z-index: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(2, 1, 1, 0.92);
-  backdrop-filter: blur(6px);
-  transition: opacity 0.8s ease;
+  padding: clamp(16px, 4vw, 32px);
+  transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
 .zh-audio-gate--hidden {
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.zh-audio-gate__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 65% 55% at 50% 42%, rgba(32, 8, 12, 0.5) 0%, rgba(2, 1, 1, 0.96) 70%),
+    rgba(1, 0, 0, 0.94);
+  backdrop-filter: blur(8px);
+}
+
+.zh-audio-gate__veil::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      108deg,
+      transparent 0,
+      transparent 120px,
+      rgba(40, 10, 14, 0.04) 121px,
+      transparent 122px
+    ),
+    repeating-linear-gradient(
+      -72deg,
+      transparent 0,
+      transparent 180px,
+      rgba(20, 6, 8, 0.05) 181px,
+      transparent 183px
+    );
   pointer-events: none;
 }
 
 .zh-audio-gate__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 580px);
+  filter: drop-shadow(0 28px 70px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 48px rgba(70, 14, 20, 0.22));
+  animation: audioGateIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes audioGateIn {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.zh-audio-gate__tear {
+  clip-path: var(--zh-tear-clip);
+}
+
+.zh-audio-gate__tear--outer {
+  padding: 3px;
+  background: linear-gradient(145deg, rgba(110, 32, 38, 0.75) 0%, rgba(48, 12, 16, 0.9) 45%, rgba(80, 22, 28, 0.65) 100%);
+}
+
+.zh-audio-gate__tear--inner {
+  position: relative;
+  clip-path: var(--zh-tear-clip-inner);
+  padding: clamp(36px, 6vw, 54px) clamp(28px, 5vw, 46px) clamp(34px, 5vw, 42px);
   text-align: center;
-  padding: 36px 40px;
-  max-width: 420px;
-  border: 1px solid rgba(90, 25, 25, 0.45);
-  background: rgba(8, 4, 5, 0.95);
-  box-shadow: 0 0 40px rgba(60, 10, 10, 0.35);
+  background:
+    linear-gradient(168deg, rgba(12, 7, 8, 0.99) 0%, rgba(6, 4, 4, 1) 50%, rgba(10, 6, 7, 0.99) 100%);
+}
+
+.zh-audio-gate__scratches {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.55;
+  background:
+    linear-gradient(118deg, transparent 44%, rgba(90, 28, 32, 0.12) 44.4%, transparent 44.8%),
+    linear-gradient(62deg, transparent 58%, rgba(50, 14, 18, 0.18) 58.3%, transparent 58.7%),
+    linear-gradient(172deg, transparent 22%, rgba(70, 20, 24, 0.1) 22.2%, transparent 22.5%),
+    linear-gradient(-28deg, transparent 71%, rgba(40, 10, 12, 0.14) 71.3%, transparent 71.6%),
+    linear-gradient(95deg, transparent 35%, rgba(60, 16, 20, 0.08) 35.15%, transparent 35.3%);
+}
+
+.zh-audio-gate__scratches::before {
+  content: '';
+  position: absolute;
+  top: 12%;
+  left: 6%;
+  width: 38%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(100, 30, 36, 0.35), transparent);
+  transform: rotate(-8deg);
+}
+
+.zh-audio-gate__scratches::after {
+  content: '';
+  position: absolute;
+  bottom: 18%;
+  right: 8%;
+  width: 42%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(70, 22, 26, 0.3), transparent);
+  transform: rotate(6deg);
+}
+
+.zh-audio-gate__head {
+  position: relative;
+  margin-bottom: 26px;
 }
 
 .zh-audio-gate__mark {
-  display: block;
-  font-size: 32px;
-  color: #6a1520;
-  margin-bottom: 16px;
-  animation: timerPulse 1.2s ease infinite;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  margin-bottom: 18px;
+  font-size: 30px;
+  color: #9a2838;
+  border: 1px dashed rgba(110, 32, 40, 0.5);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, rgba(36, 10, 14, 0.65) 0%, rgba(8, 4, 5, 0.2) 72%);
+  box-shadow:
+    0 0 0 5px rgba(10, 4, 5, 0.85) inset,
+    0 0 28px rgba(80, 18, 26, 0.28);
+  animation: audioGatePulse 1.4s ease-in-out infinite;
+}
+
+@keyframes audioGatePulse {
+  0%, 100% {
+    color: #7a2028;
+    box-shadow:
+      0 0 0 5px rgba(10, 4, 5, 0.85) inset,
+      0 0 20px rgba(70, 16, 22, 0.2);
+  }
+  50% {
+    color: #c04050;
+    box-shadow:
+      0 0 0 5px rgba(10, 4, 5, 0.85) inset,
+      0 0 36px rgba(100, 22, 30, 0.4);
+  }
+}
+
+.zh-audio-gate__label {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #6a4848;
+  margin-bottom: 10px;
 }
 
 .zh-audio-gate__title {
-  font-size: 11px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 6.5vw, 50px);
+  font-weight: 300;
   letter-spacing: 5px;
-  text-transform: uppercase;
-  color: #8a6068;
-  margin-bottom: 16px;
+  text-transform: lowercase;
+  color: #d0a8a8;
+  line-height: 1.05;
+  text-shadow: 0 0 32px rgba(90, 24, 30, 0.28);
+}
+
+.zh-audio-gate__divider {
+  height: 1px;
+  max-width: 340px;
+  margin: 0 auto 28px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(90, 30, 36, 0.35) 15%,
+    rgba(130, 42, 48, 0.55) 50%,
+    rgba(90, 30, 36, 0.35) 85%,
+    transparent 100%
+  );
+}
+
+.zh-audio-gate__body {
+  max-width: 440px;
+  margin: 0 auto 30px;
 }
 
 .zh-audio-gate__text {
+  font-size: clamp(13px, 2.2vw, 15px);
+  line-height: 1.85;
+  letter-spacing: 0.5px;
+  color: #a89090;
+  margin-bottom: 10px;
+}
+
+.zh-audio-gate__warn {
+  display: inline-block;
+  margin-top: 14px;
   font-size: 11px;
-  line-height: 2;
-  letter-spacing: 1px;
-  color: #6a5058;
-  margin-bottom: 24px;
+  letter-spacing: 3px;
+  color: #b06060;
+  text-transform: uppercase;
+  padding: 9px 16px;
+  border: 1px solid rgba(90, 28, 32, 0.4);
+  background: rgba(18, 6, 8, 0.55);
 }
 
 .zh-audio-gate__btn {
   font-family: inherit;
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  padding: 14px 28px;
-  border: 1px solid rgba(100, 25, 30, 0.6);
-  background: rgba(40, 10, 12, 0.45);
-  color: #a87078;
+  min-width: 220px;
+  padding: 18px 32px;
+  border: 1px solid rgba(120, 36, 42, 0.65);
+  background: linear-gradient(180deg, rgba(52, 14, 20, 0.9) 0%, rgba(28, 8, 12, 0.98) 100%);
+  color: #f0d0d0;
   cursor: pointer;
-  transition: border-color 0.3s, box-shadow 0.3s, color 0.3s;
+  clip-path: polygon(
+    2% 12%, 0% 0%, 12% 2%, 24% 0%, 36% 3%, 48% 0%, 60% 2%, 72% 0%, 84% 3%, 96% 0%, 100% 8%,
+    98% 20%, 100% 32%, 97% 44%, 100% 56%, 98% 68%, 100% 80%, 96% 92%, 100% 100%,
+    88% 98%, 76% 100%, 64% 97%, 52% 100%, 40% 98%, 28% 100%, 16% 97%, 4% 100%, 0% 88%,
+    2% 76%, 0% 64%, 3% 52%, 0% 40%, 2% 28%, 0% 16%
+  );
+  transition: border-color 0.3s, box-shadow 0.3s, color 0.3s, transform 0.2s;
 }
 
 .zh-audio-gate__btn:hover {
-  border-color: rgba(130, 35, 40, 0.75);
-  color: #c89098;
-  box-shadow: 0 0 20px rgba(80, 15, 20, 0.35);
+  border-color: rgba(150, 48, 54, 0.8);
+  color: #fff4f4;
+  box-shadow: 0 0 36px rgba(90, 22, 28, 0.4);
+  transform: translateY(-1px);
 }
 
-.zh-audio-gate__warn {
-  margin-top: 16px;
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: #5a3535;
-  text-transform: uppercase;
+.zh-audio-gate__btn:active {
+  transform: translateY(1px);
 }
 
 .zh-app--audio-locked .zh-scroll {
@@ -1634,15 +1817,22 @@ body.zh-scare-shake {
   }
 
   .zh-audio-gate__panel {
-    margin: 16px;
-    padding: 24px 20px;
-    max-width: none;
-    width: calc(100% - 32px);
+    width: calc(100% - 20px);
+  }
+
+  .zh-audio-gate__tear--inner {
+    padding: 32px 22px 28px;
   }
 
   .zh-audio-gate__text {
-    font-size: 10px;
-    line-height: 1.7;
+    font-size: 13px;
+    line-height: 1.75;
+  }
+
+  .zh-audio-gate__btn {
+    min-width: 0;
+    width: 100%;
+    max-width: 280px;
   }
 
   .zh-quest-toast {

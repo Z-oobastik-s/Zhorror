@@ -11,12 +11,25 @@ export class AudioGate {
     this.root.setAttribute('aria-modal', 'true');
     this.root.setAttribute('aria-label', 'Включите звук');
     this.root.innerHTML = `
+      <div class="zh-audio-gate__veil" aria-hidden="true"></div>
       <div class="zh-audio-gate__panel">
-        <span class="zh-audio-gate__mark">◉</span>
-        <p class="zh-audio-gate__title">архив молчит</p>
-        <p class="zh-audio-gate__text">без звука прохождение заблокировано.<br>скримеры, шёпоты и подсказки - только через динамики.</p>
-        <button type="button" class="zh-audio-gate__btn">включить звук</button>
-        <p class="zh-audio-gate__warn">отключить звук нельзя</p>
+        <div class="zh-audio-gate__tear zh-audio-gate__tear--outer">
+          <div class="zh-audio-gate__tear zh-audio-gate__tear--inner">
+            <div class="zh-audio-gate__scratches" aria-hidden="true"></div>
+            <header class="zh-audio-gate__head">
+              <span class="zh-audio-gate__mark" aria-hidden="true">◌</span>
+              <p class="zh-audio-gate__label">вход в архив</p>
+              <h2 class="zh-audio-gate__title">архив молчит</h2>
+            </header>
+            <div class="zh-audio-gate__divider" aria-hidden="true"></div>
+            <div class="zh-audio-gate__body">
+              <p class="zh-audio-gate__text">без звука прохождение заблокировано.</p>
+              <p class="zh-audio-gate__text">скримеры, шёпоты и подсказки - только через динамики.</p>
+              <p class="zh-audio-gate__warn">отключить звук нельзя</p>
+            </div>
+            <button type="button" class="zh-audio-gate__btn">включить звук</button>
+          </div>
+        </div>
       </div>
     `;
     parent.appendChild(this.root);
