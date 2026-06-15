@@ -18,7 +18,7 @@ export class GallowsScene extends Scene {
     header.append(
       this.createEl('span', 'zh-gallows__label', '◈ акт V · I'),
       this.createEl('h2', 'zh-gallows__title', 'Верёвки'),
-      this.createEl('p', 'zh-gallows__hint', `найди ${this.target} петель с добычей. пустые душат`),
+      this.createEl('p', 'zh-gallows__hint', `найди ${this.target} петель с грузом. они качаются. пустые душат`),
     );
     this.statusEl = this.createEl('p', 'zh-gallows__status', `0 / ${this.target}`);
 
@@ -27,6 +27,7 @@ export class GallowsScene extends Scene {
       const rope = this.createEl('button', 'zh-gallows__rope') as HTMLButtonElement;
       rope.type = 'button';
       rope.innerHTML = '<span class="zh-gallows__cord"></span><span class="zh-gallows__noose">⌁</span>';
+      if (quest.isGallowsReal(i)) rope.classList.add('zh-gallows__rope--weighted');
       rope.addEventListener('click', () => this.onRope(i, rope));
       this.ropes.push(rope);
       row.appendChild(rope);

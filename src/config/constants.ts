@@ -99,13 +99,13 @@ export const CHAPTERS_ACT2 = [
   { act: 2 as const, index: 0, scene: SCENE_IDS.abyss, title: 'Бездна', objective: 'Спустись в нижний слой архива' },
   { act: 2 as const, index: 1, scene: SCENE_IDS.echo, title: 'Эхо', objective: 'Собери фразу из шёпотов по порядку' },
   { act: 2 as const, index: 2, scene: SCENE_IDS.mirror, title: 'Зеркало', objective: 'Выдержи 6 секунд без движения' },
-  { act: 2 as const, index: 3, scene: SCENE_IDS.collapse, title: 'Коллапс', objective: 'Введи слово ARCHIVE' },
+  { act: 2 as const, index: 3, scene: SCENE_IDS.collapse, title: 'Коллапс', objective: 'Введи код, который эхо прошептало' },
 ] as const;
 
 export const CHAPTERS_ACT3 = [
   { act: 3 as const, index: 0, scene: SCENE_IDS.gate3, title: 'Ядро', objective: 'Войди в третий слой архива' },
   { act: 3 as const, index: 1, scene: SCENE_IDS.catacombs, title: 'Катакомбы', objective: 'Открой 4 верных двери с метками' },
-  { act: 3 as const, index: 2, scene: SCENE_IDS.swarm, title: 'Рой', objective: 'Найди 6 настоящих глаз за 25 секунд' },
+  { act: 3 as const, index: 2, scene: SCENE_IDS.swarm, title: 'Рой', objective: 'Найди 6 настоящих глаз. Они моргают' },
   { act: 3 as const, index: 3, scene: SCENE_IDS.silence, title: 'Тишина', objective: 'Застыть на 8 секунд в абсолютной тишине' },
   { act: 3 as const, index: 4, scene: SCENE_IDS.finalrite, title: 'Финальный ритуал', objective: 'Повтори 6 символов. Подсказка остаётся на экране' },
   { act: 3 as const, index: 5, scene: SCENE_IDS.terminus, title: 'Терминус', objective: 'Назови автора архива' },
@@ -113,7 +113,7 @@ export const CHAPTERS_ACT3 = [
 
 export const CHAPTERS_ACT4 = [
   { act: 4 as const, index: 0, scene: SCENE_IDS.gate4, title: 'Тесак', objective: 'Войди в зал мясника' },
-  { act: 4 as const, index: 1, scene: SCENE_IDS.hooks, title: 'Крючья', objective: 'Найди 4 крючья с добычей' },
+  { act: 4 as const, index: 1, scene: SCENE_IDS.hooks, title: 'Крючья', objective: 'Найди 4 крючья с добычей. Капает кровь' },
   { act: 4 as const, index: 2, scene: SCENE_IDS.butcher, title: 'Мясник', objective: 'Выиграй у мясника в крестики-нолики' },
   { act: 4 as const, index: 3, scene: SCENE_IDS.corridor, title: 'Коридор', objective: 'Собери 10 кусков. Прогресс сохраняется после столкновения' },
   { act: 4 as const, index: 4, scene: SCENE_IDS.meatlock, title: 'Запечатано', objective: 'Повтори метки мясника за 8 секунд' },
@@ -122,12 +122,12 @@ export const CHAPTERS_ACT4 = [
 
 export const CHAPTERS_ACT5 = [
   { act: 5 as const, index: 0, scene: SCENE_IDS.gate5, title: 'Петля', objective: 'Войди в коридор повешенных' },
-  { act: 5 as const, index: 1, scene: SCENE_IDS.gallows, title: 'Верёвки', objective: 'Найди 5 петель с добычей' },
+  { act: 5 as const, index: 1, scene: SCENE_IDS.gallows, title: 'Верёвки', objective: 'Найди 5 петель с грузом. Они качаются' },
   { act: 5 as const, index: 2, scene: SCENE_IDS.pendulum, title: 'Маятник', objective: 'Отпусти верёвку в зелёной зоне 5 раз' },
-  { act: 5 as const, index: 3, scene: SCENE_IDS.hanged, title: 'Повешенные', objective: 'Найди 6 настоящих силуэтов за 30 секунд' },
+  { act: 5 as const, index: 3, scene: SCENE_IDS.hanged, title: 'Повешенные', objective: 'Найди 6 настоящих силуэтов. Они качаются' },
   { act: 5 as const, index: 4, scene: SCENE_IDS.noosehold, title: 'Удавка', objective: 'Застыть на 10 секунд. петля сжимается' },
   { act: 5 as const, index: 5, scene: SCENE_IDS.roperite, title: 'Узел', objective: 'Повтори 5 меток петли за 12 секунд' },
-  { act: 5 as const, index: 6, scene: SCENE_IDS.trapfloor, title: 'Ловушка', objective: 'Пройди по плитам в правильном порядке' },
+  { act: 5 as const, index: 6, scene: SCENE_IDS.trapfloor, title: 'Ловушка', objective: 'Запомни путь и пройди по плитам' },
   { act: 5 as const, index: 7, scene: SCENE_IDS.gibbet, title: 'Виселица', objective: 'Назови слово, которое оставила петля' },
 ] as const;
 
@@ -141,7 +141,8 @@ export const ARCHIVE_FRAGMENTS: Record<string, string> = {
 export const ARCHIVE_RECORD_META = [
   { id: 'ZH-001', title: 'Первая запись', text: 'Архив был открыт по ошибке. Никто не должен был найти эти файлы.', secret: 'Запись помечена: наблюдение активно.' },
   { id: 'ZH-047', title: 'След наблюдателя', text: 'Каждый, кто читает это, уже отмечен.', secret: 'IP не существует. Существуете вы.' },
-  { id: 'ZH-112', title: 'Цифровой культ', text: 'Zhorror не проект. Это ритуал.', secret: 'Zoobastiks не создал архив. Архив создал Zoobastiks.' },
+  { id: 'ZH-112', title: 'Цифровой культ', text: 'Zhorror не проект. Это ритуал.', secret: 'Zoobastiks не создал архив. Архив создал Zoobastiks. терминус знает подпись хозяина.' },
+  { id: 'ZH-137', title: 'Досье создателя', text: 'Имя хозяина архива записано в коде терминуса. Не название сайта. Человек.', secret: 'подпись латиницей. начинается на Z, заканчивается на S. десять букв.' },
   { id: 'ZH-204', title: 'Ложный след', text: 'Здесь ничего нет. Или ты слишком рано поверил.', secret: 'не каждая метка настоящая.' },
   { id: 'ZH-319', title: 'Обратный отсчёт', text: 'Слои архива ссылаются друг на друга.', secret: 'ключ не там, где кажется.' },
   { id: 'ZH-666', title: 'Запретный фрагмент', text: 'Текст повреждён. Символы стёрты.', secret: 'НЕ ОТКРЫВАЙ. ...слишком поздно.' },
@@ -221,5 +222,7 @@ export const ROPERITE_INPUT_SECONDS = 12;
 export const PENDULUM_GOAL = 5;
 export const TRAPFLOOR_LENGTH = 8;
 export const TRAPFLOOR_TILES = 9;
+export const TRAPFLOOR_SHOW_STEP_MS = 650;
+export const TRAPFLOOR_SHOW_PAUSE_MS = 900;
 export const GIBBET_CODE_POOL = ['GALLOWS', 'HANGMAN', 'NOOSE', 'GIBBET', 'PENDULUM', 'SCAFFOLD'] as const;
 export const ROPE_MARK_POOL = ['⌁', '⍟', '☍', '⟁', '⧫', '⌬', '◈', '⬡', '☠', '⚒'] as const;

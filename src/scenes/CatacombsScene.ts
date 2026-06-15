@@ -18,7 +18,7 @@ export class CatacombsScene extends Scene {
     header.append(
       this.createEl('span', 'zh-catacombs__label', '◈ акт III · I'),
       this.createEl('h2', 'zh-catacombs__title', 'Зал дверей'),
-      this.createEl('p', 'zh-catacombs__hint', `найди ${this.targetCount} двери с верными метками. раскладка меняется`),
+      this.createEl('p', 'zh-catacombs__hint', `найди ${this.targetCount} двери. метки слева в HUD. раскладка меняется`),
     );
     this.statusEl = this.createEl('p', 'zh-catacombs__status', '0 / 4');
 

@@ -25,7 +25,7 @@ export class HangedScene extends Scene {
     header.append(
       this.createEl('span', 'zh-hanged__label', '◈ акт V · III'),
       this.createEl('h2', 'zh-hanged__title', 'Повешенные'),
-      this.createEl('p', 'zh-hanged__hint', `найди ${this.realCount} настоящих силуэтов. манекены сбрасывают прогресс`),
+      this.createEl('p', 'zh-hanged__hint', `найди ${this.realCount} настоящих силуэтов. они качаются. манекены сбрасывают прогресс`),
     );
     this.timerEl = this.createEl('div', 'zh-hanged__timer', String(Math.ceil(this.hangedSeconds)));
     this.statusEl = this.createEl('p', 'zh-hanged__status', `0 / ${this.realCount}`);
@@ -35,6 +35,7 @@ export class HangedScene extends Scene {
       const fig = this.createEl('button', 'zh-hanged__fig') as HTMLButtonElement;
       fig.type = 'button';
       fig.innerHTML = '<span class="zh-hanged__rope"></span><span class="zh-hanged__body"></span>';
+      if (quest.isHangedReal(i)) fig.classList.add('zh-hanged__fig--real');
       fig.addEventListener('click', () => this.onFigure(i, fig));
       this.figures.push(fig);
       grid.appendChild(fig);

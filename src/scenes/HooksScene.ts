@@ -18,7 +18,7 @@ export class HooksScene extends Scene {
     header.append(
       this.createEl('span', 'zh-hooks__label', '◈ акт IV · I'),
       this.createEl('h2', 'zh-hooks__title', 'Крючья'),
-      this.createEl('p', 'zh-hooks__hint', `найди ${this.target} крючья с добычей. пустые режут`),
+      this.createEl('p', 'zh-hooks__hint', `найди ${this.target} крючья с добычей. с кровью капает. пустые режут`),
     );
     this.statusEl = this.createEl('p', 'zh-hooks__status', '0 / 4');
 
@@ -26,7 +26,9 @@ export class HooksScene extends Scene {
     for (let i = 0; i < 8; i++) {
       const hook = this.createEl('button', 'zh-hooks__hook') as HTMLButtonElement;
       hook.type = 'button';
-      hook.innerHTML = '<span class="zh-hooks__chain"></span><span class="zh-hooks__blade">⌆</span>';
+      const drip = quest.isHookReal(i) ? '<span class="zh-hooks__drip"></span>' : '';
+      hook.innerHTML = `<span class="zh-hooks__chain"></span><span class="zh-hooks__blade">⌆</span>${drip}`;
+      if (quest.isHookReal(i)) hook.classList.add('zh-hooks__hook--bait');
       hook.addEventListener('click', () => this.onHook(i, hook));
       this.hooks.push(hook);
       row.appendChild(hook);

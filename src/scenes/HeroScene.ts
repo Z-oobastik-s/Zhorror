@@ -62,7 +62,9 @@ export class HeroScene extends Scene {
 
     this.authorEl = this.createEl('p', 'zh-hero__author', `создано ${BRAND.author}`);
 
-    inner.append(this.runeRing, eye, this.subtitleEl, this.authorEl);
+    const loreEl = this.createEl('p', 'zh-hero__lore', 'архив подписан именем хозяина. терминус примет только его');
+
+    inner.append(this.runeRing, eye, this.subtitleEl, this.authorEl, loreEl);
 
 
 
@@ -133,6 +135,9 @@ export class HeroScene extends Scene {
     this.subtitleEl.style.opacity = String(v * 0.9);
 
     this.authorEl.style.opacity = String(v * 0.75);
+
+    const loreEl = this.element.querySelector('.zh-hero__lore') as HTMLElement | null;
+    if (loreEl) loreEl.style.opacity = String(v * 0.65);
 
     this.runeRing.style.opacity = String(v * 0.55);
 

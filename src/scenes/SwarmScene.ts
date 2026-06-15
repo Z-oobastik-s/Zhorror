@@ -25,7 +25,7 @@ export class SwarmScene extends Scene {
     header.append(
       this.createEl('span', 'zh-swarm__label', '◈ акт III · II'),
       this.createEl('h2', 'zh-swarm__title', 'Рой глаз'),
-      this.createEl('p', 'zh-swarm__hint', `найди ${this.realCount} настоящих. ложные сбрасывают прогресс`),
+      this.createEl('p', 'zh-swarm__hint', `найди ${this.realCount} настоящих. они моргают. ложные сбрасывают прогресс`),
     );
     this.timerEl = this.createEl('div', 'zh-swarm__timer', String(Math.ceil(this.swarmSeconds)));
     this.statusEl = this.createEl('p', 'zh-swarm__status', `0 / ${this.realCount}`);
@@ -36,6 +36,7 @@ export class SwarmScene extends Scene {
       eye.type = 'button';
       eye.dataset.index = String(i);
       eye.innerHTML = '<span class="zh-swarm__pupil"></span>';
+      if (quest.isSwarmReal(i)) eye.classList.add('zh-swarm__eye--real');
       eye.addEventListener('click', () => this.onEye(i, eye));
       this.eyes.push(eye);
       grid.appendChild(eye);

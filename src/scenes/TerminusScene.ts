@@ -24,9 +24,10 @@ export class TerminusScene extends Scene {
     this.messageEl = this.createEl('p', 'zh-terminus__message',
       'Три слоя пройдены. Архив требует имя. Не название сайта. Имя автора.');
 
-    this.hintEl = this.createEl('p', 'zh-terminus__rune-hint', '');
-    if (quest.getFinalRiteProgress() >= quest.getFinalRiteSequence().length) {
-      this.hintEl.textContent = `подсказка ритуала: ${quest.getTerminusHint()}`;
+    this.hintEl = this.createEl('div', 'zh-terminus__hints');
+    for (const line of quest.getTerminusLoreLines()) {
+      const p = this.createEl('p', 'zh-terminus__rune-hint', line);
+      this.hintEl.appendChild(p);
     }
 
     this.formEl = this.createEl('form', 'zh-terminus__form');

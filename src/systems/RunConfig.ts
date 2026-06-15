@@ -38,6 +38,7 @@ export interface RunConfig {
   archiveMap: Record<string, string>;
   archiveOrder: string[];
   decoyRecordIds: string[];
+  decoyMarkMap: Record<string, string>;
   voidRecordId: string;
   voidCode: string;
   ritualSequence: string[];
@@ -135,6 +136,10 @@ export function generateRunConfig(seed: string): RunConfig {
 
   const unusedIds = allIds.filter((id) => !(id in archiveMap));
   const decoyRecordIds = pickN(rng, unusedIds.filter((id) => id !== 'ZH-???'), Math.min(2, unusedIds.length));
+  const decoyMarkMap: Record<string, string> = {};
+  for (const id of decoyRecordIds) {
+    decoyMarkMap[id] = pickN(rng, RUNES, 1)[0];
+  }
 
   const archiveOrder = shuffle(rng, allIds);
 
@@ -199,6 +204,7 @@ export function generateRunConfig(seed: string): RunConfig {
     archiveMap,
     archiveOrder,
     decoyRecordIds,
+    decoyMarkMap,
     voidRecordId,
     voidCode,
     ritualSequence,

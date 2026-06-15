@@ -62,6 +62,7 @@ interface QuestState {
   act3Complete: boolean;
   act4Complete: boolean;
   act5Complete: boolean;
+  archiveOpened: string[];
 }
 
 export class QuestSystem {
@@ -90,6 +91,7 @@ export class QuestSystem {
   private hangedFound = 0;
   private roperiteStep = 0;
   private trapfloorStep = 0;
+  private archiveOpened = new Set<string>();
   private failCount = 0;
   private voidComplete = false;
   private act2Complete = false;
@@ -390,7 +392,7 @@ export class QuestSystem {
     if (this.act === 3) {
       if (this.act3Chapter === 4) return 'Повтори 6 символов по порядку. Подсказка остаётся на экране.';
       if (this.act3Chapter === 5 && this.finalRiteStep >= this.run.finalRiteSequence.length) {
-        return 'Назови автора. Подсказка открыта после ритуала.';
+        return 'Назови автора. Подсказки в архиве и на пороге.';
       }
       return this.getChapterInfo().objective;
     }
@@ -467,6 +469,40 @@ export class QuestSystem {
 
   getArchiveRune(recordId: string): string {
     return this.run.archiveMap[recordId] ?? '';
+  }
+
+  getDecoyMark(recordId: string): string {
+    return this.run.decoyMarkMap[recordId] ?? '';
+  }
+
+  getArchiveMarkDisplay(recordId: string): string {
+    if (recordId in this.run.archiveMap) return this.run.archiveMap[recordId];
+    return this.run.decoyMarkMap[recordId] ?? '';
+  }
+
+  registerArchiveOpen(recordId: string): void {
+    if (this.archiveOpened.has(recordId)) return;
+    this.archiveOpened.add(recordId);
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  hasOpenedArchiveRecord(recordId: string): boolean {
+    return this.archiveOpened.has(recordId);
+  }
+
+  getTerminusLoreLines(): string[] {
+    const lines: string[] = ['имя автора на пороге: «создано Zoobastiks»'];
+    if (
+      this.hasOpenedArchiveRecord('ZH-112')
+      || this.hasOpenedArchiveRecord('ZH-137')
+    ) {
+      lines.push('архив: подпись латиницей, Z...S, десять букв');
+    }
+    if (this.finalRiteStep >= this.run.finalRiteSequence.length) {
+      lines.push(`ритуал: ${this.getTerminusHint()}`);
+    }
+    return lines;
   }
 
   getArchiveSecret(recordId: string, baseSecret: string): string {
@@ -1204,6 +1240,7 @@ export class QuestSystem {
       this.hangedFound = data.hangedFound ?? 0;
       this.roperiteStep = data.roperiteStep ?? 0;
       this.trapfloorStep = data.trapfloorStep ?? 0;
+      this.archiveOpened = new Set(data.archiveOpened ?? []);
       this.failCount = data.failCount ?? 0;
       this.voidComplete = data.voidComplete ?? false;
       this.act2Complete = data.act2Complete ?? false;
@@ -1255,6 +1292,7 @@ export class QuestSystem {
         hangedFound: this.hangedFound,
         roperiteStep: this.roperiteStep,
         trapfloorStep: this.trapfloorStep,
+        archiveOpened: [...this.archiveOpened],
         failCount: this.failCount,
         voidComplete: this.voidComplete,
         act2Complete: this.act2Complete,

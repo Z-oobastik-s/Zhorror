@@ -2,7 +2,7 @@ import { Scene } from './Scene';
 import { ARCHIVE_RECORD_META, SCENE_IDS, RUNES } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
 import { quest } from '@/systems/QuestSystem';
-import { randInt } from '@/utils/math';
+import { createRng } from '@/systems/RunConfig';
 
 export class ArchiveScene extends Scene {
   readonly id = SCENE_IDS.archive;
@@ -16,7 +16,8 @@ export class ArchiveScene extends Scene {
     header.append(
       this.createEl('span', 'zh-archive__label', '◈ секция I'),
       this.createEl('h2', 'zh-archive__title', 'Проклятый архив'),
-      this.createEl('p', 'zh-archive__hint', 'открой записи - в некоторых спрятаны метки. не все настоящие'),
+      this.createEl('p', 'zh-archive__hint', 'открой записи со значком метки. собери 4 настоящие. не все метки верны'),
+      this.createEl('p', 'zh-archive__legend', '◈ на карточке - в записи есть метка'),
     );
 
     const grid = this.createEl('div', 'zh-archive__grid');
@@ -32,20 +33,27 @@ export class ArchiveScene extends Scene {
       const hasMark = quest.hasArchiveMark(record.id);
       const isReal = record.id in run.archiveMap;
       const isDecoy = quest.isDecoyRecord(record.id);
+      const markRune = quest.getArchiveMarkDisplay(record.id);
+      const decorRng = createRng(`${run.seed}-${record.id}`);
+      const decorRune = RUNES[Math.floor(decorRng() * RUNES.length)];
 
       if (record.id === run.voidRecordId) card.classList.add('zh-archive__card--cursed');
       if (hasMark) card.classList.add('zh-archive__card--marked');
+      if (hasMark && quest.getFragments().includes(markRune)) {
+        card.classList.add('zh-archive__card--found');
+      }
 
-      const markRune = isReal
-        ? quest.getArchiveRune(record.id)
-        : isDecoy
-          ? RUNES[randInt(0, RUNES.length - 1)]
-          : '';
+      const markBadge = hasMark
+        ? `<div class="zh-archive__card-mark-badge" aria-label="запись с меткой">
+            <span class="zh-archive__card-mark-label">метка</span>
+            <span class="zh-archive__card-mark">${markRune}</span>
+          </div>`
+        : '';
 
       card.innerHTML = `
         <div class="zh-archive__card-id">${record.id}</div>
-        <div class="zh-archive__card-rune">${RUNES[randInt(0, RUNES.length - 1)]}</div>
-        ${hasMark ? `<div class="zh-archive__card-mark">${markRune}</div>` : ''}
+        <div class="zh-archive__card-rune">${decorRune}</div>
+        ${markBadge}
         <h3 class="zh-archive__card-title">${record.title}</h3>
         <p class="zh-archive__card-text">${record.text}</p>
         <p class="zh-archive__card-secret">${quest.getArchiveSecret(record.id, record.secret)}</p>
@@ -57,7 +65,12 @@ export class ArchiveScene extends Scene {
         const opening = !card.classList.contains('zh-archive__card--open');
         card.classList.toggle('zh-archive__card--open');
 
+        if (opening) {
+          quest.registerArchiveOpen(record.id);
+        }
+
         if (opening && isDecoy) {
+          card.classList.add('zh-archive__card--decoy');
           events.emit(EVT.SCARE_REQUEST, { type: 'static' });
           return;
         }
