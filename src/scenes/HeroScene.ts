@@ -265,7 +265,8 @@ export class HeroScene extends Scene {
     });
     this.authorEl.style.opacity = String(Math.max(0, Math.min(1, (this.introTime - 0.45) / 0.55)) * 0.8);
     this.loreEl.style.opacity = String(Math.max(0, Math.min(1, (this.introTime - 0.65) / 0.55)) * 0.65);
-    this.runeRing.style.opacity = String(v * 0.55);
+    this.runeRing.style.setProperty('--rune-o', String(v * 0.55));
+    this.runeRing.style.transform = `rotate(${performance.now() * 0.022}deg)`;
 
     if (!this.threatStarted && (this.active || this.visible)) {
       this.threatStarted = true;

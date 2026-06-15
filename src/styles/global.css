@@ -951,13 +951,9 @@ body.zh-dragging {
 .zh-hero__rings {
   position: relative;
   width: 100%;
-  height: calc(var(--hero-orbit) * 1.46);
-  max-height: 42svh;
-  flex: 0 1 auto;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
 }
 
 .zh-hero__core {
@@ -972,9 +968,8 @@ body.zh-dragging {
 .zh-hero__rune-ring,
 .zh-hero__eye {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  margin: auto;
 }
 
 .zh-hero__ring {
@@ -1004,13 +999,13 @@ body.zh-dragging {
 }
 
 @keyframes heroRingPulse {
-  0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.015); }
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.015); }
 }
 
 @keyframes heroRingSpin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .zh-hero__orbit {
@@ -1023,22 +1018,17 @@ body.zh-dragging {
 }
 
 @keyframes heroOrbitPulse {
-  0%, 100% { opacity: 0.35; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 0.75; transform: translate(-50%, -50%) scale(1.03); }
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.03); }
 }
 
 .zh-hero__rune-ring {
   width: var(--hero-orbit);
   height: var(--hero-orbit);
   pointer-events: none;
-  opacity: 0.55;
+  opacity: var(--rune-o, 0.55);
   transform-origin: center center;
-  animation: heroRuneSpin 120s linear infinite;
-}
-
-@keyframes heroRuneSpin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
+  will-change: transform;
 }
 
 .zh-hero__rune {
@@ -2115,7 +2105,7 @@ body.zh-scare-shake {
   }
 
   .zh-hero__rings {
-    max-height: 38svh;
+    width: 100%;
   }
 
   .zh-hero__side-runes {
