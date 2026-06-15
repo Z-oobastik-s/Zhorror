@@ -242,25 +242,42 @@ export class QuestHUD {
       this.act4El.style.display = 'flex';
       const parts: string[] = [];
       const scene = this.quest.getChapterInfo().scene;
-      if (scene === 'hooks' || this.quest.getHooksProgress() > 0) {
-        parts.push(`<span class="zh-quest-hud__progress">${this.quest.getHooksProgress()} / ${this.quest.getHookRealCount()}</span>`);
+
+      switch (scene) {
+        case 'hooks':
+          parts.push(`<span class="zh-quest-hud__progress">${this.quest.getHooksProgress()} / ${this.quest.getHookRealCount()}</span>`);
+          break;
+        case 'butcher':
+          if (this.quest.isButcherWon()) {
+            parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">☒</span>`);
+          }
+          break;
+        case 'corridor':
+          parts.push(`<span class="zh-quest-hud__progress">${this.quest.getCorridorProgress()} / ${CORRIDOR_GOAL}</span>`);
+          if (this.quest.isCorridorDone()) {
+            parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">⌇</span>`);
+          }
+          break;
+        case 'meatlock': {
+          const meatSeq = this.quest.getMeatSequence();
+          const meatStep = this.quest.getMeatlockProgress();
+          parts.push(...meatSeq.map((r, i) =>
+            `<span class="zh-quest-hud__rune${i < meatStep ? ' zh-quest-hud__rune--found' : ''}">${r}</span>`));
+          break;
+        }
+        case 'abattoir':
+          if (this.quest.isButcherWon()) {
+            const code = this.quest.getAbattoirCode();
+            parts.push(...code.split('').map((ch) =>
+              `<span class="zh-quest-hud__code">${ch}</span>`));
+          }
+          break;
+        default:
+          break;
       }
-      if (this.quest.isButcherWon()) {
-        parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">☒</span>`);
-      }
-      if (scene === 'corridor' || (this.quest.getCorridorProgress() > 0 && !this.quest.isCorridorDone())) {
-        parts.push(`<span class="zh-quest-hud__progress">${this.quest.getCorridorProgress()} / ${CORRIDOR_GOAL}</span>`);
-      }
-      if (this.quest.isCorridorDone()) {
-        parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">⌇</span>`);
-      }
-      const meatSeq = this.quest.getMeatSequence();
-      const meatStep = this.quest.getMeatlockProgress();
-      if (meatStep > 0 || scene === 'meatlock') {
-        parts.push(...meatSeq.map((r, i) =>
-          `<span class="zh-quest-hud__rune${i < meatStep ? ' zh-quest-hud__rune--found' : ''}">${r}</span>`));
-      }
+
       this.act4El.innerHTML = parts.join('');
+      if (parts.length === 0) this.act4El.style.display = 'none';
     } else {
       this.act4El.style.display = 'none';
     }

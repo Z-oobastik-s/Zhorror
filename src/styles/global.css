@@ -1887,6 +1887,15 @@ body.zh-scare-shake {
   opacity: 0.9;
 }
 
+.zh-quest-hud--rail .zh-quest-hud__code {
+  font-size: 12px;
+  letter-spacing: 3px;
+  line-height: 1;
+  white-space: nowrap;
+  writing-mode: sideways-lr;
+  text-orientation: mixed;
+}
+
 .zh-quest-hud--rail .zh-quest-hud__word {
   font-size: 11px;
   letter-spacing: 1.5px;
@@ -2038,6 +2047,14 @@ body.zh-scare-shake {
   color: #b0a0a0;
   font-variant-numeric: tabular-nums;
   opacity: 0.85;
+}
+
+.zh-quest-hud__code {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #d0a8a8;
+  text-transform: uppercase;
+  opacity: 0.95;
 }
 
 .zh-quest-toast {
