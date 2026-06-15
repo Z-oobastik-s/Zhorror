@@ -99,6 +99,10 @@ export class HeroScene extends Scene {
 
   private wasActive = false;
 
+  private lastPointerAt = performance.now();
+
+  private static readonly POINTER_IDLE_MS = 2600;
+
   protected build(): void {
     const atmo = this.createEl('div', 'zh-hero__atmo');
     const bg = this.createEl('div', 'zh-hero__bg');
@@ -272,6 +276,8 @@ export class HeroScene extends Scene {
 
   private trackEye = (e: MouseEvent): void => {
     if (!this.active) return;
+    this.lastPointerAt = performance.now();
+    if (this.blinkActive || this.blinkSquash < 0.92) return;
     const rect = this.eyeEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
@@ -282,8 +288,18 @@ export class HeroScene extends Scene {
   };
 
   private pickLookFrame(nx: number, ny: number): number {
-    if (Math.abs(nx) < 0.22 && Math.abs(ny) < 0.22) return 0;
-    if (Math.abs(nx) >= Math.abs(ny)) return nx < 0 ? 1 : 2;
+    const ax = Math.abs(nx);
+    const ay = Math.abs(ny);
+    const enter = 0.24;
+    const exit = 0.1;
+
+    if (this.retinaFrame === 0) {
+      if (ax < enter && ay < enter) return 0;
+    } else if (ax < exit && ay < exit) {
+      return 0;
+    }
+
+    if (ax >= ay) return nx < 0 ? 1 : 2;
     return 3;
   }
 
@@ -344,6 +360,10 @@ export class HeroScene extends Scene {
   }
 
   private updateRetina(dt: number): void {
+    if (performance.now() - this.lastPointerAt > HeroScene.POINTER_IDLE_MS) {
+      this.releaseEyeLook();
+    }
+
     this.retinaX = damp(this.retinaX, this.lookTargetX, 11, dt);
     this.retinaY = damp(this.retinaY, this.lookTargetY, 11, dt);
 

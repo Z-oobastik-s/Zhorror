@@ -44,7 +44,7 @@ export class RandomEventSystem {
 
   update(dt: number): void {
     if (!perf.shouldRunAmbientSystems() || this.active) return;
-    if (quest.isOnHeroEntry()) return;
+    if (quest.shouldPauseAmbientFx()) return;
     const elapsed = performance.now();
     const level = this.atmosphere.getLevel();
 

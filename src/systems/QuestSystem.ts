@@ -99,6 +99,7 @@ export class QuestSystem {
   private act4Complete = false;
   private act5Complete = false;
   private seals: Map<SceneId, HTMLElement> = new Map();
+  private activeSceneId: SceneId = SCENE_IDS.hero;
 
   constructor() {
     const seed = this.loadSeed();
@@ -106,6 +107,9 @@ export class QuestSystem {
     this.load();
     this.syncUnlocks();
     this.repairInconsistentState();
+    events.on(EVT.SCENE_CHANGE, (payload) => {
+      this.activeSceneId = (payload as { id: string }).id as SceneId;
+    });
   }
 
   getRun(): Readonly<RunConfig> {
@@ -371,6 +375,15 @@ export class QuestSystem {
   /** Порог: главная до входа в архив */
   isOnHeroEntry(): boolean {
     return this.act === 1 && this.chapter === 0;
+  }
+
+  /** Сейчас на экране секция hero (не архив и не другие главы) */
+  isHeroSceneActive(): boolean {
+    return this.activeSceneId === SCENE_IDS.hero;
+  }
+
+  shouldPauseAmbientFx(): boolean {
+    return this.isOnHeroEntry() || this.isHeroSceneActive();
   }
 
   getObjective(): string {

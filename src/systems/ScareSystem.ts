@@ -94,7 +94,7 @@ export class ScareSystem {
 
   update(_dt: number): void {
     if (!this.performance.shouldRunAmbientSystems() || this.active) return;
-    if (quest.isOnHeroEntry()) return;
+    if (quest.shouldPauseAmbientFx()) return;
     if (isAmbientScareBlocked()) return;
 
     const elapsed = performance.now();
