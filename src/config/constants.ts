@@ -89,7 +89,7 @@ export const SCENE_ORDER: SceneId[] = [
 
 export const CHAPTERS_ACT1 = [
   { act: 1 as const, index: 0, scene: SCENE_IDS.hero, title: 'Порог', objective: 'Нажми «войти в архив»' },
-  { act: 1 as const, index: 1, scene: SCENE_IDS.archive, title: 'Архив', objective: 'Открой записи и собери 4 метки' },
+  { act: 1 as const, index: 1, scene: SCENE_IDS.archive, title: 'Архив', objective: 'Сравни метки с HUD и открой только нужные 4' },
   { act: 1 as const, index: 2, scene: SCENE_IDS.entity, title: 'Наблюдение', objective: 'Застыть на 4 секунды, пока оно смотрит' },
   { act: 1 as const, index: 3, scene: SCENE_IDS.ritual, title: 'Ритуал', objective: 'Запомни символы и повтори их на время' },
   { act: 1 as const, index: 4, scene: SCENE_IDS.void, title: 'Пустота', objective: 'Введи код запретной записи из архива' },

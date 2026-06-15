@@ -10,14 +10,20 @@ export class ArchiveScene extends Scene {
 
   protected build(): void {
     const run = quest.getRun();
+    const targetMarks = quest.getArchiveTargetMarks();
     const inner = this.createEl('div', 'zh-scene__inner zh-archive');
     const header = this.createEl('div', 'zh-archive__header');
     header.append(
       this.createEl('span', 'zh-archive__label', '◈ секция I'),
       this.createEl('h2', 'zh-archive__title', 'Проклятый архив'),
-      this.createEl('p', 'zh-archive__hint', 'открой записи со значком метки. собери 4 настоящие. не все метки верны'),
-      this.createEl('p', 'zh-archive__legend', '◈ на карточке - в записи есть метка'),
+      this.createEl('p', 'zh-archive__hint', 'у карточки с меткой символ виден сразу. сверь с нужными слева'),
     );
+
+    const targetsEl = this.createEl('p', 'zh-archive__targets');
+    targetsEl.innerHTML = `нужны: ${targetMarks
+      .map((m) => `<span class="zh-archive__target-rune">${m}</span>`)
+      .join(' ')}`;
+    header.appendChild(targetsEl);
 
     const grid = this.createEl('div', 'zh-archive__grid');
     const metaById = new Map<string, typeof ARCHIVE_RECORD_META[number]>(
@@ -27,15 +33,19 @@ export class ArchiveScene extends Scene {
       .map((id) => metaById.get(id))
       .filter((r): r is typeof ARCHIVE_RECORD_META[number] => !!r);
 
+    const targetSet = new Set(targetMarks);
+
     for (const record of ordered) {
       const card = this.createEl('article', 'zh-archive__card');
       const hasMark = quest.hasArchiveMark(record.id);
       const isReal = record.id in run.archiveMap;
       const isDecoy = quest.isDecoyRecord(record.id);
       const markRune = quest.getArchiveMarkDisplay(record.id);
+      const isNeeded = hasMark && targetSet.has(markRune);
 
       if (record.id === run.voidRecordId) card.classList.add('zh-archive__card--cursed');
       if (hasMark) card.classList.add('zh-archive__card--marked');
+      if (isNeeded) card.classList.add('zh-archive__card--needed');
       if (hasMark && quest.getFragments().includes(markRune)) {
         card.classList.add('zh-archive__card--found', 'zh-archive__card--open');
       } else if (quest.hasOpenedArchiveRecord(record.id)) {
@@ -43,20 +53,19 @@ export class ArchiveScene extends Scene {
         if (isDecoy) card.classList.add('zh-archive__card--decoy');
       }
 
-      const markTag = hasMark
-        ? '<span class="zh-archive__card-has-mark">◈ метка</span>'
-        : '';
-      const markReveal = hasMark
-        ? `<div class="zh-archive__card-mark-reveal"><span class="zh-archive__card-mark-symbol">${markRune}</span></div>`
+      const markChip = hasMark
+        ? `<span class="zh-archive__card-mark-chip" title="метка записи">
+            <span class="zh-archive__card-mark-symbol">${markRune}</span>
+            <span class="zh-archive__card-mark-label">метка</span>
+          </span>`
         : '';
 
       card.innerHTML = `
         <div class="zh-archive__card-head">
           <div class="zh-archive__card-id">${record.id}</div>
-          ${markTag}
+          ${markChip}
         </div>
         <h3 class="zh-archive__card-title">${record.title}</h3>
-        ${markReveal}
         <p class="zh-archive__card-text">${record.text}</p>
         <p class="zh-archive__card-secret">${quest.getArchiveSecret(record.id, record.secret)}</p>
       `;

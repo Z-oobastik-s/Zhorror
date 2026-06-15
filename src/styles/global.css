@@ -758,17 +758,30 @@ body.zh-dragging {
   margin-bottom: 0;
 }
 
-.zh-archive__card-has-mark {
+.zh-archive__card-mark-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   flex-shrink: 0;
-  font-size: 8px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #f4d0d6;
-  background: rgba(55, 18, 24, 0.95);
-  border: 1px solid rgba(200, 90, 105, 0.75);
-  padding: 4px 8px;
+  padding: 3px 7px 3px 5px;
+  background: rgba(20, 14, 16, 0.98);
+  border: 1px solid rgba(150, 75, 85, 0.6);
   border-radius: 2px;
-  line-height: 1.2;
+  line-height: 1;
+}
+
+.zh-archive__card-mark-symbol {
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
+  font-size: 17px;
+  color: #e8b8c0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.zh-archive__card-mark-label {
+  font-size: 7px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #a08088;
 }
 
 .zh-archive__card-title {
@@ -779,26 +792,18 @@ body.zh-dragging {
   font-weight: 400;
 }
 
-.zh-archive__card-mark-reveal {
-  display: none;
-  margin: 0 0 14px;
-  padding: 12px 8px;
-  text-align: center;
-  background: rgba(28, 12, 16, 0.95);
-  border: 1px solid rgba(170, 80, 95, 0.55);
-  border-radius: 3px;
+.zh-archive__targets {
+  margin-top: 12px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #a08088;
 }
 
-.zh-archive__card-mark-symbol {
+.zh-archive__target-rune {
   font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
-  font-size: 40px;
-  line-height: 1;
-  color: #fff0f2;
-  -webkit-font-smoothing: antialiased;
-}
-
-.zh-archive__card--open .zh-archive__card-mark-reveal {
-  display: block;
+  font-size: 18px;
+  color: #d8a8b0;
+  margin: 0 2px;
 }
 
 .zh-archive__card-text {
@@ -808,10 +813,13 @@ body.zh-dragging {
 }
 
 .zh-archive__card-secret {
-  display: none;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(120, 50, 55, 0.45);
+  display: block;
+  visibility: hidden;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  overflow: hidden;
   font-size: 11px;
   line-height: 1.8;
   color: #c86868;
@@ -819,13 +827,11 @@ body.zh-dragging {
 }
 
 .zh-archive__card--open .zh-archive__card-secret {
-  display: block;
-  animation: secretReveal 0.35s ease;
-}
-
-@keyframes secretReveal {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  visibility: visible;
+  height: auto;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(120, 50, 55, 0.45);
 }
 
 /* ===== ENTITY ===== */
@@ -1878,41 +1884,30 @@ body.zh-scare-shake {
 
 /* ===== ARCHIVE QUEST ===== */
 
-.zh-archive__legend {
-  margin-top: 10px;
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: #9a7078;
-  text-transform: lowercase;
-}
-
 .zh-archive__card--marked {
-  border-color: rgba(110, 50, 58, 0.5);
+  border-color: rgba(100, 55, 62, 0.45);
 }
 
-.zh-archive__card--found .zh-archive__card-mark-reveal {
-  border-color: rgba(90, 170, 110, 0.65);
-  background: rgba(12, 28, 18, 0.95);
+.zh-archive__card--needed .zh-archive__card-mark-chip {
+  border-color: rgba(170, 95, 105, 0.75);
+}
+
+.zh-archive__card--found .zh-archive__card-mark-chip {
+  border-color: rgba(90, 160, 105, 0.7);
+  background: rgba(14, 26, 18, 0.98);
 }
 
 .zh-archive__card--found .zh-archive__card-mark-symbol {
-  color: #c8f0d0;
+  color: #a8e0b8;
 }
 
-.zh-archive__card--found .zh-archive__card-has-mark {
-  color: #d0f0d8;
-  border-color: rgba(100, 180, 120, 0.7);
-  background: rgba(12, 32, 20, 0.95);
-}
-
-.zh-archive__card--decoy .zh-archive__card-mark-reveal {
-  border-color: rgba(180, 60, 65, 0.75);
+.zh-archive__card--decoy .zh-archive__card-mark-chip {
+  border-color: rgba(170, 60, 65, 0.75);
 }
 
 .zh-archive__card--decoy .zh-archive__card-mark-symbol {
-  color: #f0a0a0;
+  color: #d87878;
   text-decoration: line-through;
-  opacity: 0.85;
 }
 
 /* ===== ENTITY QUEST ===== */

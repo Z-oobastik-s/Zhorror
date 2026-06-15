@@ -184,10 +184,11 @@ export class QuestHUD {
     this.toggleTextEl.textContent = `акт ${actLabel} · ${info.title}`;
 
     const depth = this.quest.getDepth();
-    if (act === 1 && depth >= 1 && depth < 2) {
+    if (act === 1 && info.scene === 'archive' && !this.quest.isAct1Complete()) {
       this.fragmentsEl.style.display = 'flex';
       const collected = new Set(this.quest.getFragments());
-      this.fragmentsEl.innerHTML = ritualSeq
+      const targets = this.quest.getArchiveTargetMarks();
+      this.fragmentsEl.innerHTML = targets
         .map((r) => `<span class="zh-quest-hud__rune${collected.has(r) ? ' zh-quest-hud__rune--found' : ''}">${r}</span>`)
         .join('');
     } else {

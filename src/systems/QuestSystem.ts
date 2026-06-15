@@ -403,7 +403,10 @@ export class QuestSystem {
     }
     if (this.voidComplete) return 'Акт I завершён. Спускайся глубже.';
     if (this.chapter === 4) return 'Введи id записи-печати из архива.';
-    if (this.chapter === 1) return 'Открой записи и собери 4 метки. Не все метки настоящие.';
+    if (this.chapter === 1) {
+      const marks = this.getArchiveTargetMarks().join(' ');
+      return `Сравни метки на карточках с HUD: ${marks}. Открой только совпадающие.`;
+    }
     return this.getChapterInfo().objective;
   }
 
@@ -467,8 +470,8 @@ export class QuestSystem {
     return recordId in this.run.archiveMap || this.run.decoyRecordIds.includes(recordId);
   }
 
-  getArchiveRune(recordId: string): string {
-    return this.run.archiveMap[recordId] ?? '';
+  getArchiveTargetMarks(): string[] {
+    return [...new Set(this.run.ritualSequence)];
   }
 
   getDecoyMark(recordId: string): string {
