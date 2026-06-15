@@ -29,7 +29,7 @@ import {
   type RunConfig,
 } from '@/systems/RunConfig';
 
-const STORAGE_KEY = 'zh-quest-v6';
+const STORAGE_KEY = 'zh-quest-v7';
 
 interface QuestState {
   seed: string;
@@ -986,6 +986,8 @@ export class QuestSystem {
   resetProgress(): void {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('zh-quest-v6');
+      localStorage.removeItem('zh-quest-v5');
       localStorage.removeItem('zh-quest-v4');
       localStorage.removeItem('zh-quest-v3');
       localStorage.removeItem('zh-quest-v2');
@@ -1087,6 +1089,7 @@ export class QuestSystem {
   private loadSeed(): string {
     try {
       let raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) raw = localStorage.getItem('zh-quest-v6');
       if (!raw) raw = localStorage.getItem('zh-quest-v5');
       if (!raw) raw = localStorage.getItem('zh-quest-v4');
       if (raw) {
@@ -1100,6 +1103,12 @@ export class QuestSystem {
   private load(): void {
     try {
       let raw = localStorage.getItem(STORAGE_KEY);
+      let migratedFromV6 = false;
+      if (!raw) {
+        raw = localStorage.getItem('zh-quest-v6');
+        if (raw) migratedFromV6 = true;
+      }
+      if (!raw) raw = localStorage.getItem('zh-quest-v6');
       if (!raw) raw = localStorage.getItem('zh-quest-v5');
       if (!raw) raw = localStorage.getItem('zh-quest-v4');
       if (!raw) return;
@@ -1148,6 +1157,17 @@ export class QuestSystem {
       if (this.act2Complete && this.act < 3) this.act = 3;
       if (this.act3Complete && this.act < 4 && !this.act4Complete) this.act = 4;
       if (this.act4Complete && this.act < 5) this.act = 5;
+
+      if (
+        migratedFromV6
+        && this.act === 3
+        && this.act3Chapter === 4
+        && this.finalRiteStep > 0
+        && this.finalRiteStep < this.run.finalRiteSequence.length
+      ) {
+        this.finalRiteStep = 0;
+        this.save();
+      }
     } catch { /* ignore */ }
   }
 

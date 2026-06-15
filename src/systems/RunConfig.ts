@@ -11,6 +11,7 @@ import {
   RITUAL_INPUT_SECONDS,
   RITUAL_RUNE_COUNT,
   RITUAL_RUNE_POOL,
+  RITUAL_CIRCLE_RUNES,
   RUNES,
   SILENCE_HOLD_SECONDS,
   SWARM_EYE_COUNT,
@@ -108,6 +109,19 @@ function shuffle<T>(rng: () => number, arr: T[]): T[] {
   return copy;
 }
 
+function isOnRitualCircle(symbol: string): boolean {
+  return (RITUAL_CIRCLE_RUNES as readonly string[]).includes(symbol);
+}
+
+function pickFinalRiteExtras(rng: () => number, runes: readonly string[], count: number): string[] {
+  const used = new Set(runes);
+  const fromCatacombs = [...CATACOMB_MARK_POOL].filter((m) => !used.has(m) && isOnRitualCircle(m));
+  const catacombSet = new Set<string>(fromCatacombs);
+  const fromCircle = [...RITUAL_CIRCLE_RUNES].filter((m) => !used.has(m) && !catacombSet.has(m));
+  const pool = [...fromCatacombs, ...fromCircle];
+  return pickN(rng, pool, count);
+}
+
 export function generateRunConfig(seed: string): RunConfig {
   const rng = createRng(seed);
   const allIds = ARCHIVE_RECORD_META.map((r) => r.id);
@@ -131,9 +145,9 @@ export function generateRunConfig(seed: string): RunConfig {
   const voidCode = voidRecordId;
 
   const ritualSequence = shuffle(rng, [...runes]);
-  const extraMarks = pickN(
+  const extraMarks = pickFinalRiteExtras(
     rng,
-    [...CATACOMB_MARK_POOL].filter((m) => !runes.includes(m)),
+    runes,
     FINAL_RITUAL_RUNE_COUNT - RITUAL_RUNE_COUNT,
   );
   const finalRiteSequence = shuffle(rng, [...runes, ...extraMarks]);
