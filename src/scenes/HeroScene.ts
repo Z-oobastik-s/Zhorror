@@ -2,6 +2,8 @@ import { Scene } from './Scene';
 
 import { SCENE_IDS, BRAND, RUNES, HERO_THREATS } from '@/config/constants';
 
+import { HERO_HAND_LEFT, HERO_HAND_RIGHT, mediaUrl } from '@/config/media';
+
 import { quest } from '@/systems/QuestSystem';
 
 import { damp, randInt, randPick, randRange } from '@/utils/math';
@@ -27,6 +29,8 @@ export class HeroScene extends Scene {
 
   private threatsEl!: HTMLElement;
 
+  private handsEl!: HTMLElement;
+
   private introTime = 0;
 
   private pupilX = 0;
@@ -37,7 +41,14 @@ export class HeroScene extends Scene {
 
   private threatStarted = false;
 
+  private handTimer = 6;
+
+  private handsStarted = false;
+
   protected build(): void {
+    this.handsEl = this.createEl('div', 'zh-hero__hands');
+    this.element.appendChild(this.handsEl);
+
     this.threatsEl = this.createEl('div', 'zh-hero__threats');
     this.element.appendChild(this.threatsEl);
 
@@ -105,6 +116,11 @@ export class HeroScene extends Scene {
 
     this.element.appendChild(inner);
 
+    const preloadLeft = new Image();
+    preloadLeft.src = mediaUrl(HERO_HAND_LEFT);
+    const preloadRight = new Image();
+    preloadRight.src = mediaUrl(HERO_HAND_RIGHT);
+
     window.addEventListener('mousemove', this.trackEye, { passive: true });
   }
 
@@ -144,6 +160,35 @@ export class HeroScene extends Scene {
     }, 3200 + randInt(0, 800));
   }
 
+  private showHand(forceSide?: 'left' | 'right'): void {
+    const isLeft = forceSide ? forceSide === 'left' : Math.random() > 0.5;
+    const img = document.createElement('img');
+    img.className = `zh-hero__hand zh-hero__hand--${isLeft ? 'left' : 'right'}`;
+    img.src = mediaUrl(isLeft ? HERO_HAND_LEFT : HERO_HAND_RIGHT);
+    img.alt = '';
+    img.draggable = false;
+    img.loading = 'eager';
+    img.decoding = 'async';
+
+    img.style.top = `${randInt(10, 62)}%`;
+    if (isLeft) {
+      img.style.left = `${randInt(-14, 2)}%`;
+    } else {
+      img.style.right = `${randInt(-14, 2)}%`;
+    }
+    img.style.setProperty('--hand-rot', `${randInt(-18, 18)}deg`);
+    img.style.setProperty('--hand-scale', String(randRange(0.88, 1.06)));
+
+    this.handsEl.appendChild(img);
+    requestAnimationFrame(() => img.classList.add('zh-hero__hand--visible'));
+
+    const hold = 1600 + randInt(0, 1400);
+    window.setTimeout(() => {
+      img.classList.remove('zh-hero__hand--visible');
+      window.setTimeout(() => img.remove(), 1600);
+    }, hold);
+  }
+
   protected onUpdate(dt: number): void {
     if (!this.active && !this.visible) return;
 
@@ -164,6 +209,8 @@ export class HeroScene extends Scene {
     if (!this.threatStarted && (this.active || this.visible)) {
       this.threatStarted = true;
       this.threatTimer = 4;
+      this.handsStarted = true;
+      this.handTimer = randRange(5, 9);
     }
 
     if (!this.threatStarted) return;
@@ -172,6 +219,19 @@ export class HeroScene extends Scene {
     if (this.threatTimer <= 0) {
       this.showThreat();
       this.threatTimer = randRange(7, 13);
+    }
+
+    if (!this.handsStarted) return;
+
+    this.handTimer -= dt;
+    if (this.handTimer <= 0) {
+      this.showHand();
+      if (Math.random() > 0.72) {
+        window.setTimeout(() => {
+          if (this.active || this.visible) this.showHand();
+        }, randInt(180, 520));
+      }
+      this.handTimer = randRange(14, 24);
     }
   }
 }

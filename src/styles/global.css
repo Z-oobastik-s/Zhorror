@@ -740,6 +740,39 @@ body.zh-dragging {
   overflow: hidden;
 }
 
+.zh-hero__hands {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  overflow: hidden;
+}
+
+.zh-hero__hand {
+  position: absolute;
+  width: clamp(120px, 20vw, 220px);
+  height: auto;
+  opacity: 0;
+  transform: rotate(var(--hand-rot, 0deg)) scale(calc(var(--hand-scale, 1) * 0.9));
+  transition: opacity 1.6s ease, transform 2s ease;
+  filter: brightness(0.45) contrast(1.05) saturate(0.75);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.zh-hero__hand--left {
+  transform-origin: 20% 50%;
+}
+
+.zh-hero__hand--right {
+  transform-origin: 80% 50%;
+}
+
+.zh-hero__hand--visible {
+  opacity: 0.26;
+  transform: rotate(var(--hand-rot, 0deg)) scale(var(--hand-scale, 1));
+}
+
 .zh-hero__threat {
   position: absolute;
   font-family: 'Cormorant Garamond', serif;
@@ -1885,6 +1918,14 @@ body.zh-scare-shake {
 
   .zh-hero__threat {
     font-size: 13px;
+  }
+
+  .zh-hero__hand {
+    width: clamp(96px, 28vw, 160px);
+  }
+
+  .zh-hero__hand--visible {
+    opacity: 0.22;
   }
 
   .zh-entity__form {

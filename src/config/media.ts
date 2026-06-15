@@ -16,6 +16,10 @@ export const ACT5_BG = `${I}/5 glava.png`;
 /** Пентаграмма для финального ритуала */
 export const SATAN_CIRCLE = `${I}/satan.png`;
 
+/** Кровавые отпечатки для главной */
+export const HERO_HAND_LEFT = `${I}/hand_left.png`;
+export const HERO_HAND_RIGHT = `${I}/hand_right.png`;
+
 export function mediaUrl(relativePath: string): string {
   const encoded = relativePath.split('/').map((p) => encodeURIComponent(p)).join('/');
   return `${BASE}assets/${encoded}`;
