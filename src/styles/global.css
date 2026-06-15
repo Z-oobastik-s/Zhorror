@@ -2218,7 +2218,7 @@ body.zh-scare-shake {
   }
 
   .zh-hero {
-    --hero-orbit: clamp(150px, 29vmin, 230px);
+    --hero-orbit: clamp(173px, 33.35vmin, 265px);
     --hero-eye-y: clamp(142px, calc(45vh - 36px), 238px);
     padding-bottom: max(38px, calc(32px + env(safe-area-inset-bottom)));
     gap: 3px;
