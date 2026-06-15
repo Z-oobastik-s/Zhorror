@@ -115,6 +115,8 @@ body.zh-dragging {
   transition: opacity 1.4s ease;
 }
 
+.zh-bg-act1,
+.zh-bg-act2,
 .zh-bg-act3 {
   position: absolute;
   inset: 0;
@@ -122,8 +124,65 @@ body.zh-dragging {
   background-position: center center;
   background-repeat: no-repeat;
   opacity: 0;
-  transition: opacity 1.4s ease;
   pointer-events: none;
+}
+
+.zh-bg-act1 {
+  transition: opacity 1.2s ease;
+}
+
+.zh-bg-act2 {
+  transition: opacity 1.3s ease;
+}
+
+.zh-bg-act3 {
+  transition: opacity 1.4s ease;
+}
+
+.zh-bg-act1::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(4, 2, 3, 0.72) 0%, rgba(8, 4, 6, 0.48) 42%, rgba(4, 2, 3, 0.78) 100%),
+    radial-gradient(ellipse 55% 45% at 50% 72%, rgba(90, 24, 18, 0.22) 0%, transparent 68%);
+}
+
+.zh-app--act1 .zh-bg-act1 {
+  opacity: 1;
+}
+
+.zh-app--act1 .zh-bg-static {
+  opacity: 0.14;
+}
+
+.zh-app--act1 .zh-scene__inner {
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.82);
+}
+
+.zh-bg-act2::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(2, 1, 2, 0.8) 0%, rgba(6, 2, 4, 0.46) 40%, rgba(2, 0, 1, 0.84) 100%),
+    radial-gradient(ellipse 38% 50% at 50% 52%, rgba(120, 16, 24, 0.28) 0%, transparent 72%);
+}
+
+.zh-app--act2 .zh-bg-act2 {
+  opacity: 1;
+}
+
+.zh-app--act2 .zh-bg-act1 {
+  opacity: 0;
+}
+
+.zh-app--act2 .zh-bg-static {
+  opacity: 0.1;
+}
+
+.zh-app--act2 .zh-scene__inner {
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.86);
 }
 
 .zh-bg-act3::after {
@@ -136,6 +195,11 @@ body.zh-dragging {
 
 .zh-app--act3 .zh-bg-act3 {
   opacity: 1;
+}
+
+.zh-app--act3 .zh-bg-act2,
+.zh-app--act3 .zh-bg-act1 {
+  opacity: 0;
 }
 
 .zh-app--act3 .zh-bg-static {
@@ -170,7 +234,9 @@ body.zh-dragging {
   opacity: 1;
 }
 
-.zh-app--act4 .zh-bg-act3 {
+.zh-app--act4 .zh-bg-act3,
+.zh-app--act4 .zh-bg-act2,
+.zh-app--act4 .zh-bg-act1 {
   opacity: 0;
 }
 
@@ -207,7 +273,9 @@ body.zh-dragging {
 }
 
 .zh-app--act5 .zh-bg-act4,
-.zh-app--act5 .zh-bg-act3 {
+.zh-app--act5 .zh-bg-act3,
+.zh-app--act5 .zh-bg-act2,
+.zh-app--act5 .zh-bg-act1 {
   opacity: 0;
 }
 

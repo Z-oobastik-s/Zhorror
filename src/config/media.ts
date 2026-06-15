@@ -4,6 +4,12 @@ const BASE = import.meta.env.BASE_URL;
 const G = 'gif scream';
 const I = 'Image';
 
+/** Фон акта I (архив, наблюдение, ритуал, пустота) */
+export const ACT1_BG = `${I}/1 glava.png`;
+
+/** Фон акта II (бездна, эхо, зеркало, коллапс) */
+export const ACT2_BG = `${I}/2 glava.png`;
+
 /** Фон акта III */
 export const ACT3_BG = `${I}/3 glava.png`;
 

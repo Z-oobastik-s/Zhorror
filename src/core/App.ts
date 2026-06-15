@@ -1,8 +1,15 @@
 import { engine } from '@/core/Engine';
 import { events, EVT } from '@/core/EventBus';
 import type { SceneId } from '@/config/constants';
-import { SCENE_IDS, SCENE_ORDER_ACT3, SCENE_ORDER_ACT4, SCENE_ORDER_ACT5 } from '@/config/constants';
-import { ACT3_BG, ACT4_BG, ACT5_BG, mediaUrl } from '@/config/media';
+import {
+  SCENE_IDS,
+  SCENE_ORDER_ACT1,
+  SCENE_ORDER_ACT2,
+  SCENE_ORDER_ACT3,
+  SCENE_ORDER_ACT4,
+  SCENE_ORDER_ACT5,
+} from '@/config/constants';
+import { ACT1_BG, ACT2_BG, ACT3_BG, ACT4_BG, ACT5_BG, mediaUrl } from '@/config/media';
 import { perf } from '@/systems/PerformanceManager';
 import { ScrollSystem } from '@/systems/ScrollSystem';
 import { AtmosphereSystem } from '@/systems/AtmosphereSystem';
@@ -33,6 +40,8 @@ export class App {
   private questHud!: QuestHUD;
   private scrollIndicator!: ScrollIndicator;
   private scenes: Scene[] = [];
+  private bgAct1!: HTMLElement;
+  private bgAct2!: HTMLElement;
   private bgAct3!: HTMLElement;
   private bgAct4!: HTMLElement;
   private bgAct5!: HTMLElement;
@@ -55,6 +64,12 @@ export class App {
     this.fxLayer.className = 'zh-fx-layer';
     const bg = document.createElement('div');
     bg.className = 'zh-bg-static';
+    this.bgAct1 = document.createElement('div');
+    this.bgAct1.className = 'zh-bg-act1';
+    this.bgAct1.style.backgroundImage = `url("${mediaUrl(ACT1_BG)}")`;
+    this.bgAct2 = document.createElement('div');
+    this.bgAct2.className = 'zh-bg-act2';
+    this.bgAct2.style.backgroundImage = `url("${mediaUrl(ACT2_BG)}")`;
     this.bgAct3 = document.createElement('div');
     this.bgAct3.className = 'zh-bg-act3';
     this.bgAct3.style.backgroundImage = `url("${mediaUrl(ACT3_BG)}")`;
@@ -66,15 +81,13 @@ export class App {
     this.bgAct5.style.backgroundImage = `url("${mediaUrl(ACT5_BG)}")`;
     const grain = document.createElement('div');
     grain.className = 'zh-bg-grain';
-    this.fxLayer.append(bg, this.bgAct3, this.bgAct4, this.bgAct5, grain);
+    this.fxLayer.append(bg, this.bgAct1, this.bgAct2, this.bgAct3, this.bgAct4, this.bgAct5, grain);
     this.shell.appendChild(this.fxLayer);
 
-    const preloadAct3Bg = new Image();
-    preloadAct3Bg.src = mediaUrl(ACT3_BG);
-    const preloadAct4Bg = new Image();
-    preloadAct4Bg.src = mediaUrl(ACT4_BG);
-    const preloadAct5Bg = new Image();
-    preloadAct5Bg.src = mediaUrl(ACT5_BG);
+    for (const src of [ACT1_BG, ACT2_BG, ACT3_BG, ACT4_BG, ACT5_BG]) {
+      const img = new Image();
+      img.src = mediaUrl(src);
+    }
 
     this.uiLayer = document.createElement('div');
     this.uiLayer.className = 'zh-ui-layer';
@@ -197,6 +210,21 @@ export class App {
     }
   }
 
+  private applyActBackground(sceneId: string): void {
+    const inAct1 = (SCENE_ORDER_ACT1 as readonly string[]).includes(sceneId)
+      && sceneId !== SCENE_IDS.hero;
+    const inAct2 = (SCENE_ORDER_ACT2 as readonly string[]).includes(sceneId);
+    const inAct3 = (SCENE_ORDER_ACT3 as readonly string[]).includes(sceneId);
+    const inAct4 = (SCENE_ORDER_ACT4 as readonly string[]).includes(sceneId);
+    const inAct5 = (SCENE_ORDER_ACT5 as readonly string[]).includes(sceneId);
+
+    this.shell.classList.toggle('zh-app--act1', inAct1 && !inAct2 && !inAct3 && !inAct4 && !inAct5);
+    this.shell.classList.toggle('zh-app--act2', inAct2 && !inAct3 && !inAct4 && !inAct5);
+    this.shell.classList.toggle('zh-app--act3', inAct3 && !inAct4 && !inAct5);
+    this.shell.classList.toggle('zh-app--act4', inAct4 && !inAct5);
+    this.shell.classList.toggle('zh-app--act5', inAct5);
+  }
+
   private navigateToScene(scene?: string, delay = 380): void {
     if (!scene) return;
     window.setTimeout(() => this.scroll.scrollToScene(scene), delay);
@@ -224,12 +252,7 @@ export class App {
     events.on(EVT.SCENE_CHANGE, (payload) => {
       const id = (payload as { id: string }).id;
       this.nav.setActive(id);
-      const inAct3 = (SCENE_ORDER_ACT3 as readonly string[]).includes(id);
-      const inAct4 = (SCENE_ORDER_ACT4 as readonly string[]).includes(id);
-      const inAct5 = (SCENE_ORDER_ACT5 as readonly string[]).includes(id);
-      this.shell.classList.toggle('zh-app--act3', inAct3);
-      this.shell.classList.toggle('zh-app--act4', inAct4 && !inAct5);
-      this.shell.classList.toggle('zh-app--act5', inAct5);
+      this.applyActBackground(id);
     });
 
     events.on(EVT.QUEST_UPDATE, () => {
