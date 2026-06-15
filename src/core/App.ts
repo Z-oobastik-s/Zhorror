@@ -1,8 +1,8 @@
 import { engine } from '@/core/Engine';
 import { events, EVT } from '@/core/EventBus';
 import type { SceneId } from '@/config/constants';
-import { SCENE_IDS, SCENE_ORDER_ACT3, SCENE_ORDER_ACT4 } from '@/config/constants';
-import { ACT3_BG, ACT4_BG, mediaUrl } from '@/config/media';
+import { SCENE_IDS, SCENE_ORDER_ACT3, SCENE_ORDER_ACT4, SCENE_ORDER_ACT5 } from '@/config/constants';
+import { ACT3_BG, ACT4_BG, ACT5_BG, mediaUrl } from '@/config/media';
 import { perf } from '@/systems/PerformanceManager';
 import { ScrollSystem } from '@/systems/ScrollSystem';
 import { AtmosphereSystem } from '@/systems/AtmosphereSystem';
@@ -36,6 +36,7 @@ export class App {
   private scenes: Scene[] = [];
   private bgAct3!: HTMLElement;
   private bgAct4!: HTMLElement;
+  private bgAct5!: HTMLElement;
 
   constructor(rootEl: HTMLElement) {
     this.root = rootEl;
@@ -61,15 +62,20 @@ export class App {
     this.bgAct4 = document.createElement('div');
     this.bgAct4.className = 'zh-bg-act4';
     this.bgAct4.style.backgroundImage = `url("${mediaUrl(ACT4_BG)}")`;
+    this.bgAct5 = document.createElement('div');
+    this.bgAct5.className = 'zh-bg-act5';
+    this.bgAct5.style.backgroundImage = `url("${mediaUrl(ACT5_BG)}")`;
     const grain = document.createElement('div');
     grain.className = 'zh-bg-grain';
-    this.fxLayer.append(bg, this.bgAct3, this.bgAct4, grain);
+    this.fxLayer.append(bg, this.bgAct3, this.bgAct4, this.bgAct5, grain);
     this.shell.appendChild(this.fxLayer);
 
     const preloadAct3Bg = new Image();
     preloadAct3Bg.src = mediaUrl(ACT3_BG);
     const preloadAct4Bg = new Image();
     preloadAct4Bg.src = mediaUrl(ACT4_BG);
+    const preloadAct5Bg = new Image();
+    preloadAct5Bg.src = mediaUrl(ACT5_BG);
 
     this.uiLayer = document.createElement('div');
     this.uiLayer.className = 'zh-ui-layer';
@@ -123,7 +129,7 @@ export class App {
       }
 
       el.querySelectorAll(
-        '.zh-archive__card, .zh-hero__sigil, .zh-abyss__sigil, .zh-gate3__sigil, .zh-gate4__sigil, .zh-nav__sigil, .zh-ritual__symbol, .zh-void__submit, .zh-collapse__submit, .zh-terminus__submit, .zh-abattoir__submit, .zh-echo__word, .zh-catacombs__door, .zh-swarm__eye, .zh-hooks__hook, .zh-butcher__cell, .zh-meatlock__mark-btn',
+        '.zh-archive__card, .zh-hero__sigil, .zh-abyss__sigil, .zh-gate3__sigil, .zh-gate4__sigil, .zh-gate5__sigil, .zh-nav__sigil, .zh-ritual__symbol, .zh-void__submit, .zh-collapse__submit, .zh-terminus__submit, .zh-abattoir__submit, .zh-gibbet__submit, .zh-echo__word, .zh-catacombs__door, .zh-swarm__eye, .zh-hooks__hook, .zh-gallows__rope, .zh-hanged__fig, .zh-pendulum__cut, .zh-trapfloor__tile, .zh-roperite__mark-btn, .zh-butcher__cell, .zh-meatlock__mark-btn',
       ).forEach((node) => {
         const elNode = node as HTMLElement;
         const kind = elNode.classList.contains('zh-archive__card') ? 'paper' : 'rune';
@@ -209,8 +215,10 @@ export class App {
       this.nav.setActive(id);
       const inAct3 = (SCENE_ORDER_ACT3 as readonly string[]).includes(id);
       const inAct4 = (SCENE_ORDER_ACT4 as readonly string[]).includes(id);
+      const inAct5 = (SCENE_ORDER_ACT5 as readonly string[]).includes(id);
       this.shell.classList.toggle('zh-app--act3', inAct3);
-      this.shell.classList.toggle('zh-app--act4', inAct4);
+      this.shell.classList.toggle('zh-app--act4', inAct4 && !inAct5);
+      this.shell.classList.toggle('zh-app--act5', inAct5);
     });
 
     events.on(EVT.QUEST_UPDATE, () => {
@@ -266,6 +274,14 @@ export async function createApp(root: HTMLElement): Promise<App> {
     { CorridorScene },
     { MeatlockScene },
     { AbattoirScene },
+    { Gate5Scene },
+    { GallowsScene },
+    { PendulumScene },
+    { HangedScene },
+    { NooseholdScene },
+    { RoperiteScene },
+    { TrapfloorScene },
+    { GibbetScene },
   ] = await Promise.all([
     import('@/scenes/HeroScene'),
     import('@/scenes/ArchiveScene'),
@@ -288,6 +304,14 @@ export async function createApp(root: HTMLElement): Promise<App> {
     import('@/scenes/CorridorScene'),
     import('@/scenes/MeatlockScene'),
     import('@/scenes/AbattoirScene'),
+    import('@/scenes/Gate5Scene'),
+    import('@/scenes/GallowsScene'),
+    import('@/scenes/PendulumScene'),
+    import('@/scenes/HangedScene'),
+    import('@/scenes/NooseholdScene'),
+    import('@/scenes/RoperiteScene'),
+    import('@/scenes/TrapfloorScene'),
+    import('@/scenes/GibbetScene'),
   ]);
   await app.registerScenes([
     new HeroScene(),
@@ -311,6 +335,14 @@ export async function createApp(root: HTMLElement): Promise<App> {
     new CorridorScene(),
     new MeatlockScene(),
     new AbattoirScene(),
+    new Gate5Scene(),
+    new GallowsScene(),
+    new PendulumScene(),
+    new HangedScene(),
+    new NooseholdScene(),
+    new RoperiteScene(),
+    new TrapfloorScene(),
+    new GibbetScene(),
   ]);
   await app.boot();
   return app;

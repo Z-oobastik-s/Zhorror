@@ -50,6 +50,14 @@ export const SCENE_IDS = {
   corridor: 'corridor',
   meatlock: 'meatlock',
   abattoir: 'abattoir',
+  gate5: 'gate5',
+  gallows: 'gallows',
+  pendulum: 'pendulum',
+  hanged: 'hanged',
+  noosehold: 'noosehold',
+  roperite: 'roperite',
+  trapfloor: 'trapfloor',
+  gibbet: 'gibbet',
 } as const;
 
 export type SceneId = (typeof SCENE_IDS)[keyof typeof SCENE_IDS];
@@ -70,7 +78,14 @@ export const SCENE_ORDER_ACT4: SceneId[] = [
   SCENE_IDS.gate4, SCENE_IDS.hooks, SCENE_IDS.butcher, SCENE_IDS.corridor, SCENE_IDS.meatlock, SCENE_IDS.abattoir,
 ];
 
-export const SCENE_ORDER: SceneId[] = [...SCENE_ORDER_ACT1, ...SCENE_ORDER_ACT2, ...SCENE_ORDER_ACT3, ...SCENE_ORDER_ACT4];
+export const SCENE_ORDER_ACT5: SceneId[] = [
+  SCENE_IDS.gate5, SCENE_IDS.gallows, SCENE_IDS.pendulum, SCENE_IDS.hanged,
+  SCENE_IDS.noosehold, SCENE_IDS.roperite, SCENE_IDS.trapfloor, SCENE_IDS.gibbet,
+];
+
+export const SCENE_ORDER: SceneId[] = [
+  ...SCENE_ORDER_ACT1, ...SCENE_ORDER_ACT2, ...SCENE_ORDER_ACT3, ...SCENE_ORDER_ACT4, ...SCENE_ORDER_ACT5,
+];
 
 export const CHAPTERS_ACT1 = [
   { act: 1 as const, index: 0, scene: SCENE_IDS.hero, title: 'Порог', objective: 'Нажми «войти в архив»' },
@@ -103,6 +118,17 @@ export const CHAPTERS_ACT4 = [
   { act: 4 as const, index: 3, scene: SCENE_IDS.corridor, title: 'Коридор', objective: 'Собери 10 кусков. Прогресс сохраняется после столкновения' },
   { act: 4 as const, index: 4, scene: SCENE_IDS.meatlock, title: 'Запечатано', objective: 'Повтори метки мясника за 8 секунд' },
   { act: 4 as const, index: 5, scene: SCENE_IDS.abattoir, title: 'Бойня', objective: 'Введи код, который оставил мясник' },
+] as const;
+
+export const CHAPTERS_ACT5 = [
+  { act: 5 as const, index: 0, scene: SCENE_IDS.gate5, title: 'Петля', objective: 'Войди в коридор повешенных' },
+  { act: 5 as const, index: 1, scene: SCENE_IDS.gallows, title: 'Верёвки', objective: 'Найди 5 петель с добычей' },
+  { act: 5 as const, index: 2, scene: SCENE_IDS.pendulum, title: 'Маятник', objective: 'Отпусти верёвку в зелёной зоне 5 раз' },
+  { act: 5 as const, index: 3, scene: SCENE_IDS.hanged, title: 'Повешенные', objective: 'Найди 6 настоящих силуэтов за 30 секунд' },
+  { act: 5 as const, index: 4, scene: SCENE_IDS.noosehold, title: 'Удавка', objective: 'Застыть на 10 секунд. петля сжимается' },
+  { act: 5 as const, index: 5, scene: SCENE_IDS.roperite, title: 'Узел', objective: 'Повтори 5 меток петли за 12 секунд' },
+  { act: 5 as const, index: 6, scene: SCENE_IDS.trapfloor, title: 'Ловушка', objective: 'Пройди по плитам в правильном порядке' },
+  { act: 5 as const, index: 7, scene: SCENE_IDS.gibbet, title: 'Виселица', objective: 'Назови слово, которое оставила петля' },
 ] as const;
 
 export const CHAPTERS = CHAPTERS_ACT1;
@@ -170,6 +196,7 @@ export const WHISPERS = [
   'он видит', 'не закрывай', 'ты остался', 'они ждут', 'слишком поздно',
   'не оглядывайся', 'архив помнит', 'Zhorror', 'Zoobastiks',
   'мясник близко', 'крючья помнят', 'ты - добыча',
+  'петля затягивается', 'они висят', 'не дыши', 'верёвка помнит',
 ] as const;
 
 export const HOOK_COUNT = 8;
@@ -181,3 +208,18 @@ export const MEATLOCK_SHOW_SECONDS = 2;
 export const MEATLOCK_INPUT_SECONDS = 8;
 export const CORRIDOR_GOAL = 10;
 export const CORRIDOR_GRID = 14;
+
+export const GALLOWS_ROPE_COUNT = 10;
+export const GALLOWS_REAL_COUNT = 5;
+export const HANGED_COUNT = 12;
+export const HANGED_REAL_COUNT = 6;
+export const HANGED_TIME_SECONDS = 30;
+export const NOOSE_HOLD_SECONDS = 10;
+export const ROPERITE_COUNT = 5;
+export const ROPERITE_SHOW_SECONDS = 3;
+export const ROPERITE_INPUT_SECONDS = 12;
+export const PENDULUM_GOAL = 5;
+export const TRAPFLOOR_LENGTH = 8;
+export const TRAPFLOOR_TILES = 9;
+export const GIBBET_CODE_POOL = ['GALLOWS', 'HANGMAN', 'NOOSE', 'GIBBET', 'PENDULUM', 'SCAFFOLD'] as const;
+export const ROPE_MARK_POOL = ['⌁', '⍟', '☍', '⟁', '⧫', '⌬', '◈', '⬡', '☠', '⚒'] as const;

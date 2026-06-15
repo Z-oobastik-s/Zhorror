@@ -10,6 +10,9 @@ export const ACT3_BG = `${I}/3 glava.png`;
 /** Фон акта IV (мясник) */
 export const ACT4_BG = `${I}/4 glava.png`;
 
+/** Фон акта V (повешение) */
+export const ACT5_BG = `${I}/5 glava.png`;
+
 /** Пентаграмма для финального ритуала */
 export const SATAN_CIRCLE = `${I}/satan.png`;
 
@@ -53,6 +56,31 @@ export const SCREAM_GIFS = [
   `${G}/YWY2.gif`,
 ] as const;
 
+/** Новые скримеры (21 шт.) */
+export const SCREAM_GIFS_EXTRA = [
+  `${G}/akari-enshiro-dead-account.gif`,
+  `${G}/averageanatomy-tonio.gif`,
+  `${G}/clown.gif`,
+  `${G}/content-warning-ghost.gif`,
+  `${G}/creepy-scary.gif`,
+  `${G}/demon-evil.gif`,
+  `${G}/fnaf-meme-mushroom.gif`,
+  `${G}/foxy.gif`,
+  `${G}/fun-house-gunther.gif`,
+  `${G}/HfIF.gif`,
+  `${G}/ndd.gif`,
+  `${G}/nun-evil.gif`,
+  `${G}/scary-girls.gif`,
+  `${G}/scary-halloween.gif`,
+  `${G}/scary-rabbit.gif`,
+  `${G}/scary-rooms-low-detailed.gif`,
+  `${G}/scary-scary-man.gif`,
+  `${G}/screamer-creepy.gif`,
+  `${G}/smile-creepy.gif`,
+  `${G}/the-exorcist-regan.gif`,
+  `${G}/vocaloid-creepy.gif`,
+] as const;
+
 /** Более жёсткие скримеры для акта III */
 export const SCREAM_GIFS_ACT3 = [
   `${G}/4FZS.gif`,
@@ -70,6 +98,7 @@ export const SCREAM_GIFS_ACT3 = [
   `${G}/ndT.gif`,
   `${G}/TZcL.gif`,
   `${G}/WKL.gif`,
+  ...SCREAM_GIFS_EXTRA,
 ] as const;
 
 /** Ещё жёстче для акта IV */
@@ -89,7 +118,39 @@ export const SCREAM_GIFS_ACT4 = [
   `${G}/9hw9.gif`,
   `${G}/VhkF.gif`,
   `${G}/GHFp.gif`,
+  ...SCREAM_GIFS_EXTRA,
 ] as const;
+
+/** Максимум для акта V */
+export const SCREAM_GIFS_ACT5 = [
+  `${G}/4FZS.gif`,
+  `${G}/6GuV.gif`,
+  `${G}/6PTw.gif`,
+  `${G}/PVnW.gif`,
+  `${G}/QhxH.gif`,
+  `${G}/SNmy.gif`,
+  `${G}/X1UD.gif`,
+  `${G}/BCQz.gif`,
+  `${G}/ENnM.gif`,
+  `${G}/the-exorcist-regan.gif`,
+  `${G}/screamer-creepy.gif`,
+  `${G}/scary-scary-man.gif`,
+  `${G}/nun-evil.gif`,
+  `${G}/demon-evil.gif`,
+  `${G}/creepy-scary.gif`,
+  ...SCREAM_GIFS_EXTRA,
+] as const;
+
+/** Все уникальные GIF для прелоада */
+export const SCREAM_GIFS_ALL: readonly string[] = [
+  ...new Set([
+    ...SCREAM_GIFS,
+    ...SCREAM_GIFS_EXTRA,
+    ...SCREAM_GIFS_ACT3,
+    ...SCREAM_GIFS_ACT4,
+    ...SCREAM_GIFS_ACT5,
+  ]),
+];
 
 const S = 'sound';
 
@@ -111,6 +172,13 @@ export const AUDIO = {
     `${S}/Flesh Growing.mp3`,
     `${S}/Low hum, dark horror, recording.mp3`,
     `${S}/Sfx6 - Horror Suspense [Hiding - Heartbeat].mp3`,
+  ],
+  ambientLoopsAct5: [
+    `${S}/Low Frequency Hum.mp3`,
+    `${S}/Slow Heartbeat 100 BPM.mp3`,
+    `${S}/The man is nervous, his heart is beating fast.mp3`,
+    `${S}/Sfx6 - Horror Suspense [Hiding - Heartbeat].mp3`,
+    `${S}/Whispers Ghost Horror Sound.mp3`,
   ],
   /** Длинные one-shot (> 12 сек), не накладываются */
   beds: [
@@ -175,12 +243,30 @@ export function pickRandom<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function pickScareGif(act: number): string {
-  if (act >= 4) {
-    return pickRandom(Math.random() > 0.25 ? SCREAM_GIFS_ACT4 : SCREAM_GIFS_ACT3);
+export function pickScareGif(act: number, avoid?: string): string {
+  let pool: readonly string[];
+  if (act >= 5) {
+    pool = Math.random() > 0.1
+      ? [...SCREAM_GIFS_ACT5, ...SCREAM_GIFS_EXTRA]
+      : [...SCREAM_GIFS_ACT4, ...SCREAM_GIFS_ACT3, ...SCREAM_GIFS_EXTRA];
+  } else if (act >= 4) {
+    pool = Math.random() > 0.15
+      ? [...SCREAM_GIFS_ACT4, ...SCREAM_GIFS_EXTRA]
+      : [...SCREAM_GIFS_ACT3, ...SCREAM_GIFS, ...SCREAM_GIFS_EXTRA];
+  } else if (act >= 3) {
+    pool = Math.random() > 0.25
+      ? [...SCREAM_GIFS_ACT3, ...SCREAM_GIFS_EXTRA]
+      : [...SCREAM_GIFS, ...SCREAM_GIFS_EXTRA];
+  } else {
+    pool = [...SCREAM_GIFS, ...SCREAM_GIFS_EXTRA];
   }
-  if (act >= 3) {
-    return pickRandom(Math.random() > 0.35 ? SCREAM_GIFS_ACT3 : SCREAM_GIFS);
+
+  if (pool.length === 0) return SCREAM_GIFS[0];
+  if (!avoid || pool.length < 3) return pickRandom(pool);
+
+  let pick = pickRandom(pool);
+  for (let i = 0; i < 10 && pick === avoid; i++) {
+    pick = pickRandom(pool);
   }
-  return pickRandom(SCREAM_GIFS);
+  return pick;
 }

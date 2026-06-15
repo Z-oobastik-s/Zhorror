@@ -21,6 +21,15 @@ import {
   ABATTOIR_CODE_POOL,
   MEAT_MARK_POOL,
   MEATLOCK_COUNT,
+  GALLOWS_ROPE_COUNT,
+  GALLOWS_REAL_COUNT,
+  HANGED_COUNT,
+  HANGED_REAL_COUNT,
+  ROPERITE_COUNT,
+  GIBBET_CODE_POOL,
+  ROPE_MARK_POOL,
+  TRAPFLOOR_LENGTH,
+  TRAPFLOOR_TILES,
 } from '@/config/constants';
 
 export interface RunConfig {
@@ -42,6 +51,12 @@ export interface RunConfig {
   abattoirCode: string;
   meatSequence: string[];
   corridorWalls: boolean[][];
+  gallowsRealIndices: number[];
+  hangedRealIndices: number[];
+  gibbetCode: string;
+  ropeSequence: string[];
+  trapFloorSequence: number[];
+  pendulumSpeed: number;
   ritualInputSeconds: number;
   finalRiteInputSeconds: number;
   swarmTimeSeconds: number;
@@ -150,6 +165,21 @@ export function generateRunConfig(seed: string): RunConfig {
   const meatSequence: string[] = shuffle(rng, pickN(rng, MEAT_MARK_POOL, MEATLOCK_COUNT));
   const corridorWalls = generateCorridorWalls(rng);
 
+  const ropeIndices = Array.from({ length: GALLOWS_ROPE_COUNT }, (_, i) => i);
+  const gallowsRealIndices = pickN(rng, ropeIndices, GALLOWS_REAL_COUNT).sort((a, b) => a - b);
+
+  const hangedIndices = Array.from({ length: HANGED_COUNT }, (_, i) => i);
+  const hangedRealIndices = pickN(rng, hangedIndices, HANGED_REAL_COUNT).sort((a, b) => a - b);
+
+  const gibbetCode = pickN(rng, GIBBET_CODE_POOL, 1)[0];
+  const ropeSequence: string[] = shuffle(rng, pickN(rng, ROPE_MARK_POOL, ROPERITE_COUNT));
+  const tileIndices = Array.from({ length: TRAPFLOOR_TILES }, (_, i) => i);
+  const trapFloorSequence: number[] = [];
+  for (let i = 0; i < TRAPFLOOR_LENGTH; i++) {
+    trapFloorSequence.push(tileIndices[Math.floor(rng() * TRAPFLOOR_TILES)]);
+  }
+  const pendulumSpeed = 1.8 + rng() * 1.4;
+
   return {
     seed,
     archiveMap,
@@ -169,6 +199,12 @@ export function generateRunConfig(seed: string): RunConfig {
     abattoirCode,
     meatSequence,
     corridorWalls,
+    gallowsRealIndices,
+    hangedRealIndices,
+    gibbetCode,
+    ropeSequence,
+    trapFloorSequence,
+    pendulumSpeed,
     ritualInputSeconds: RITUAL_INPUT_SECONDS,
     finalRiteInputSeconds: FINAL_RITUAL_INPUT_SECONDS,
     swarmTimeSeconds: SWARM_TIME_SECONDS,

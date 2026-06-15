@@ -3,13 +3,19 @@ import {
   CHAPTERS_ACT2,
   CHAPTERS_ACT3,
   CHAPTERS_ACT4,
+  CHAPTERS_ACT5,
+  PENDULUM_GOAL,
+  HANGED_TIME_SECONDS,
   CORRIDOR_GOAL,
+  NOOSE_HOLD_SECONDS,
+  ROPERITE_INPUT_SECONDS,
   SCENE_IDS,
   SCENE_ORDER,
   SCENE_ORDER_ACT1,
   SCENE_ORDER_ACT2,
   SCENE_ORDER_ACT3,
   SCENE_ORDER_ACT4,
+  SCENE_ORDER_ACT5,
   TERMINUS_CODE,
 } from '@/config/constants';
 import type { SceneId } from '@/config/constants';
@@ -23,7 +29,7 @@ import {
   type RunConfig,
 } from '@/systems/RunConfig';
 
-const STORAGE_KEY = 'zh-quest-v5';
+const STORAGE_KEY = 'zh-quest-v6';
 
 interface QuestState {
   seed: string;
@@ -32,6 +38,7 @@ interface QuestState {
   act2Chapter: number;
   act3Chapter: number;
   act4Chapter: number;
+  act5Chapter: number;
   fragments: string[];
   catacombMarks: string[];
   ritualStep: number;
@@ -44,11 +51,17 @@ interface QuestState {
   corridorDone: boolean;
   corridorPieces: number;
   meatlockStep: number;
+  gallowsFound: number;
+  pendulumHits: number;
+  hangedFound: number;
+  roperiteStep: number;
+  trapfloorStep: number;
   failCount: number;
   voidComplete: boolean;
   act2Complete: boolean;
   act3Complete: boolean;
   act4Complete: boolean;
+  act5Complete: boolean;
 }
 
 export class QuestSystem {
@@ -58,6 +71,7 @@ export class QuestSystem {
   private act2Chapter = 0;
   private act3Chapter = 0;
   private act4Chapter = 0;
+  private act5Chapter = 0;
   private unlocked = new Set<SceneId>([SCENE_IDS.hero]);
   private fragments = new Set<string>();
   private catacombMarks = new Set<string>();
@@ -71,11 +85,17 @@ export class QuestSystem {
   private corridorDone = false;
   private corridorPieces = 0;
   private meatlockStep = 0;
+  private gallowsFound = 0;
+  private pendulumHits = 0;
+  private hangedFound = 0;
+  private roperiteStep = 0;
+  private trapfloorStep = 0;
   private failCount = 0;
   private voidComplete = false;
   private act2Complete = false;
   private act3Complete = false;
   private act4Complete = false;
+  private act5Complete = false;
   private seals: Map<SceneId, HTMLElement> = new Map();
 
   constructor() {
@@ -197,6 +217,75 @@ export class QuestSystem {
     return collapseHint(this.run.abattoirCode);
   }
 
+  isGallowsReal(index: number): boolean {
+    return this.run.gallowsRealIndices.includes(index);
+  }
+
+  getGallowsRealCount(): number {
+    return this.run.gallowsRealIndices.length;
+  }
+
+  getGallowsProgress(): number {
+    return this.gallowsFound;
+  }
+
+  getPendulumSpeed(): number {
+    return this.run.pendulumSpeed;
+  }
+
+  getPendulumProgress(): number {
+    return this.pendulumHits;
+  }
+
+  isHangedReal(index: number): boolean {
+    return this.run.hangedRealIndices.includes(index);
+  }
+
+  getHangedRealCount(): number {
+    return this.run.hangedRealIndices.length;
+  }
+
+  getHangedProgress(): number {
+    return this.hangedFound;
+  }
+
+  getHangedTimeSeconds(): number {
+    return Math.max(18, HANGED_TIME_SECONDS - this.failCount * 2);
+  }
+
+  getNooseHoldSeconds(): number {
+    return NOOSE_HOLD_SECONDS + this.failCount * 0.5;
+  }
+
+  getRopeSequence(): readonly string[] {
+    return this.run.ropeSequence;
+  }
+
+  getRoperiteProgress(): number {
+    return this.roperiteStep;
+  }
+
+  getRoperiteInputSeconds(): number {
+    return Math.max(8, ROPERITE_INPUT_SECONDS - this.failCount * 0.6);
+  }
+
+  getTrapFloorSequence(): readonly number[] {
+    return this.run.trapFloorSequence;
+  }
+
+  getTrapfloorProgress(): number {
+    return this.trapfloorStep;
+  }
+
+  getGibbetCode(): string {
+    return this.run.gibbetCode;
+  }
+
+  getGibbetHint(): string {
+    if (this.roperiteStep < this.run.ropeSequence.length) return '';
+    return collapseHint(this.run.gibbetCode);
+  }
+
   getMeatlockInputSeconds(): number {
     return Math.max(5, 8 - this.failCount * 0.8);
   }
@@ -255,6 +344,7 @@ export class QuestSystem {
   }
 
   getDepth(): number {
+    if (this.act === 5) return 21 + this.act5Chapter;
     if (this.act === 4) return 15 + this.act4Chapter;
     if (this.act === 3) return 9 + this.act3Chapter;
     if (this.act === 2) return 5 + this.act2Chapter;
@@ -262,6 +352,7 @@ export class QuestSystem {
   }
 
   getChapterInfo() {
+    if (this.act === 5) return CHAPTERS_ACT5[Math.min(this.act5Chapter, CHAPTERS_ACT5.length - 1)];
     if (this.act === 4) return CHAPTERS_ACT4[Math.min(this.act4Chapter, CHAPTERS_ACT4.length - 1)];
     if (this.act === 3) return CHAPTERS_ACT3[Math.min(this.act3Chapter, CHAPTERS_ACT3.length - 1)];
     if (this.act === 2) return CHAPTERS_ACT2[Math.min(this.act2Chapter, CHAPTERS_ACT2.length - 1)];
@@ -275,7 +366,17 @@ export class QuestSystem {
   }
 
   getObjective(): string {
-    if (this.act4Complete) return 'Архив замкнут. Мясник доволен. Ты - последняя запись.';
+    if (this.act5Complete) return 'Архив замкнут. Петля довольна. Ты - последняя запись.';
+    if (this.act === 5) {
+      if (this.act5Chapter === 2 && this.pendulumHits < PENDULUM_GOAL) {
+        return `Маятник: ${this.pendulumHits} / ${PENDULUM_GOAL}. жми в зелёной зоне`;
+      }
+      if (this.act5Chapter === 7 && this.roperiteStep >= this.run.ropeSequence.length) {
+        return `Код петли: ${this.getGibbetHint()}`;
+      }
+      return this.getChapterInfo().objective;
+    }
+    if (this.act4Complete && this.act < 5) return 'Бойня пройдена. Коридор повешенных ждёт.';
     if (this.act === 4) {
       if (this.act4Chapter === 2 && !this.butcherWon) return 'Выиграй у мясника. Ничья - просто заново. Проигрыш = скример.';
       if (this.act4Chapter === 3 && !this.corridorDone) {
@@ -314,11 +415,13 @@ export class QuestSystem {
   isAct1Complete(): boolean { return this.voidComplete; }
   isAct2Complete(): boolean { return this.act2Complete; }
   isAct3Complete(): boolean { return this.act3Complete; }
-  isComplete(): boolean { return this.act4Complete; }
+  isAct4Complete(): boolean { return this.act4Complete; }
+  isComplete(): boolean { return this.act5Complete; }
 
   getMaxUnlockedSceneId(): SceneId {
     let order: SceneId[] = SCENE_ORDER_ACT1;
-    if (this.act >= 4) order = SCENE_ORDER;
+    if (this.act >= 5) order = SCENE_ORDER;
+    else if (this.act >= 4) order = [...SCENE_ORDER_ACT1, ...SCENE_ORDER_ACT2, ...SCENE_ORDER_ACT3, ...SCENE_ORDER_ACT4];
     else if (this.act >= 3) order = [...SCENE_ORDER_ACT1, ...SCENE_ORDER_ACT2, ...SCENE_ORDER_ACT3];
     else if (this.act >= 2) order = [...SCENE_ORDER_ACT1, ...SCENE_ORDER_ACT2];
     let max: SceneId = order[0];
@@ -695,8 +798,182 @@ export class QuestSystem {
       return false;
     }
     this.act4Complete = true;
+    this.act = 5;
+    this.act5Chapter = 0;
+    this.unlock(SCENE_IDS.gate5);
     this.save();
     events.emit(EVT.QUEST_COMPLETE, { act: 4 });
+    events.emit(EVT.QUEST_ACT_START, { act: 5, scene: SCENE_IDS.gate5 });
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return true;
+  }
+
+  enterGate5(): void {
+    if (!this.canInteract() || this.act !== 5 || this.act5Chapter > 0) return;
+    this.act5Chapter = 1;
+    this.unlock(SCENE_IDS.gallows);
+    this.save();
+    events.emit(EVT.QUEST_CHAPTER, { act: 5, chapter: 1, scene: SCENE_IDS.gallows });
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  registerGallowsHit(index: number): 'ok' | 'wrong' | 'done' {
+    if (!this.isGallowsReal(index)) {
+      this.registerFail();
+      this.gallowsFound = 0;
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'wrong';
+    }
+    this.gallowsFound += 1;
+    if (this.gallowsFound >= this.run.gallowsRealIndices.length && this.act5Chapter === 1) {
+      this.act5Chapter = 2;
+      this.unlock(SCENE_IDS.pendulum);
+      this.save();
+      events.emit(EVT.QUEST_CHAPTER, { act: 5, chapter: 2, scene: SCENE_IDS.pendulum });
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'done';
+    }
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return 'ok';
+  }
+
+  resetGallowsProgress(): void {
+    this.gallowsFound = 0;
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  registerPendulumHit(): 'ok' | 'done' {
+    this.pendulumHits += 1;
+    if (this.pendulumHits >= PENDULUM_GOAL && this.act5Chapter === 2) {
+      this.act5Chapter = 3;
+      this.unlock(SCENE_IDS.hanged);
+      this.save();
+      events.emit(EVT.QUEST_CHAPTER, { act: 5, chapter: 3, scene: SCENE_IDS.hanged });
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'done';
+    }
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return 'ok';
+  }
+
+  resetPendulumProgress(): void {
+    this.pendulumHits = 0;
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  registerHangedHit(index: number): 'ok' | 'wrong' | 'done' {
+    if (!this.isHangedReal(index)) {
+      this.registerFail();
+      this.hangedFound = 0;
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'wrong';
+    }
+    this.hangedFound += 1;
+    if (this.hangedFound >= this.run.hangedRealIndices.length && this.act5Chapter === 3) {
+      this.act5Chapter = 4;
+      this.unlock(SCENE_IDS.noosehold);
+      this.save();
+      events.emit(EVT.QUEST_CHAPTER, { act: 5, chapter: 4, scene: SCENE_IDS.noosehold });
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'done';
+    }
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return 'ok';
+  }
+
+  resetHangedProgress(): void {
+    this.hangedFound = 0;
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  completeNoosehold(): void {
+    if (this.act !== 5 || this.act5Chapter !== 4) return;
+    this.act5Chapter = 5;
+    this.unlock(SCENE_IDS.roperite);
+    this.save();
+    events.emit(EVT.QUEST_CHAPTER, { act: 5, chapter: 5, scene: SCENE_IDS.roperite });
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  advanceRoperite(symbol: string): 'ok' | 'wrong' | 'done' {
+    const expected = this.run.ropeSequence[this.roperiteStep];
+    if (symbol !== expected) {
+      this.registerFail();
+      this.roperiteStep = 0;
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'wrong';
+    }
+    this.roperiteStep += 1;
+    if (this.roperiteStep >= this.run.ropeSequence.length) {
+      if (this.act5Chapter === 5) {
+        this.act5Chapter = 6;
+        this.unlock(SCENE_IDS.trapfloor);
+        events.emit(EVT.QUEST_CHAPTER, { act: 5, chapter: 6, scene: SCENE_IDS.trapfloor });
+      }
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'done';
+    }
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return 'ok';
+  }
+
+  resetRoperiteProgress(): void {
+    this.roperiteStep = 0;
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  advanceTrapfloor(tileIndex: number): 'ok' | 'wrong' | 'done' {
+    const expected = this.run.trapFloorSequence[this.trapfloorStep];
+    if (tileIndex !== expected) {
+      this.registerFail();
+      this.trapfloorStep = 0;
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'wrong';
+    }
+    this.trapfloorStep += 1;
+    if (this.trapfloorStep >= this.run.trapFloorSequence.length) {
+      if (this.act5Chapter === 6) {
+        this.act5Chapter = 7;
+        this.unlock(SCENE_IDS.gibbet);
+        events.emit(EVT.QUEST_CHAPTER, { act: 5, chapter: 7, scene: SCENE_IDS.gibbet });
+      }
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+      return 'done';
+    }
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    return 'ok';
+  }
+
+  resetTrapfloorProgress(): void {
+    this.trapfloorStep = 0;
+    this.save();
+    events.emit(EVT.QUEST_UPDATE, this.snapshot());
+  }
+
+  submitGibbetCode(code: string): boolean {
+    const norm = code.trim().toUpperCase().replace(/\s/g, '');
+    if (norm !== this.run.gibbetCode) {
+      this.registerFail();
+      return false;
+    }
+    this.act5Complete = true;
+    this.save();
+    events.emit(EVT.QUEST_COMPLETE, { act: 5 });
     events.emit(EVT.QUEST_UPDATE, this.snapshot());
     return true;
   }
@@ -773,6 +1050,18 @@ export class QuestSystem {
       if (this.act4Chapter >= 5) this.meatlockStep = this.run.meatSequence.length;
     }
 
+    if (this.act >= 5) {
+      this.unlocked.add(SCENE_IDS.gate5);
+      for (let i = 0; i <= this.act5Chapter && i < SCENE_ORDER_ACT5.length; i++) {
+        this.unlocked.add(SCENE_ORDER_ACT5[i]);
+      }
+      if (this.act5Chapter >= 1) this.gallowsFound = this.run.gallowsRealIndices.length;
+      if (this.act5Chapter >= 2) this.pendulumHits = PENDULUM_GOAL;
+      if (this.act5Chapter >= 3) this.hangedFound = this.run.hangedRealIndices.length;
+      if (this.act5Chapter >= 5) this.roperiteStep = this.run.ropeSequence.length;
+      if (this.act5Chapter >= 6) this.trapfloorStep = this.run.trapFloorSequence.length;
+    }
+
     this.refreshSeals();
   }
 
@@ -783,11 +1072,13 @@ export class QuestSystem {
       act2Chapter: this.act2Chapter,
       act3Chapter: this.act3Chapter,
       act4Chapter: this.act4Chapter,
+      act5Chapter: this.act5Chapter,
       objective: this.getObjective(),
       voidComplete: this.voidComplete,
       act2Complete: this.act2Complete,
       act3Complete: this.act3Complete,
       act4Complete: this.act4Complete,
+      act5Complete: this.act5Complete,
       seed: this.run.seed,
       failCount: this.failCount,
     };
@@ -829,6 +1120,7 @@ export class QuestSystem {
       this.act2Chapter = data.act2Chapter ?? 0;
       this.act3Chapter = data.act3Chapter ?? 0;
       this.act4Chapter = data.act4Chapter ?? 0;
+      this.act5Chapter = data.act5Chapter ?? 0;
       this.fragments = new Set(data.fragments ?? []);
       this.catacombMarks = new Set(data.catacombMarks ?? []);
       this.ritualStep = data.ritualStep ?? 0;
@@ -841,14 +1133,21 @@ export class QuestSystem {
       this.corridorDone = data.corridorDone ?? false;
       this.corridorPieces = data.corridorPieces ?? 0;
       this.meatlockStep = data.meatlockStep ?? 0;
+      this.gallowsFound = data.gallowsFound ?? 0;
+      this.pendulumHits = data.pendulumHits ?? 0;
+      this.hangedFound = data.hangedFound ?? 0;
+      this.roperiteStep = data.roperiteStep ?? 0;
+      this.trapfloorStep = data.trapfloorStep ?? 0;
       this.failCount = data.failCount ?? 0;
       this.voidComplete = data.voidComplete ?? false;
       this.act2Complete = data.act2Complete ?? false;
       this.act3Complete = data.act3Complete ?? false;
       this.act4Complete = data.act4Complete ?? false;
+      this.act5Complete = data.act5Complete ?? false;
       if (this.voidComplete && this.act < 2) this.act = 2;
       if (this.act2Complete && this.act < 3) this.act = 3;
       if (this.act3Complete && this.act < 4 && !this.act4Complete) this.act = 4;
+      if (this.act4Complete && this.act < 5) this.act = 5;
     } catch { /* ignore */ }
   }
 
@@ -861,6 +1160,7 @@ export class QuestSystem {
         act2Chapter: this.act2Chapter,
         act3Chapter: this.act3Chapter,
         act4Chapter: this.act4Chapter,
+        act5Chapter: this.act5Chapter,
         fragments: [...this.fragments],
         catacombMarks: [...this.catacombMarks],
         ritualStep: this.ritualStep,
@@ -873,11 +1173,17 @@ export class QuestSystem {
         corridorDone: this.corridorDone,
         corridorPieces: this.corridorPieces,
         meatlockStep: this.meatlockStep,
+        gallowsFound: this.gallowsFound,
+        pendulumHits: this.pendulumHits,
+        hangedFound: this.hangedFound,
+        roperiteStep: this.roperiteStep,
+        trapfloorStep: this.trapfloorStep,
         failCount: this.failCount,
         voidComplete: this.voidComplete,
         act2Complete: this.act2Complete,
         act3Complete: this.act3Complete,
         act4Complete: this.act4Complete,
+        act5Complete: this.act5Complete,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch { /* ignore */ }

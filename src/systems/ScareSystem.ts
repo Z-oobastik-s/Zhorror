@@ -1,6 +1,6 @@
 import { chance, randPick, randRange } from '@/utils/math';
 import { WHISPERS } from '@/config/constants';
-import { SCREAM_GIFS, SCREAM_GIFS_ACT3, SCREAM_GIFS_ACT4, mediaUrl, pickScareGif, type ScareAudioKind } from '@/config/media';
+import { SCREAM_GIFS_ALL, mediaUrl, pickScareGif, type ScareAudioKind } from '@/config/media';
 import { events, EVT } from '@/core/EventBus';
 import type { AtmosphereSystem } from './AtmosphereSystem';
 import type { AudioSystem } from './AudioSystem';
@@ -19,6 +19,9 @@ export class ScareSystem {
   private lastScare = 0;
   private readonly minCooldown = 18000;
   private preloaded = false;
+  private lastGifPath = '';
+  private recentGifs: string[] = [];
+  private readonly recentGifLimit = 6;
 
   constructor(
     parent: HTMLElement,
@@ -64,11 +67,25 @@ export class ScareSystem {
 
   private preloadGifs(): void {
     if (this.preloaded) return;
-    for (const gif of [...SCREAM_GIFS, ...SCREAM_GIFS_ACT3, ...SCREAM_GIFS_ACT4]) {
+    for (const gif of SCREAM_GIFS_ALL) {
       const img = new Image();
       img.src = mediaUrl(gif);
     }
     this.preloaded = true;
+  }
+
+  private pickGif(): string {
+    const act = quest.getAct();
+    let path = pickScareGif(act, this.lastGifPath);
+    for (let i = 0; i < 12 && this.recentGifs.includes(path); i++) {
+      path = pickScareGif(act, path);
+    }
+    this.lastGifPath = path;
+    this.recentGifs.push(path);
+    if (this.recentGifs.length > this.recentGifLimit) {
+      this.recentGifs.shift();
+    }
+    return path;
   }
 
   update(_dt: number): void {
@@ -81,7 +98,7 @@ export class ScareSystem {
     const level = this.atmosphere.getLevel();
     const idle = this.atmosphere.isIdle();
     const act = quest.getAct();
-    const actBoost = act >= 4 ? 2.2 : act >= 3 ? 1.5 : 1;
+    const actBoost = act >= 5 ? 2.8 : act >= 4 ? 2.2 : act >= 3 ? 1.5 : 1;
 
     if (idle && chance(0.002 * (1 + level * actBoost))) {
       this.trigger('gif');
@@ -119,13 +136,14 @@ export class ScareSystem {
   private playGifScare(audioKind: ScareAudioKind): void {
     this.audio.playScare(audioKind);
 
-    const gifPath = pickScareGif(quest.getAct());
+    const gifPath = this.pickGif();
     this.gifEl.src = mediaUrl(gifPath);
     this.textEl.textContent = '';
     this.overlay.classList.add('zh-scare--active', 'zh-scare--gif');
     this.flash.classList.add('zh-scare__flash--on');
 
-    const duration = quest.getAct() >= 4 ? 1100 + randRange(0, 500) : 900 + randRange(0, 400);
+    const act = quest.getAct();
+    const duration = act >= 5 ? 1300 + randRange(0, 600) : act >= 4 ? 1100 + randRange(0, 500) : 900 + randRange(0, 400);
     setTimeout(() => {
       this.overlay.classList.remove('zh-scare--active', 'zh-scare--gif');
       this.flash.classList.remove('zh-scare__flash--on');

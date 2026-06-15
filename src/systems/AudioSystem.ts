@@ -174,13 +174,15 @@ export class AudioSystem {
 
   private startAmbience(): void {
     this.stopAmbience();
-    const pool = this.actProfile >= 4
+    const pool = this.actProfile >= 5
+      ? AUDIO.ambientLoopsAct5
+      : this.actProfile >= 4
       ? AUDIO.ambientLoopsAct4
       : this.actProfile >= 3
         ? AUDIO.ambientLoopsAct3
         : AUDIO.ambientLoops;
     const track = pickRandom(pool);
-    const vol = this.actProfile >= 4 ? 0.48 : this.actProfile >= 3 ? 0.42 : 0.35;
+    const vol = this.actProfile >= 5 ? 0.52 : this.actProfile >= 4 ? 0.48 : this.actProfile >= 3 ? 0.42 : 0.35;
     this.ambientEl = this.playFile(track, vol, true);
   }
 
