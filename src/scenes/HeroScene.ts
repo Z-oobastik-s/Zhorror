@@ -19,8 +19,6 @@ export class HeroScene extends Scene {
 
   private loreEl!: HTMLElement;
 
-  private runeRing!: HTMLElement;
-
   private eyeEl!: HTMLElement;
 
   private eyePupil!: HTMLElement;
@@ -33,43 +31,37 @@ export class HeroScene extends Scene {
 
   private pupilY = 0;
 
-  private threatTimer = 10;
+  private threatTimer = 5;
+
+  private threatStarted = false;
 
   protected build(): void {
+    this.threatsEl = this.createEl('div', 'zh-hero__threats');
+    this.element.appendChild(this.threatsEl);
+
     const inner = this.createEl('div', 'zh-scene__inner zh-hero');
 
-    this.threatsEl = this.createEl('div', 'zh-hero__threats');
-    inner.appendChild(this.threatsEl);
+    const frame = this.createEl('div', 'zh-hero__frame');
 
-    const scratches = this.createEl('div', 'zh-hero__scratches');
-    scratches.setAttribute('aria-hidden', 'true');
-
-    const panel = this.createEl('div', 'zh-hero__panel');
-    const tearOuter = this.createEl('div', 'zh-hero__tear zh-hero__tear--outer');
-    const tearInner = this.createEl('div', 'zh-hero__tear zh-hero__tear--inner');
-
-    this.runeRing = this.createEl('div', 'zh-hero__rune-ring');
-    for (let i = 0; i < 12; i++) {
+    const runeRing = this.createEl('div', 'zh-hero__rune-ring');
+    for (let i = 0; i < 8; i++) {
       const rune = this.createEl('span', 'zh-hero__rune', RUNES[i % RUNES.length]);
       rune.style.setProperty('--i', String(i));
-      this.runeRing.appendChild(rune);
+      runeRing.appendChild(rune);
     }
+    frame.appendChild(runeRing);
 
     this.eyeEl = this.createEl('div', 'zh-hero__eye');
-    const iris = this.createEl('div', 'zh-hero__iris');
     this.eyePupil = this.createEl('div', 'zh-hero__pupil');
-    iris.appendChild(this.eyePupil);
-    this.eyeEl.appendChild(iris);
+    this.eyeEl.appendChild(this.eyePupil);
 
     this.titleEl = this.createEl('h1', 'zh-hero__title', BRAND.name);
     this.subtitleEl = this.createEl('p', 'zh-hero__subtitle', BRAND.tagline);
     this.authorEl = this.createEl('p', 'zh-hero__author', `создано ${BRAND.author}`);
     this.loreEl = this.createEl('p', 'zh-hero__lore', 'архив подписан именем хозяина. терминус примет только его');
 
-    tearInner.append(this.runeRing, this.eyeEl, this.titleEl, this.subtitleEl, this.authorEl, this.loreEl);
-    tearOuter.appendChild(tearInner);
-    panel.append(scratches, tearOuter);
-    inner.appendChild(panel);
+    frame.append(this.eyeEl, this.titleEl, this.subtitleEl, this.authorEl, this.loreEl);
+    inner.appendChild(frame);
 
     const sigil = this.createEl('div', 'zh-hero__sigil');
     sigil.setAttribute('role', 'button');
@@ -99,49 +91,66 @@ export class HeroScene extends Scene {
   }
 
   private trackEye = (e: MouseEvent): void => {
-    if (!this.active) return;
+    if (!this.active && !this.visible) return;
     const rect = this.eyeEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const dx = (e.clientX - cx) / 18;
-    const dy = (e.clientY - cy) / 18;
-    const clamp = (v: number, m: number) => Math.max(-m, Math.min(m, v));
-    this.pupilX = damp(this.pupilX, clamp(dx, 22), 16, 0.018);
-    this.pupilY = damp(this.pupilY, clamp(dy, 14), 16, 0.018);
+    const dx = (e.clientX - cx) / 16;
+    const dy = (e.clientY - cy) / 16;
+    const lim = (v: number, m: number) => Math.max(-m, Math.min(m, v));
+    this.pupilX = damp(this.pupilX, lim(dx, 28), 14, 0.02);
+    this.pupilY = damp(this.pupilY, lim(dy, 16), 14, 0.02);
     this.eyePupil.style.transform = `translate(${this.pupilX}px, ${this.pupilY}px)`;
   };
 
   private showThreat(): void {
     const el = this.createEl('span', 'zh-hero__threat', randPick(HERO_THREATS));
-    el.style.left = `${randInt(6, 88)}%`;
-    el.style.top = `${randInt(10, 82)}%`;
-    el.style.setProperty('--drift', `${randInt(-12, 12)}px`);
+    const side = randInt(0, 3);
+    if (side === 0) {
+      el.style.left = `${randInt(4, 22)}%`;
+      el.style.top = `${randInt(12, 78)}%`;
+    } else if (side === 1) {
+      el.style.right = `${randInt(4, 22)}%`;
+      el.style.left = 'auto';
+      el.style.top = `${randInt(12, 78)}%`;
+    } else if (side === 2) {
+      el.style.left = `${randInt(20, 72)}%`;
+      el.style.top = `${randInt(6, 18)}%`;
+    } else {
+      el.style.left = `${randInt(20, 72)}%`;
+      el.style.bottom = `${randInt(10, 22)}%`;
+      el.style.top = 'auto';
+    }
     this.threatsEl.appendChild(el);
     requestAnimationFrame(() => el.classList.add('zh-hero__threat--visible'));
-    const hideAfter = 2600 + randInt(0, 1400);
     window.setTimeout(() => {
       el.classList.remove('zh-hero__threat--visible');
-      window.setTimeout(() => el.remove(), 2200);
-    }, hideAfter);
+      window.setTimeout(() => el.remove(), 900);
+    }, 3200 + randInt(0, 800));
   }
 
   protected onUpdate(dt: number): void {
-    if (!this.active) return;
+    if (!this.active && !this.visible) return;
 
-    this.introTime = Math.min(this.introTime + dt, 1.8);
-    const v = Math.min(1, this.introTime / 0.75);
+    this.introTime = Math.min(this.introTime + dt, 1.4);
+    const v = Math.min(1, this.introTime / 0.6);
 
-    this.titleEl.style.opacity = String(v * 0.95);
-    this.subtitleEl.style.opacity = String(v * 0.88);
-    this.authorEl.style.opacity = String(v * 0.72);
-    this.loreEl.style.opacity = String(v * 0.62);
-    this.runeRing.style.opacity = String(v * 0.42);
-    this.runeRing.style.transform = `rotate(${performance.now() * 0.003}deg)`;
+    this.titleEl.style.opacity = String(v);
+    this.subtitleEl.style.opacity = String(v * 0.9);
+    this.authorEl.style.opacity = String(v * 0.75);
+    this.loreEl.style.opacity = String(v * 0.65);
+
+    if (!this.threatStarted && (this.active || this.visible)) {
+      this.threatStarted = true;
+      this.threatTimer = 4;
+    }
+
+    if (!this.threatStarted) return;
 
     this.threatTimer -= dt;
     if (this.threatTimer <= 0) {
       this.showThreat();
-      this.threatTimer = randRange(16, 32);
+      this.threatTimer = randRange(7, 13);
     }
   }
 }
