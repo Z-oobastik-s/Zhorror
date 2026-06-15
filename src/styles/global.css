@@ -896,7 +896,7 @@ body.zh-dragging {
 
 .zh-hero {
   --hero-orbit: clamp(175px, 31vmin, 290px);
-  --hero-eye-y: clamp(200px, 47vh, 336px);
+  --hero-eye-y: clamp(208px, 49vh, 348px);
 
   position: relative;
   z-index: 2;
@@ -2146,7 +2146,7 @@ body.zh-scare-shake {
 
   .zh-hero {
     --hero-orbit: clamp(150px, 29vmin, 230px);
-    --hero-eye-y: clamp(168px, 43vh, 262px);
+    --hero-eye-y: clamp(174px, 44vh, 270px);
     padding-bottom: max(38px, calc(32px + env(safe-area-inset-bottom)));
     gap: 3px;
   }
