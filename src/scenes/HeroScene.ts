@@ -11,13 +11,15 @@ export class HeroScene extends Scene {
 
   readonly label = 'Вход';
 
-  private titleEl!: HTMLElement;
+  private labelEl!: HTMLElement;
 
-  private subtitleEl!: HTMLElement;
+  private headlineEl!: HTMLElement;
 
   private authorEl!: HTMLElement;
 
   private loreEl!: HTMLElement;
+
+  private runeRing!: HTMLElement;
 
   private eyeEl!: HTMLElement;
 
@@ -40,28 +42,30 @@ export class HeroScene extends Scene {
     this.element.appendChild(this.threatsEl);
 
     const inner = this.createEl('div', 'zh-scene__inner zh-hero');
+    const stage = this.createEl('div', 'zh-hero__stage');
 
-    const frame = this.createEl('div', 'zh-hero__frame');
-
-    const runeRing = this.createEl('div', 'zh-hero__rune-ring');
-    for (let i = 0; i < 8; i++) {
+    this.runeRing = this.createEl('div', 'zh-hero__rune-ring');
+    for (let i = 0; i < 12; i++) {
       const rune = this.createEl('span', 'zh-hero__rune', RUNES[i % RUNES.length]);
       rune.style.setProperty('--i', String(i));
-      runeRing.appendChild(rune);
+      this.runeRing.appendChild(rune);
     }
-    frame.appendChild(runeRing);
+    stage.appendChild(this.runeRing);
 
     this.eyeEl = this.createEl('div', 'zh-hero__eye');
+    const iris = this.createEl('div', 'zh-hero__iris');
     this.eyePupil = this.createEl('div', 'zh-hero__pupil');
-    this.eyeEl.appendChild(this.eyePupil);
+    iris.appendChild(this.eyePupil);
+    this.eyeEl.appendChild(iris);
+    stage.appendChild(this.eyeEl);
 
-    this.titleEl = this.createEl('h1', 'zh-hero__title', BRAND.name);
-    this.subtitleEl = this.createEl('p', 'zh-hero__subtitle', BRAND.tagline);
+    this.labelEl = this.createEl('p', 'zh-hero__label', '◈ порог входа');
+    this.headlineEl = this.createEl('p', 'zh-hero__headline', BRAND.tagline);
     this.authorEl = this.createEl('p', 'zh-hero__author', `создано ${BRAND.author}`);
     this.loreEl = this.createEl('p', 'zh-hero__lore', 'архив подписан именем хозяина. терминус примет только его');
 
-    frame.append(this.eyeEl, this.titleEl, this.subtitleEl, this.authorEl, this.loreEl);
-    inner.appendChild(frame);
+    stage.append(this.labelEl, this.headlineEl, this.authorEl, this.loreEl);
+    inner.appendChild(stage);
 
     const sigil = this.createEl('div', 'zh-hero__sigil');
     sigil.setAttribute('role', 'button');
@@ -95,11 +99,8 @@ export class HeroScene extends Scene {
     const rect = this.eyeEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const dx = (e.clientX - cx) / 16;
-    const dy = (e.clientY - cy) / 16;
-    const lim = (v: number, m: number) => Math.max(-m, Math.min(m, v));
-    this.pupilX = damp(this.pupilX, lim(dx, 28), 14, 0.02);
-    this.pupilY = damp(this.pupilY, lim(dy, 16), 14, 0.02);
+    this.pupilX = damp(this.pupilX, Math.max(-18, Math.min(18, (e.clientX - cx) / 20)), 14, 0.018);
+    this.pupilY = damp(this.pupilY, Math.max(-12, Math.min(12, (e.clientY - cy) / 20)), 14, 0.018);
     this.eyePupil.style.transform = `translate(${this.pupilX}px, ${this.pupilY}px)`;
   };
 
@@ -107,18 +108,18 @@ export class HeroScene extends Scene {
     const el = this.createEl('span', 'zh-hero__threat', randPick(HERO_THREATS));
     const side = randInt(0, 3);
     if (side === 0) {
-      el.style.left = `${randInt(4, 22)}%`;
+      el.style.left = `${randInt(4, 20)}%`;
       el.style.top = `${randInt(12, 78)}%`;
     } else if (side === 1) {
-      el.style.right = `${randInt(4, 22)}%`;
+      el.style.right = `${randInt(4, 20)}%`;
       el.style.left = 'auto';
       el.style.top = `${randInt(12, 78)}%`;
     } else if (side === 2) {
-      el.style.left = `${randInt(20, 72)}%`;
-      el.style.top = `${randInt(6, 18)}%`;
+      el.style.left = `${randInt(18, 70)}%`;
+      el.style.top = `${randInt(6, 16)}%`;
     } else {
-      el.style.left = `${randInt(20, 72)}%`;
-      el.style.bottom = `${randInt(10, 22)}%`;
+      el.style.left = `${randInt(18, 70)}%`;
+      el.style.bottom = `${randInt(8, 20)}%`;
       el.style.top = 'auto';
     }
     this.threatsEl.appendChild(el);
@@ -132,13 +133,15 @@ export class HeroScene extends Scene {
   protected onUpdate(dt: number): void {
     if (!this.active && !this.visible) return;
 
-    this.introTime = Math.min(this.introTime + dt, 1.4);
-    const v = Math.min(1, this.introTime / 0.6);
+    this.introTime = Math.min(this.introTime + dt, 1.6);
+    const v = Math.min(1, this.introTime / 0.65);
 
-    this.titleEl.style.opacity = String(v);
-    this.subtitleEl.style.opacity = String(v * 0.9);
+    this.labelEl.style.opacity = String(v * 0.85);
+    this.headlineEl.style.opacity = String(v);
     this.authorEl.style.opacity = String(v * 0.75);
-    this.loreEl.style.opacity = String(v * 0.65);
+    this.loreEl.style.opacity = String(v * 0.6);
+    this.runeRing.style.opacity = String(v * 0.5);
+    this.runeRing.style.transform = `rotate(${performance.now() * 0.004}deg)`;
 
     if (!this.threatStarted && (this.active || this.visible)) {
       this.threatStarted = true;
