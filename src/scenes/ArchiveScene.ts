@@ -1,8 +1,7 @@
 import { Scene } from './Scene';
-import { ARCHIVE_RECORD_META, SCENE_IDS, RUNES } from '@/config/constants';
+import { ARCHIVE_RECORD_META, SCENE_IDS } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
 import { quest } from '@/systems/QuestSystem';
-import { createRng } from '@/systems/RunConfig';
 
 export class ArchiveScene extends Scene {
   readonly id = SCENE_IDS.archive;
@@ -34,31 +33,32 @@ export class ArchiveScene extends Scene {
       const isReal = record.id in run.archiveMap;
       const isDecoy = quest.isDecoyRecord(record.id);
       const markRune = quest.getArchiveMarkDisplay(record.id);
-      const decorRng = createRng(`${run.seed}-${record.id}`);
-      const decorRune = RUNES[Math.floor(decorRng() * RUNES.length)];
 
       if (record.id === run.voidRecordId) card.classList.add('zh-archive__card--cursed');
       if (hasMark) card.classList.add('zh-archive__card--marked');
       if (hasMark && quest.getFragments().includes(markRune)) {
-        card.classList.add('zh-archive__card--found');
+        card.classList.add('zh-archive__card--found', 'zh-archive__card--open');
+      } else if (quest.hasOpenedArchiveRecord(record.id)) {
+        card.classList.add('zh-archive__card--open');
+        if (isDecoy) card.classList.add('zh-archive__card--decoy');
       }
 
-      const markBadge = hasMark
-        ? `<div class="zh-archive__card-mark-badge" aria-label="запись с меткой">
-            <span class="zh-archive__card-mark-label">метка</span>
-            <span class="zh-archive__card-mark-seal">◈</span>
-            <span class="zh-archive__card-mark">${markRune}</span>
-          </div>`
+      const markTag = hasMark
+        ? '<span class="zh-archive__card-has-mark">◈ метка</span>'
+        : '';
+      const markReveal = hasMark
+        ? `<div class="zh-archive__card-mark-reveal"><span class="zh-archive__card-mark-symbol">${markRune}</span></div>`
         : '';
 
       card.innerHTML = `
-        <div class="zh-archive__card-id">${record.id}</div>
-        <div class="zh-archive__card-rune">${decorRune}</div>
-        ${markBadge}
+        <div class="zh-archive__card-head">
+          <div class="zh-archive__card-id">${record.id}</div>
+          ${markTag}
+        </div>
         <h3 class="zh-archive__card-title">${record.title}</h3>
+        ${markReveal}
         <p class="zh-archive__card-text">${record.text}</p>
         <p class="zh-archive__card-secret">${quest.getArchiveSecret(record.id, record.secret)}</p>
-        <div class="zh-archive__card-corruption"></div>
       `;
 
       card.addEventListener('click', () => {

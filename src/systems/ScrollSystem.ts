@@ -71,19 +71,30 @@ export class ScrollSystem {
     }
     this.maxScroll = Math.max(0, offset - vh);
     this.targetScrollY = clamp(this.targetScrollY, 0, this.maxScroll);
+    this.scrollY = clamp(this.scrollY, 0, this.maxScroll);
   }
 
-  scrollToScene(id: string, instant = false): void {
+  /** Позиция скролла, чтобы секция была по центру экрана */
+  private resolveSceneScrollY(target: ScrollTarget): number {
+    const vh = window.innerHeight;
+    const extra = target.height - vh;
+    if (extra <= 0) return target.offset;
+    return target.offset + extra * 0.5;
+  }
+
+  scrollToScene(id: string, instant = false, duration = 1.35): void {
+    this.recalculate();
     const target = this.targets.find((t) => t.id === id);
     if (!target) return;
+    const y = clamp(this.resolveSceneScrollY(target), 0, this.maxScroll);
     if (instant) {
-      this.scrollY = target.offset;
-      this.targetScrollY = target.offset;
+      this.scrollY = y;
+      this.targetScrollY = y;
       this.velocity = 0;
       this.transitioning = false;
       this.applyTransform();
     } else {
-      this.startTransition(this.scrollY, target.offset);
+      this.startTransition(this.scrollY, y, duration);
     }
     this.activeSceneId = id;
     events.emit(EVT.SCENE_CHANGE, { id, progress: this.getSceneProgress(id) });
@@ -138,12 +149,17 @@ export class ScrollSystem {
   }
 
   getSceneAtScroll(y: number): string {
-    for (let i = this.targets.length - 1; i >= 0; i--) {
-      if (y >= this.targets[i].offset - window.innerHeight * 0.5) {
-        return this.targets[i].id;
+    const vh = window.innerHeight;
+    const center = y + vh * 0.5;
+    for (const t of this.targets) {
+      if (center >= t.offset && center < t.offset + t.height) {
+        return t.id;
       }
     }
-    return this.targets[0]?.id ?? '';
+    if (center < (this.targets[0]?.offset ?? 0)) {
+      return this.targets[0]?.id ?? '';
+    }
+    return this.targets[this.targets.length - 1]?.id ?? '';
   }
 
   private bindEvents(): void {
@@ -213,6 +229,11 @@ export class ScrollSystem {
         this.scrollY = this.transitionTo;
         this.targetScrollY = this.transitionTo;
         events.emit(EVT.TRANSITION_END);
+        const sceneId = this.getSceneAtScroll(this.scrollY);
+        if (sceneId && sceneId !== this.activeSceneId) {
+          this.activeSceneId = sceneId;
+          events.emit(EVT.SCENE_CHANGE, { id: sceneId, progress: this.getSceneProgress(sceneId) });
+        }
       } else {
         const eased = easeOutCubic(this.transitionProgress);
         this.scrollY = this.transitionFrom + (this.transitionTo - this.transitionFrom) * eased;
@@ -226,6 +247,8 @@ export class ScrollSystem {
     }
 
     this.applyTransform();
+
+    if (this.transitioning) return;
 
     const sceneId = this.getSceneAtScroll(this.scrollY);
     if (sceneId !== this.activeSceneId) {

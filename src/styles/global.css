@@ -711,107 +711,121 @@ body.zh-dragging {
   gap: 24px;
 }
 
+.zh-archive,
+.zh-archive * {
+  text-shadow: none;
+}
+
 .zh-archive__card {
   position: relative;
-  padding: 28px;
-  background: rgba(22, 18, 20, 0.85);
-  border: 1px solid rgba(80, 60, 60, 0.45);
-  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  padding: 24px 26px 26px;
+  background: rgba(22, 18, 20, 0.92);
+  border: 1px solid rgba(90, 70, 70, 0.4);
+  transition: border-color 0.2s;
   overflow: hidden;
   cursor: pointer;
   opacity: 1;
+  box-shadow: none;
+}
+
+.zh-archive__card:hover {
+  border-color: rgba(150, 90, 100, 0.65);
+  box-shadow: none;
+  transform: none;
 }
 
 .zh-archive__card--cursed {
-  border-color: rgba(80, 20, 20, 0.35);
+  border-color: rgba(100, 35, 35, 0.45);
 }
 
 .zh-archive__card--cursed:hover {
-  border-color: rgba(120, 30, 30, 0.7);
-  box-shadow: 0 0 40px rgba(60, 10, 10, 0.25);
+  border-color: rgba(140, 45, 45, 0.7);
+  box-shadow: none;
 }
 
-.zh-archive__card--hover {
-  border-color: rgba(60, 20, 20, 0.5);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-}
-
-.zh-archive__card--glitch {
-  animation: cardGlitch 0.15s steps(3);
-}
-
-@keyframes cardGlitch {
-  0% { transform: translate(0); }
-  33% { transform: translate(-2px, 1px); filter: invert(0.1); }
-  66% { transform: translate(2px, -1px); }
-  100% { transform: translate(0); }
+.zh-archive__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .zh-archive__card-id {
   font-size: 9px;
   letter-spacing: 3px;
-  color: #8a8078;
-  margin-bottom: 16px;
+  color: #9a9088;
+  margin-bottom: 0;
 }
 
-.zh-archive__card-rune {
-  position: absolute;
-  bottom: 14px;
-  left: 16px;
-  font-size: 16px;
-  color: #2a1a3a;
-  opacity: 0.35;
-  pointer-events: none;
+.zh-archive__card-has-mark {
+  flex-shrink: 0;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f4d0d6;
+  background: rgba(55, 18, 24, 0.95);
+  border: 1px solid rgba(200, 90, 105, 0.75);
+  padding: 4px 8px;
+  border-radius: 2px;
+  line-height: 1.2;
 }
 
 .zh-archive__card-title {
   font-family: 'Cormorant Garamond', serif;
   font-size: 22px;
-  color: #d8d0c8;
+  color: #e8e0d8;
   margin-bottom: 12px;
   font-weight: 400;
+}
+
+.zh-archive__card-mark-reveal {
+  display: none;
+  margin: 0 0 14px;
+  padding: 12px 8px;
+  text-align: center;
+  background: rgba(28, 12, 16, 0.95);
+  border: 1px solid rgba(170, 80, 95, 0.55);
+  border-radius: 3px;
+}
+
+.zh-archive__card-mark-symbol {
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
+  font-size: 40px;
+  line-height: 1;
+  color: #fff0f2;
+  -webkit-font-smoothing: antialiased;
+}
+
+.zh-archive__card--open .zh-archive__card-mark-reveal {
+  display: block;
 }
 
 .zh-archive__card-text {
   font-size: 12px;
   line-height: 1.8;
-  color: #a09890;
+  color: #b0a8a0;
 }
 
 .zh-archive__card-secret {
   display: none;
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid rgba(90, 30, 30, 0.4);
+  border-top: 1px solid rgba(120, 50, 55, 0.45);
   font-size: 11px;
   line-height: 1.8;
-  color: #9a5050;
-  letter-spacing: 1px;
+  color: #c86868;
+  letter-spacing: 0.5px;
 }
 
 .zh-archive__card--open .zh-archive__card-secret {
   display: block;
-  animation: secretReveal 0.4s ease;
+  animation: secretReveal 0.35s ease;
 }
 
 @keyframes secretReveal {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
-}
-
-.zh-archive__card-corruption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #3a1515, transparent);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.zh-archive__card--hover .zh-archive__card-corruption {
-  opacity: 0.6;
 }
 
 /* ===== ENTITY ===== */
@@ -1868,79 +1882,35 @@ body.zh-scare-shake {
   margin-top: 10px;
   font-size: 10px;
   letter-spacing: 2px;
-  color: #8a6060;
+  color: #9a7078;
   text-transform: lowercase;
 }
 
-.zh-archive__card-mark-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  min-width: 36px;
-  padding: 4px 6px 3px;
-  background: rgba(18, 12, 14, 0.95);
-  border: 1px solid rgba(140, 55, 65, 0.65);
-  border-radius: 3px;
-}
-
-.zh-archive__card-mark-label {
-  font-size: 6px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: #9a7078;
-}
-
-.zh-archive__card-mark-seal {
-  font-size: 14px;
-  line-height: 1;
-  color: #c87888;
-}
-
-.zh-archive__card-mark {
-  display: none;
-  font-family: "Segoe UI Symbol", sans-serif;
-  font-size: 20px;
-  line-height: 1;
-  color: #e8c0c8;
-  -webkit-font-smoothing: antialiased;
-}
-
-.zh-archive__card--open .zh-archive__card-mark-seal {
-  display: none;
-}
-
-.zh-archive__card--open .zh-archive__card-mark {
-  display: block;
-}
-
 .zh-archive__card--marked {
-  border-color: rgba(90, 40, 48, 0.45);
+  border-color: rgba(110, 50, 58, 0.5);
 }
 
-.zh-archive__card--open .zh-archive__card-mark-badge {
-  border-color: rgba(160, 70, 80, 0.8);
+.zh-archive__card--found .zh-archive__card-mark-reveal {
+  border-color: rgba(90, 170, 110, 0.65);
+  background: rgba(12, 28, 18, 0.95);
 }
 
-.zh-archive__card--found .zh-archive__card-mark-badge {
-  border-color: rgba(70, 130, 85, 0.75);
-  background: rgba(12, 20, 14, 0.95);
+.zh-archive__card--found .zh-archive__card-mark-symbol {
+  color: #c8f0d0;
 }
 
-.zh-archive__card--found .zh-archive__card-mark {
-  color: #98d8a8;
+.zh-archive__card--found .zh-archive__card-has-mark {
+  color: #d0f0d8;
+  border-color: rgba(100, 180, 120, 0.7);
+  background: rgba(12, 32, 20, 0.95);
 }
 
-.zh-archive__card--decoy .zh-archive__card-mark-badge {
-  border-color: rgba(160, 50, 55, 0.85);
+.zh-archive__card--decoy .zh-archive__card-mark-reveal {
+  border-color: rgba(180, 60, 65, 0.75);
 }
 
-.zh-archive__card--decoy .zh-archive__card-mark {
-  color: #d87878;
+.zh-archive__card--decoy .zh-archive__card-mark-symbol {
+  color: #f0a0a0;
   text-decoration: line-through;
   opacity: 0.85;
 }

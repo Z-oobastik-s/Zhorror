@@ -106,7 +106,9 @@ export class App {
       this.uiLayer,
       (id) => {
         if (!this.audio.isEnabled()) return;
-        this.scroll.scrollToScene(id);
+        this.scroll.recalculate();
+        this.scroll.scrollToScene(id, false, 1.1);
+        this.nav.setActive(id);
       },
       (id) => quest.tryNavigate(id as SceneId),
       () => this.questHud.showLocked(),
@@ -206,7 +208,9 @@ export class App {
     });
 
     window.addEventListener('resize', () => {
+      const active = this.scroll.getActiveSceneId();
       this.scroll.recalculate();
+      if (active) this.scroll.scrollToScene(active, true);
       events.emit(EVT.RESIZE);
     });
 
