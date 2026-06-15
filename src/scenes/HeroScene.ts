@@ -97,6 +97,8 @@ export class HeroScene extends Scene {
 
   private handsStarted = false;
 
+  private wasActive = false;
+
   protected build(): void {
     const atmo = this.createEl('div', 'zh-hero__atmo');
     const bg = this.createEl('div', 'zh-hero__bg');
@@ -233,10 +235,43 @@ export class HeroScene extends Scene {
     });
 
     window.addEventListener('mousemove', this.trackEye, { passive: true });
+    document.documentElement.addEventListener('mouseleave', this.releaseEyeLook, { passive: true });
+    document.addEventListener('visibilitychange', this.onPageHidden);
+  }
+
+  private releaseEyeLook = (): void => {
+    this.lookTargetX = 0;
+    this.lookTargetY = 0;
+  };
+
+  private onPageHidden = (): void => {
+    if (document.visibilityState !== 'visible') this.releaseEyeLook();
+  };
+
+  private resetEyePose(): void {
+    this.lookTargetX = 0;
+    this.lookTargetY = 0;
+    this.retinaX = 0;
+    this.retinaY = 0;
+
+    if (this.retinaFrame !== 0) {
+      this.retinaFrame = 0;
+      this.eyeRetinaEl.src = mediaUrl(HERO_EYE_RETINA[0]);
+    }
+    if (this.eyeFrame !== 0) {
+      this.eyeFrame = 0;
+      this.eyeLidEl.src = mediaUrl(HERO_EYE_FRAMES[0]);
+    }
+
+    this.eyeRetinaEl.style.setProperty('--rx', '0px');
+    this.eyeRetinaEl.style.setProperty('--ry', '0px');
+    this.eyeEl.style.setProperty('--eye-tilt', '0deg');
+    this.eyeLidEl.style.setProperty('--lid-x', '0px');
+    this.eyeLidEl.style.setProperty('--lid-y', '0px');
   }
 
   private trackEye = (e: MouseEvent): void => {
-    if (!this.active && !this.visible) return;
+    if (!this.active) return;
     const rect = this.eyeEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
@@ -384,7 +419,15 @@ export class HeroScene extends Scene {
   }
 
   protected onUpdate(dt: number): void {
-    if (!this.active && !this.visible) return;
+    if (!this.active) {
+      if (this.wasActive) {
+        this.resetEyePose();
+        this.wasActive = false;
+      }
+      return;
+    }
+
+    this.wasActive = true;
 
     this.updateRetina(dt);
     this.updateBlink(dt);
@@ -407,7 +450,7 @@ export class HeroScene extends Scene {
     this.runeRing.style.transform = `rotate(${performance.now() * 0.022}deg)`;
     this.eyeEl.style.opacity = String(Math.max(0.35, v));
 
-    if (!this.threatStarted && (this.active || this.visible)) {
+    if (!this.threatStarted && this.active) {
       this.threatStarted = true;
       this.threatTimer = 3;
       this.handsStarted = true;
@@ -421,7 +464,7 @@ export class HeroScene extends Scene {
       this.showThreat();
       if (Math.random() > 0.55) {
         window.setTimeout(() => {
-          if (this.active || this.visible) this.showThreat();
+          if (this.active) this.showThreat();
         }, randInt(400, 900));
       }
       this.threatTimer = randRange(5, 10);
@@ -434,7 +477,7 @@ export class HeroScene extends Scene {
       this.showHand();
       if (Math.random() > 0.6) {
         window.setTimeout(() => {
-          if (this.active || this.visible) this.showHand();
+          if (this.active) this.showHand();
         }, randInt(120, 480));
       }
       this.handTimer = randRange(10, 18);
