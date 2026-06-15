@@ -113,10 +113,12 @@ export class HeroScene extends Scene {
     const inner = this.createEl('div', 'zh-scene__inner zh-hero');
 
     const rings = this.createEl('div', 'zh-hero__rings');
-    rings.append(
+    const core = this.createEl('div', 'zh-hero__core');
+    core.append(
       this.createEl('div', 'zh-hero__ring zh-hero__ring--outer'),
       this.createEl('div', 'zh-hero__ring zh-hero__ring--mid'),
       this.createEl('div', 'zh-hero__ring zh-hero__ring--inner'),
+      this.createEl('div', 'zh-hero__orbit'),
     );
 
     this.runeRing = this.createEl('div', 'zh-hero__rune-ring');
@@ -125,15 +127,16 @@ export class HeroScene extends Scene {
       rune.style.setProperty('--i', String(i));
       this.runeRing.appendChild(rune);
     }
-    rings.appendChild(this.createEl('div', 'zh-hero__orbit'));
-    rings.appendChild(this.runeRing);
+    core.appendChild(this.runeRing);
 
     this.eyeEl = this.createEl('div', 'zh-hero__eye');
     const iris = this.createEl('div', 'zh-hero__iris');
     this.eyePupil = this.createEl('div', 'zh-hero__pupil');
     iris.appendChild(this.eyePupil);
     this.eyeEl.appendChild(iris);
-    rings.appendChild(this.eyeEl);
+    core.appendChild(this.eyeEl);
+
+    rings.appendChild(core);
     inner.appendChild(rings);
 
     const copy = this.createEl('div', 'zh-hero__copy');
@@ -263,7 +266,6 @@ export class HeroScene extends Scene {
     this.authorEl.style.opacity = String(Math.max(0, Math.min(1, (this.introTime - 0.45) / 0.55)) * 0.8);
     this.loreEl.style.opacity = String(Math.max(0, Math.min(1, (this.introTime - 0.65) / 0.55)) * 0.65);
     this.runeRing.style.opacity = String(v * 0.55);
-    this.runeRing.style.transform = `translate(-50%, -50%) rotate(${performance.now() * 0.004}deg)`;
 
     if (!this.threatStarted && (this.active || this.visible)) {
       this.threatStarted = true;
