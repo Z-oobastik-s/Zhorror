@@ -113,7 +113,7 @@ export const CHAPTERS_ACT3 = [
 
 export const CHAPTERS_ACT4 = [
   { act: 4 as const, index: 0, scene: SCENE_IDS.gate4, title: 'Тесак', objective: 'Войди в зал мясника' },
-  { act: 4 as const, index: 1, scene: SCENE_IDS.hooks, title: 'Крючья', objective: 'Найди 4 крючья с добычей. Капает кровь' },
+  { act: 4 as const, index: 1, scene: SCENE_IDS.hooks, title: 'Крючья', objective: '4 крюка с добычей. капает кровь' },
   { act: 4 as const, index: 2, scene: SCENE_IDS.butcher, title: 'Мясник', objective: 'Выиграй у мясника в крестики-нолики' },
   { act: 4 as const, index: 3, scene: SCENE_IDS.corridor, title: 'Коридор', objective: 'Собери 10 кусков. Прогресс сохраняется после столкновения' },
   { act: 4 as const, index: 4, scene: SCENE_IDS.meatlock, title: 'Запечатано', objective: 'Повтори метки мясника за 8 секунд' },

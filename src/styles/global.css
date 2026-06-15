@@ -1835,21 +1835,28 @@ body.zh-scare-shake {
   letter-spacing: 1.5px;
   color: #b0a8a0;
   white-space: nowrap;
-  max-height: 42vh;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 
 .zh-quest-hud--rail .zh-quest-hud__fragments,
-.zh-quest-hud--rail .zh-quest-hud__ritual,
-.zh-quest-hud--rail .zh-quest-hud__act3,
-.zh-quest-hud--rail .zh-quest-hud__act4,
-.zh-quest-hud--rail .zh-quest-hud__act5 {
+.zh-quest-hud--rail .zh-quest-hud__ritual {
   writing-mode: horizontal-tb;
   flex-direction: column;
   align-items: center;
   gap: 5px;
   margin-top: 0;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__act3,
+.zh-quest-hud--rail .zh-quest-hud__act4,
+.zh-quest-hud--rail .zh-quest-hud__act5 {
+  writing-mode: sideways-lr;
+  text-orientation: mixed;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 0;
+  flex-wrap: nowrap;
 }
 
 .zh-quest-hud--rail .zh-quest-hud__echo {
@@ -1867,6 +1874,17 @@ body.zh-scare-shake {
 .zh-quest-hud--rail .zh-quest-hud__word {
   font-size: 20px;
   line-height: 1;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__progress {
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 2px;
+  line-height: 1;
+  white-space: nowrap;
+  color: #c8b0a8;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
 }
 
 .zh-quest-hud--rail .zh-quest-hud__word {
@@ -2012,6 +2030,14 @@ body.zh-scare-shake {
 .zh-quest-hud__rune--found {
   opacity: 1;
   color: #d8a0a8;
+}
+
+.zh-quest-hud__progress {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #b0a0a0;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
 }
 
 .zh-quest-toast {

@@ -18,7 +18,7 @@ export class HooksScene extends Scene {
     header.append(
       this.createEl('span', 'zh-hooks__label', '◈ акт IV · I'),
       this.createEl('h2', 'zh-hooks__title', 'Крючья'),
-      this.createEl('p', 'zh-hooks__hint', `найди ${this.target} крючья с добычей. с кровью капает. пустые режут`),
+      this.createEl('p', 'zh-hooks__hint', `найди ${this.target} крюка с добычей. капает кровь. пустые режут`),
     );
     this.statusEl = this.createEl('p', 'zh-hooks__status', '0 / 4');
 

@@ -231,7 +231,7 @@ export class QuestHUD {
           `<span class="zh-quest-hud__rune${i < fr ? ' zh-quest-hud__rune--found' : ''}">${r}</span>`));
       }
       if (parts.length === 0 && this.quest.getChapterInfo().scene === 'swarm') {
-        parts.push(`<span class="zh-quest-hud__rune">${this.quest.getSwarmProgress()} / ${this.quest.getSwarmRealCount()}</span>`);
+        parts.push(`<span class="zh-quest-hud__progress">${this.quest.getSwarmProgress()} / ${this.quest.getSwarmRealCount()}</span>`);
       }
       this.act3El.innerHTML = parts.join('');
     } else {
@@ -243,13 +243,13 @@ export class QuestHUD {
       const parts: string[] = [];
       const scene = this.quest.getChapterInfo().scene;
       if (scene === 'hooks' || this.quest.getHooksProgress() > 0) {
-        parts.push(`<span class="zh-quest-hud__rune">${this.quest.getHooksProgress()} / ${this.quest.getHookRealCount()}</span>`);
+        parts.push(`<span class="zh-quest-hud__progress">${this.quest.getHooksProgress()} / ${this.quest.getHookRealCount()}</span>`);
       }
       if (this.quest.isButcherWon()) {
         parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">☒</span>`);
       }
       if (scene === 'corridor' || (this.quest.getCorridorProgress() > 0 && !this.quest.isCorridorDone())) {
-        parts.push(`<span class="zh-quest-hud__rune">${this.quest.getCorridorProgress()} / ${CORRIDOR_GOAL}</span>`);
+        parts.push(`<span class="zh-quest-hud__progress">${this.quest.getCorridorProgress()} / ${CORRIDOR_GOAL}</span>`);
       }
       if (this.quest.isCorridorDone()) {
         parts.push(`<span class="zh-quest-hud__rune zh-quest-hud__rune--found">⌇</span>`);
@@ -272,13 +272,13 @@ export class QuestHUD {
 
       switch (scene) {
         case 'gallows':
-          parts.push(`<span class="zh-quest-hud__rune">${this.quest.getGallowsProgress()} / ${this.quest.getGallowsRealCount()}</span>`);
+          parts.push(`<span class="zh-quest-hud__progress">${this.quest.getGallowsProgress()} / ${this.quest.getGallowsRealCount()}</span>`);
           break;
         case 'pendulum':
-          parts.push(`<span class="zh-quest-hud__rune">${this.quest.getPendulumProgress()} / ${PENDULUM_GOAL}</span>`);
+          parts.push(`<span class="zh-quest-hud__progress">${this.quest.getPendulumProgress()} / ${PENDULUM_GOAL}</span>`);
           break;
         case 'hanged':
-          parts.push(`<span class="zh-quest-hud__rune">${this.quest.getHangedProgress()} / ${this.quest.getHangedRealCount()}</span>`);
+          parts.push(`<span class="zh-quest-hud__progress">${this.quest.getHangedProgress()} / ${this.quest.getHangedRealCount()}</span>`);
           break;
         case 'roperite': {
           const ropeSeq = this.quest.getRopeSequence();
@@ -288,7 +288,7 @@ export class QuestHUD {
           break;
         }
         case 'trapfloor':
-          parts.push(`<span class="zh-quest-hud__rune">${this.quest.getTrapfloorProgress()} / ${TRAPFLOOR_LENGTH}</span>`);
+          parts.push(`<span class="zh-quest-hud__progress">${this.quest.getTrapfloorProgress()} / ${TRAPFLOOR_LENGTH}</span>`);
           break;
         default:
           break;
