@@ -895,7 +895,8 @@ body.zh-dragging {
 }
 
 .zh-hero {
-  --hero-orbit: clamp(160px, 30vmin, 280px);
+  --hero-orbit: clamp(175px, 31vmin, 290px);
+  --hero-eye-y: clamp(148px, 36vh, 268px);
 
   position: relative;
   z-index: 2;
@@ -903,7 +904,7 @@ body.zh-dragging {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   height: 100svh;
   max-height: 100svh;
   overflow: hidden;
@@ -911,7 +912,7 @@ body.zh-dragging {
     max(10px, env(safe-area-inset-top))
     clamp(12px, 3vw, 32px)
     max(44px, calc(36px + env(safe-area-inset-bottom)));
-  gap: clamp(4px, 0.9vh, 10px);
+  gap: clamp(6px, 1vh, 12px);
 }
 
 .zh-hero__hands {
@@ -973,11 +974,16 @@ body.zh-dragging {
 }
 
 .zh-hero__rings {
-  position: relative;
+  position: absolute;
+  top: var(--hero-eye-y);
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 100%;
-  flex: 0 0 auto;
+  max-width: min(100%, calc(var(--hero-orbit) * 2.4));
+  z-index: 4;
   display: grid;
   place-items: center;
+  pointer-events: none;
 }
 
 .zh-hero__core {
@@ -1134,6 +1140,8 @@ body.zh-dragging {
 }
 
 .zh-hero__copy {
+  position: relative;
+  z-index: 5;
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
@@ -1212,7 +1220,7 @@ body.zh-dragging {
 
 .zh-hero__sigil {
   position: relative;
-  z-index: 3;
+  z-index: 5;
   display: flex;
   align-items: center;
   gap: clamp(10px, 2.5vw, 22px);
@@ -2137,7 +2145,8 @@ body.zh-scare-shake {
   }
 
   .zh-hero {
-    --hero-orbit: clamp(140px, 28vmin, 220px);
+    --hero-orbit: clamp(150px, 29vmin, 230px);
+    --hero-eye-y: clamp(124px, 33vh, 210px);
     padding-bottom: max(38px, calc(32px + env(safe-area-inset-bottom)));
     gap: 3px;
   }
@@ -2411,7 +2420,8 @@ body.zh-scare-shake {
 
 @media (min-width: 2560px) {
   .zh-hero {
-    --hero-orbit: 300px;
+    --hero-orbit: 310px;
+    --hero-eye-y: clamp(220px, 34vh, 320px);
   }
 
   .zh-hero__headline-line {
