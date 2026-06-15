@@ -32,11 +32,11 @@ const HEADLINE_LINES = [
   'должен существовать',
 ] as const;
 
-const BLINK_SEQUENCE = [0, 1, 2, 3, 2, 1, 0] as const;
-
 const RETINA_MAX_X = 22;
 
 const RETINA_MAX_Y = 14;
+
+const BLINK_DURATION = 0.34;
 
 export class HeroScene extends Scene {
   readonly id = SCENE_IDS.hero;
@@ -77,11 +77,17 @@ export class HeroScene extends Scene {
 
   private retinaFrame = 0;
 
-  private blinkPhase = -1;
+  private eyeFrame = 0;
+
+  private blinkSquash = 1;
+
+  private blinkActive = false;
 
   private blinkTime = 0;
 
   private blinkTimer = 7;
+
+  private blinkChain = 0;
 
   private threatTimer = 5;
 
@@ -160,6 +166,7 @@ export class HeroScene extends Scene {
     core.appendChild(this.runeRing);
 
     this.eyeEl = this.createEl('div', 'zh-hero__eye');
+    const body = this.createEl('div', 'zh-hero__eye-body');
     const slot = this.createEl('div', 'zh-hero__eye-slot');
     this.eyeRetinaEl = document.createElement('img');
     this.eyeRetinaEl.className = 'zh-hero__eye-retina';
@@ -168,7 +175,7 @@ export class HeroScene extends Scene {
     this.eyeRetinaEl.draggable = false;
     this.eyeRetinaEl.decoding = 'async';
     slot.appendChild(this.eyeRetinaEl);
-    this.eyeEl.appendChild(slot);
+    body.appendChild(slot);
 
     this.eyeLidEl = document.createElement('img');
     this.eyeLidEl.className = 'zh-hero__eye-lid';
@@ -176,7 +183,8 @@ export class HeroScene extends Scene {
     this.eyeLidEl.alt = '';
     this.eyeLidEl.draggable = false;
     this.eyeLidEl.decoding = 'async';
-    this.eyeEl.appendChild(this.eyeLidEl);
+    body.appendChild(this.eyeLidEl);
+    this.eyeEl.appendChild(body);
     core.appendChild(this.eyeEl);
 
     rings.appendChild(core);
@@ -238,32 +246,66 @@ export class HeroScene extends Scene {
     this.lookTargetY = Math.max(-RETINA_MAX_Y, Math.min(RETINA_MAX_Y, dy * RETINA_MAX_Y));
   };
 
-  private pickRetinaFrame(nx: number, ny: number): number {
+  private pickLookFrame(nx: number, ny: number): number {
     if (Math.abs(nx) < 0.22 && Math.abs(ny) < 0.22) return 0;
     if (Math.abs(nx) >= Math.abs(ny)) return nx < 0 ? 1 : 2;
     return 3;
   }
 
+  private squashBlink(t: number): number {
+    if (t < 0.38) {
+      const p = t / 0.38;
+      return 1 - p * p * 0.94;
+    }
+    const p = (t - 0.38) / 0.62;
+    return 0.06 + (1 - (1 - p) * (1 - p)) * 0.94;
+  }
+
   private updateBlink(dt: number): void {
-    if (this.blinkPhase < 0) {
+    if (!this.blinkActive) {
       this.blinkTimer -= dt;
       if (this.blinkTimer > 0) return;
-      this.blinkPhase = 0;
+      this.blinkActive = true;
       this.blinkTime = 0;
     }
 
     this.blinkTime += dt;
-    const step = 0.05;
-    const idx = Math.min(Math.floor(this.blinkTime / step), BLINK_SEQUENCE.length - 1);
-    const frame = BLINK_SEQUENCE[idx];
-    this.eyeLidEl.src = mediaUrl(HERO_EYE_FRAMES[frame]);
-    this.eyeEl.classList.toggle('zh-hero__eye--blink', frame >= 2);
+    const t = Math.min(1, this.blinkTime / BLINK_DURATION);
+    this.blinkSquash = this.squashBlink(t);
+    this.eyeEl.style.setProperty('--eye-squash', String(this.blinkSquash));
 
-    if (idx >= BLINK_SEQUENCE.length - 1) {
-      this.blinkPhase = -1;
-      this.blinkTimer = randRange(6, 12);
-      this.eyeEl.classList.remove('zh-hero__eye--blink');
+    if (t < 1) return;
+
+    this.blinkActive = false;
+    this.blinkSquash = 1;
+    this.eyeEl.style.setProperty('--eye-squash', '1');
+
+    if (this.blinkChain > 0) {
+      this.blinkChain -= 1;
+      this.blinkActive = true;
+      this.blinkTime = 0;
+      return;
     }
+
+    this.blinkTimer = randRange(5, 10);
+    if (Math.random() > 0.78) this.blinkChain = 1;
+  }
+
+  private updateEyeMotion(dt: number): void {
+    const t = performance.now() * 0.001;
+    const breathe = 1 + Math.sin(t * 1.6) * 0.014 + Math.sin(t * 2.9) * 0.006;
+    const tilt = (this.retinaX / RETINA_MAX_X) * 2.8;
+    const lidShiftX = this.retinaX * 0.12;
+    const lidShiftY = this.retinaY * 0.08;
+
+    this.eyeEl.style.setProperty('--eye-breathe', String(breathe));
+    this.eyeEl.style.setProperty('--eye-tilt', `${tilt}deg`);
+    this.eyeLidEl.style.setProperty('--lid-x', `${lidShiftX}px`);
+    this.eyeLidEl.style.setProperty('--lid-y', `${lidShiftY}px`);
+
+    if (this.blinkActive) return;
+
+    this.eyeEl.style.setProperty('--eye-squash', String(damp(this.blinkSquash, 1, 16, dt)));
   }
 
   private updateRetina(dt: number): void {
@@ -272,10 +314,14 @@ export class HeroScene extends Scene {
 
     const nx = this.retinaX / RETINA_MAX_X;
     const ny = this.retinaY / RETINA_MAX_Y;
-    const frame = this.pickRetinaFrame(nx, ny);
+    const frame = this.pickLookFrame(nx, ny);
     if (frame !== this.retinaFrame) {
       this.retinaFrame = frame;
       this.eyeRetinaEl.src = mediaUrl(HERO_EYE_RETINA[frame]);
+    }
+    if (frame !== this.eyeFrame) {
+      this.eyeFrame = frame;
+      this.eyeLidEl.src = mediaUrl(HERO_EYE_FRAMES[frame]);
     }
 
     this.eyeRetinaEl.style.setProperty('--rx', `${this.retinaX}px`);
@@ -342,6 +388,7 @@ export class HeroScene extends Scene {
 
     this.updateRetina(dt);
     this.updateBlink(dt);
+    this.updateEyeMotion(dt);
 
     this.introTime = Math.min(this.introTime + dt, 2.2);
     const v = Math.min(1, this.introTime / 0.7);

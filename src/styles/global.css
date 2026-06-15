@@ -1071,6 +1071,10 @@ body.zh-dragging {
 }
 
 .zh-hero__eye {
+  --eye-squash: 1;
+  --eye-breathe: 1;
+  --eye-tilt: 0deg;
+
   position: absolute;
   inset: 0;
   margin: auto;
@@ -1078,6 +1082,17 @@ body.zh-dragging {
   width: clamp(168px, calc(var(--hero-orbit) * 0.78), 260px);
   aspect-ratio: 637 / 366;
   pointer-events: none;
+}
+
+.zh-hero__eye-body {
+  position: absolute;
+  inset: 0;
+  transform:
+    scaleY(var(--eye-squash, 1))
+    scale(var(--eye-breathe, 1))
+    rotate(var(--eye-tilt, 0deg));
+  transform-origin: 50% 48%;
+  will-change: transform;
 }
 
 .zh-hero__eye-slot {
@@ -1112,22 +1127,10 @@ body.zh-dragging {
   height: 100%;
   object-fit: contain;
   pointer-events: none;
+  transform: translate(var(--lid-x, 0px), var(--lid-y, 0px));
+  transition: transform 0.12s ease-out;
   -webkit-mask-image: radial-gradient(ellipse 34% 38% at 50% 47%, transparent 0 58%, #000 72%);
   mask-image: radial-gradient(ellipse 34% 38% at 50% 47%, transparent 0 58%, #000 72%);
-}
-
-.zh-hero__eye--blink .zh-hero__eye-lid {
-  -webkit-mask-image: none;
-  mask-image: none;
-}
-
-.zh-hero__eye--blink .zh-hero__eye-slot {
-  opacity: 0.08;
-  transform: scaleY(0.08);
-}
-
-.zh-hero__eye-slot {
-  transition: opacity 0.1s ease, transform 0.1s ease;
 }
 
 .zh-hero__copy {
