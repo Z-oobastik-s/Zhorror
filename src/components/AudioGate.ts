@@ -46,6 +46,6 @@ export class AudioGate {
 
   private hide(): void {
     this.root.classList.add('zh-audio-gate--hidden');
-    setTimeout(() => this.root.remove(), 900);
+    setTimeout(() => this.root.remove(), 480);
   }
 }

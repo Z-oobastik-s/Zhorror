@@ -47,6 +47,10 @@ export class ScareSystem {
     this.overlay.append(this.flash, this.gifEl, this.textEl);
     parent.appendChild(this.overlay);
 
+    events.on(EVT.AUDIO_TOGGLE, (payload) => {
+      if ((payload as { enabled?: boolean }).enabled) this.preloadGifs();
+    });
+
     events.on(EVT.SCARE_REQUEST, (payload) => {
       const type = (payload as { type?: ScareType }).type ?? 'gif';
       this.trigger(type, true);

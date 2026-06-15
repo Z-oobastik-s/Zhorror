@@ -58,12 +58,12 @@ export class AudioSystem {
     this.primed = true;
     this.enabled = true;
     audioGate.setOpen(true);
-    await this.preloadScarePool();
     this.startAmbience();
     this.toggleBtn.classList.add('zh-audio--on', 'zh-audio-toggle--locked');
     this.toggleBtn.setAttribute('aria-label', 'Звук архива включён');
     this.toggleBtn.setAttribute('aria-disabled', 'true');
     events.emit(EVT.AUDIO_TOGGLE, { enabled: true });
+    void this.preloadScarePool();
   }
 
   /** Предзагрузка и «прогрев» звуков скримера сразу после включения звука */
