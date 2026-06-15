@@ -82,13 +82,26 @@ export class QuestHUD {
     this.resetModal.innerHTML = `
       <div class="zh-reset-modal__backdrop" data-reset-close></div>
       <div class="zh-reset-modal__panel">
-        <span class="zh-reset-modal__mark">☍</span>
-        <p class="zh-reset-modal__title">новый цикл</p>
-        <p class="zh-reset-modal__text">прогресс и раскладка квестов будут стёрты.<br>архив перестроится заново.</p>
-        <p class="zh-reset-modal__warn">это нельзя отменить</p>
-        <div class="zh-reset-modal__actions">
-          <button type="button" class="zh-reset-modal__btn zh-reset-modal__btn--ghost" data-reset-cancel>остаться</button>
-          <button type="button" class="zh-reset-modal__btn zh-reset-modal__btn--danger" data-reset-confirm>начать заново</button>
+        <div class="zh-reset-modal__frame">
+          <span class="zh-reset-modal__corner zh-reset-modal__corner--tl" aria-hidden="true">⌜</span>
+          <span class="zh-reset-modal__corner zh-reset-modal__corner--tr" aria-hidden="true">⌝</span>
+          <span class="zh-reset-modal__corner zh-reset-modal__corner--bl" aria-hidden="true">⌞</span>
+          <span class="zh-reset-modal__corner zh-reset-modal__corner--br" aria-hidden="true">⌟</span>
+          <header class="zh-reset-modal__head">
+            <span class="zh-reset-modal__stamp" aria-hidden="true">☍</span>
+            <p class="zh-reset-modal__label">протокол архива · сброс</p>
+            <h2 class="zh-reset-modal__title">новый цикл</h2>
+          </header>
+          <div class="zh-reset-modal__divider" aria-hidden="true"></div>
+          <div class="zh-reset-modal__body">
+            <p class="zh-reset-modal__text">прогресс и раскладка квестов будут стёрты.</p>
+            <p class="zh-reset-modal__text">архив перестроится заново. ты начнёшь с чистой страницы.</p>
+            <p class="zh-reset-modal__warn">это нельзя отменить</p>
+          </div>
+          <div class="zh-reset-modal__actions">
+            <button type="button" class="zh-reset-modal__btn zh-reset-modal__btn--ghost" data-reset-cancel>остаться</button>
+            <button type="button" class="zh-reset-modal__btn zh-reset-modal__btn--danger" data-reset-confirm>начать заново</button>
+          </div>
         </div>
       </div>
     `;
