@@ -46,6 +46,7 @@ export class ArchiveScene extends Scene {
       const markBadge = hasMark
         ? `<div class="zh-archive__card-mark-badge" aria-label="запись с меткой">
             <span class="zh-archive__card-mark-label">метка</span>
+            <span class="zh-archive__card-mark-seal">◈</span>
             <span class="zh-archive__card-mark">${markRune}</span>
           </div>`
         : '';
