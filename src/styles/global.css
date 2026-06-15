@@ -896,7 +896,7 @@ body.zh-dragging {
 
 .zh-hero {
   --hero-orbit: clamp(175px, 31vmin, 290px);
-  --hero-eye-y: clamp(148px, 36vh, 268px);
+  --hero-eye-y: clamp(188px, 44vh, 320px);
 
   position: relative;
   z-index: 2;
@@ -2146,7 +2146,7 @@ body.zh-scare-shake {
 
   .zh-hero {
     --hero-orbit: clamp(150px, 29vmin, 230px);
-    --hero-eye-y: clamp(124px, 33vh, 210px);
+    --hero-eye-y: clamp(156px, 40vh, 248px);
     padding-bottom: max(38px, calc(32px + env(safe-area-inset-bottom)));
     gap: 3px;
   }
@@ -2421,7 +2421,7 @@ body.zh-scare-shake {
 @media (min-width: 2560px) {
   .zh-hero {
     --hero-orbit: 310px;
-    --hero-eye-y: clamp(220px, 34vh, 320px);
+    --hero-eye-y: clamp(260px, 42vh, 360px);
   }
 
   .zh-hero__headline-line {
