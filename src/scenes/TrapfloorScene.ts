@@ -26,6 +26,8 @@ export class TrapfloorScene extends Scene {
       const tile = this.createEl('button', 'zh-trapfloor__tile') as HTMLButtonElement;
       tile.type = 'button';
       tile.dataset.index = String(i);
+      tile.textContent = String(i + 1);
+      tile.setAttribute('aria-label', `плита ${i + 1}`);
       tile.addEventListener('click', () => this.onTile(i, tile));
       this.tiles.push(tile);
       grid.appendChild(tile);
@@ -64,6 +66,10 @@ export class TrapfloorScene extends Scene {
   }
 
   protected onUpdate(_dt: number): void {
+    if (this.active) {
+      this.tiles.forEach((t) => { t.style.opacity = '1'; });
+      return;
+    }
     this.tiles.forEach((t, i) => { t.style.opacity = String(this.reveal(i * 0.02)); });
   }
 }

@@ -267,25 +267,33 @@ export class QuestHUD {
       this.act5El.style.display = 'flex';
       const parts: string[] = [];
       const scene = this.quest.getChapterInfo().scene;
-      if (scene === 'gallows' || this.quest.getGallowsProgress() > 0) {
-        parts.push(`<span class="zh-quest-hud__rune">${this.quest.getGallowsProgress()} / ${this.quest.getGallowsRealCount()}</span>`);
+
+      switch (scene) {
+        case 'gallows':
+          parts.push(`<span class="zh-quest-hud__rune">${this.quest.getGallowsProgress()} / ${this.quest.getGallowsRealCount()}</span>`);
+          break;
+        case 'pendulum':
+          parts.push(`<span class="zh-quest-hud__rune">${this.quest.getPendulumProgress()} / ${PENDULUM_GOAL}</span>`);
+          break;
+        case 'hanged':
+          parts.push(`<span class="zh-quest-hud__rune">${this.quest.getHangedProgress()} / ${this.quest.getHangedRealCount()}</span>`);
+          break;
+        case 'roperite': {
+          const ropeSeq = this.quest.getRopeSequence();
+          const ropeStep = this.quest.getRoperiteProgress();
+          parts.push(...ropeSeq.map((r, i) =>
+            `<span class="zh-quest-hud__rune${i < ropeStep ? ' zh-quest-hud__rune--found' : ''}">${r}</span>`));
+          break;
+        }
+        case 'trapfloor':
+          parts.push(`<span class="zh-quest-hud__rune">${this.quest.getTrapfloorProgress()} / ${TRAPFLOOR_LENGTH}</span>`);
+          break;
+        default:
+          break;
       }
-      if (scene === 'pendulum' || this.quest.getPendulumProgress() > 0) {
-        parts.push(`<span class="zh-quest-hud__rune">${this.quest.getPendulumProgress()} / ${PENDULUM_GOAL}</span>`);
-      }
-      if (scene === 'hanged' || this.quest.getHangedProgress() > 0) {
-        parts.push(`<span class="zh-quest-hud__rune">${this.quest.getHangedProgress()} / ${this.quest.getHangedRealCount()}</span>`);
-      }
-      const ropeSeq = this.quest.getRopeSequence();
-      const ropeStep = this.quest.getRoperiteProgress();
-      if (ropeStep > 0 || scene === 'roperite') {
-        parts.push(...ropeSeq.map((r, i) =>
-          `<span class="zh-quest-hud__rune${i < ropeStep ? ' zh-quest-hud__rune--found' : ''}">${r}</span>`));
-      }
-      if (scene === 'trapfloor' || this.quest.getTrapfloorProgress() > 0) {
-        parts.push(`<span class="zh-quest-hud__rune">${this.quest.getTrapfloorProgress()} / ${TRAPFLOOR_LENGTH}</span>`);
-      }
+
       this.act5El.innerHTML = parts.join('');
+      if (parts.length === 0) this.act5El.style.display = 'none';
     } else {
       this.act5El.style.display = 'none';
     }
