@@ -377,7 +377,7 @@ body.zh-dragging {
   align-items: center;
   justify-content: center;
   padding: clamp(16px, 4vw, 32px);
-  transition: opacity 0.8s ease, visibility 0.8s ease;
+  transition: opacity 0.45s ease, visibility 0.45s ease;
 }
 
 .zh-audio-gate--hidden {
