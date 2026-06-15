@@ -2,7 +2,7 @@ import { Scene } from './Scene';
 
 import { SCENE_IDS, BRAND, RUNES, HERO_THREATS } from '@/config/constants';
 
-import { HERO_HAND_LEFT, HERO_HAND_RIGHT, mediaUrl } from '@/config/media';
+import { HERO_BACKGROUND, HERO_HAND_LEFT, HERO_HAND_RIGHT, mediaUrl } from '@/config/media';
 
 import { quest } from '@/systems/QuestSystem';
 
@@ -66,6 +66,9 @@ export class HeroScene extends Scene {
 
   protected build(): void {
     const atmo = this.createEl('div', 'zh-hero__atmo');
+    const bg = this.createEl('div', 'zh-hero__bg');
+    bg.style.backgroundImage = `url("${mediaUrl(HERO_BACKGROUND)}")`;
+    atmo.appendChild(bg);
     atmo.append(
       this.createEl('div', 'zh-hero__fog zh-hero__fog--a'),
       this.createEl('div', 'zh-hero__fog zh-hero__fog--b'),
@@ -180,6 +183,8 @@ export class HeroScene extends Scene {
     preloadLeft.src = mediaUrl(HERO_HAND_LEFT);
     const preloadRight = new Image();
     preloadRight.src = mediaUrl(HERO_HAND_RIGHT);
+    const preloadBg = new Image();
+    preloadBg.src = mediaUrl(HERO_BACKGROUND);
 
     window.addEventListener('mousemove', this.trackEye, { passive: true });
   }

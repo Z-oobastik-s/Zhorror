@@ -692,11 +692,35 @@ body.zh-dragging {
   overflow: hidden;
 }
 
+.zh-hero__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  transform: scale(1.05);
+  animation: heroBgDrift 32s ease-in-out infinite;
+}
+
+.zh-hero__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 85% 70% at 50% 40%, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.62) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.2) 35%, rgba(0, 0, 0, 0.65) 100%);
+}
+
+@keyframes heroBgDrift {
+  0%, 100% { transform: scale(1.05); }
+  50% { transform: scale(1.08); }
+}
+
 .zh-hero__fog {
   position: absolute;
   width: 130%;
   height: 130%;
-  opacity: 0.4;
+  opacity: 0.22;
   will-change: transform;
 }
 
@@ -742,8 +766,8 @@ body.zh-dragging {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 95% 80% at 50% 42%, transparent 25%, rgba(0, 0, 0, 0.72) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, transparent 22%, transparent 78%, rgba(0, 0, 0, 0.55) 100%);
+    radial-gradient(ellipse 95% 80% at 50% 42%, transparent 20%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, transparent 24%, transparent 76%, rgba(0, 0, 0, 0.45) 100%);
 }
 
 .zh-hero__scratches {

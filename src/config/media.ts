@@ -20,6 +20,9 @@ export const SATAN_CIRCLE = `${I}/satan.png`;
 export const HERO_HAND_LEFT = `${I}/hand_left.png`;
 export const HERO_HAND_RIGHT = `${I}/hand_right.png`;
 
+/** Фон главной страницы */
+export const HERO_BACKGROUND = `${I}/background.png`;
+
 export function mediaUrl(relativePath: string): string {
   const encoded = relativePath.split('/').map((p) => encodeURIComponent(p)).join('/');
   return `${BASE}assets/${encoded}`;
