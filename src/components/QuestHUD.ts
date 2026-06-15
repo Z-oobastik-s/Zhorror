@@ -27,7 +27,7 @@ export class QuestHUD {
 
   constructor(parent: HTMLElement, private quest: QuestSystem) {
     this.root = document.createElement('div');
-    this.root.className = 'zh-quest-hud zh-quest-hud--collapsed';
+    this.root.className = 'zh-quest-hud zh-quest-hud--rail';
     this.root.innerHTML = `
       <button type="button" class="zh-quest-hud__toggle" aria-expanded="false" aria-label="Задание">
         <span class="zh-quest-hud__toggle-text">задание</span>
@@ -116,6 +116,7 @@ export class QuestHUD {
   private applyMobileMode(): void {
     const mobile = this.mobileMq.matches;
     this.root.classList.toggle('zh-quest-hud--mobile', mobile);
+    this.root.classList.toggle('zh-quest-hud--rail', !mobile);
     if (mobile) {
       this.root.classList.add('zh-quest-hud--collapsed');
       this.toggleBtn.setAttribute('aria-expanded', 'false');

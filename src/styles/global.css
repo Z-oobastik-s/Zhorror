@@ -315,7 +315,7 @@ body.zh-dragging {
 .zh-audio-toggle {
   position: fixed;
   bottom: 24px;
-  left: 24px;
+  left: 48px;
   width: 36px;
   height: 36px;
   border: 1px solid rgba(90, 30, 30, 0.4);
@@ -669,11 +669,47 @@ body.zh-dragging {
 
 /* ===== ARCHIVE ===== */
 
-.zh-archive__header {
-  margin-bottom: 60px;
+.zh-scene--archive {
+  align-items: flex-start;
+  padding: 24px 44px 16px 50px;
+  min-height: 100vh;
 }
 
-.zh-archive__label,
+.zh-archive__header {
+  margin-bottom: 14px;
+}
+
+.zh-archive__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  color: #d4ccc4;
+}
+
+.zh-archive__hint {
+  text-transform: uppercase;
+}
+
+.zh-archive__targets {
+  margin-top: 6px;
+  font-size: 10px;
+  color: #a08088;
+}
+
+.zh-archive__target-rune {
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
+  font-size: 15px;
+  color: #d8a8b0;
+  margin: 0 2px;
+}
+
+.zh-archive__label {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: #7a7068;
+  display: block;
+  margin-bottom: 6px;
+}
+
 .zh-entity__label,
 .zh-ritual__label,
 .zh-void__label {
@@ -684,7 +720,6 @@ body.zh-dragging {
   margin-bottom: 12px;
 }
 
-.zh-archive__title,
 .zh-entity__title,
 .zh-ritual__title,
 .zh-void__title {
@@ -695,7 +730,6 @@ body.zh-dragging {
   letter-spacing: 4px;
 }
 
-.zh-archive__hint,
 .zh-entity__hint,
 .zh-ritual__hint {
   margin-top: 16px;
@@ -707,8 +741,13 @@ body.zh-dragging {
 
 .zh-archive__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  height: calc(100vh - 150px);
+  max-height: 680px;
+  min-height: 420px;
 }
 
 .zh-archive,
@@ -718,7 +757,7 @@ body.zh-dragging {
 
 .zh-archive__card {
   position: relative;
-  padding: 24px 26px 26px;
+  padding: 10px 12px 12px;
   background: rgba(22, 18, 20, 0.92);
   border: 1px solid rgba(90, 70, 70, 0.4);
   transition: border-color 0.2s;
@@ -726,6 +765,9 @@ body.zh-dragging {
   cursor: pointer;
   opacity: 1;
   box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .zh-archive__card:hover {
@@ -747,13 +789,14 @@ body.zh-dragging {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .zh-archive__card-id {
-  font-size: 9px;
-  letter-spacing: 3px;
+  font-size: 8px;
+  letter-spacing: 2px;
   color: #9a9088;
   margin-bottom: 0;
 }
@@ -761,9 +804,9 @@ body.zh-dragging {
 .zh-archive__card-mark-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   flex-shrink: 0;
-  padding: 3px 7px 3px 5px;
+  padding: 2px 5px 2px 4px;
   background: rgba(20, 14, 16, 0.98);
   border: 1px solid rgba(150, 75, 85, 0.6);
   border-radius: 2px;
@@ -772,66 +815,73 @@ body.zh-dragging {
 
 .zh-archive__card-mark-symbol {
   font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
-  font-size: 17px;
+  font-size: 14px;
   color: #e8b8c0;
   -webkit-font-smoothing: antialiased;
 }
 
 .zh-archive__card-mark-label {
-  font-size: 7px;
-  letter-spacing: 1.5px;
+  font-size: 6px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: #a08088;
 }
 
 .zh-archive__card-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 22px;
+  font-size: 15px;
   color: #e8e0d8;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
   font-weight: 400;
-}
-
-.zh-archive__targets {
-  margin-top: 12px;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: #a08088;
-}
-
-.zh-archive__target-rune {
-  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", sans-serif;
-  font-size: 18px;
-  color: #d8a8b0;
-  margin: 0 2px;
+  line-height: 1.15;
+  flex-shrink: 0;
 }
 
 .zh-archive__card-text {
-  font-size: 12px;
-  line-height: 1.8;
+  font-size: 9px;
+  line-height: 1.45;
   color: #b0a8a0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
 }
 
 .zh-archive__card-secret {
-  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   visibility: hidden;
-  height: 0;
-  margin: 0;
-  padding: 0;
-  border: none;
+  opacity: 0;
+  max-height: 0;
   overflow: hidden;
-  font-size: 11px;
-  line-height: 1.8;
+  margin: 0;
+  padding: 0 10px;
+  border: none;
+  font-size: 8px;
+  line-height: 1.5;
   color: #c86868;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  background: rgba(12, 8, 10, 0.97);
+  transition: opacity 0.2s ease;
+  pointer-events: none;
 }
 
 .zh-archive__card--open .zh-archive__card-secret {
   visibility: visible;
-  height: auto;
-  margin-top: 16px;
-  padding-top: 16px;
+  opacity: 1;
+  max-height: 52%;
+  padding: 8px 10px;
   border-top: 1px solid rgba(120, 50, 55, 0.45);
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+.zh-archive__card--open .zh-archive__card-text {
+  -webkit-line-clamp: 2;
 }
 
 /* ===== ENTITY ===== */
@@ -1494,7 +1544,14 @@ body.zh-scare-shake {
   }
 
   .zh-archive__grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    height: calc(100vh - 140px);
+    gap: 8px;
+  }
+
+  .zh-scene--archive {
+    padding: 20px 36px 12px 12px;
   }
 
   .zh-gate3__title,
@@ -1591,7 +1648,7 @@ body.zh-scare-shake {
     font-size: 10px;
   }
 
-  .zh-quest-hud {
+  .zh-quest-hud--mobile {
     top: max(10px, env(safe-area-inset-top));
     left: 10px;
     right: auto;
@@ -1708,16 +1765,120 @@ body.zh-scare-shake {
 
 .zh-quest-hud {
   position: fixed;
-  top: 24px;
-  left: 72px;
   z-index: 210;
-  max-width: 280px;
-  padding: 14px 16px;
+  pointer-events: none;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+
+.zh-quest-hud--rail {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  max-height: min(90vh, 920px);
+  padding: 8px 2px;
+  border: none;
+  border-right: 1px solid rgba(70, 28, 32, 0.5);
+  background: rgba(4, 3, 3, 0.9);
+  backdrop-filter: blur(2px);
+  border-radius: 0;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__toggle {
+  display: none;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__body {
+  pointer-events: all;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  max-height: 86vh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  padding: 4px 0;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__body::-webkit-scrollbar {
+  display: none;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__cycle {
+  display: none;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__act,
+.zh-quest-hud--rail .zh-quest-hud__chapter,
+.zh-quest-hud--rail .zh-quest-hud__objective {
+  white-space: nowrap;
+  max-height: 34vh;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__fragments,
+.zh-quest-hud--rail .zh-quest-hud__ritual,
+.zh-quest-hud--rail .zh-quest-hud__echo,
+.zh-quest-hud--rail .zh-quest-hud__act3,
+.zh-quest-hud--rail .zh-quest-hud__act4,
+.zh-quest-hud--rail .zh-quest-hud__act5 {
+  writing-mode: horizontal-tb;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin-top: 0;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__rune,
+.zh-quest-hud--rail .zh-quest-hud__word {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__reset {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  margin-top: 0;
+  padding: 8px 2px;
+  font-size: 8px;
+  letter-spacing: 2px;
+  border: 1px solid rgba(70, 28, 32, 0.45);
+  background: rgba(12, 8, 8, 0.6);
+  color: #8a5058;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.zh-quest-hud--rail .zh-quest-hud__reset:hover {
+  color: #c07078;
+  border-color: rgba(120, 40, 48, 0.65);
+}
+
+.zh-quest-hud--mobile {
+  top: max(10px, env(safe-area-inset-top));
+  left: 10px;
+  right: auto;
+  transform: none;
+  width: auto;
+  max-width: min(210px, 58vw);
+  padding: 8px 10px;
   border: 1px solid rgba(60, 20, 20, 0.25);
   background: rgba(8, 6, 6, 0.72);
   backdrop-filter: blur(4px);
-  pointer-events: none;
-  transition: border-color 0.4s, box-shadow 0.4s, max-width 0.3s ease;
+  border-right: 1px solid rgba(60, 20, 20, 0.25);
+}
+
+.zh-quest-hud--mobile .zh-quest-hud__body {
+  writing-mode: horizontal-tb;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: none;
+  gap: 0;
 }
 
 .zh-quest-hud__toggle {
