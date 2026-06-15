@@ -43,6 +43,10 @@ export class HeroScene extends Scene {
 
     const inner = this.createEl('div', 'zh-scene__inner zh-hero');
     const stage = this.createEl('div', 'zh-hero__stage');
+    const altar = this.createEl('div', 'zh-hero__altar');
+    const altarOuter = this.createEl('div', 'zh-hero__altar-tear zh-hero__altar-tear--outer');
+    const altarInner = this.createEl('div', 'zh-hero__altar-tear zh-hero__altar-tear--inner');
+    altarInner.appendChild(this.createEl('div', 'zh-hero__altar-scratches'));
 
     this.runeRing = this.createEl('div', 'zh-hero__rune-ring');
     for (let i = 0; i < 12; i++) {
@@ -50,27 +54,37 @@ export class HeroScene extends Scene {
       rune.style.setProperty('--i', String(i));
       this.runeRing.appendChild(rune);
     }
-    stage.appendChild(this.runeRing);
+    altarInner.appendChild(this.createEl('div', 'zh-hero__orbit'));
+    altarInner.appendChild(this.runeRing);
 
     this.eyeEl = this.createEl('div', 'zh-hero__eye');
     const iris = this.createEl('div', 'zh-hero__iris');
     this.eyePupil = this.createEl('div', 'zh-hero__pupil');
     iris.appendChild(this.eyePupil);
     this.eyeEl.appendChild(iris);
-    stage.appendChild(this.eyeEl);
+    altarInner.appendChild(this.eyeEl);
 
     this.labelEl = this.createEl('p', 'zh-hero__label', '◈ порог входа');
     this.headlineEl = this.createEl('p', 'zh-hero__headline', BRAND.tagline);
     this.authorEl = this.createEl('p', 'zh-hero__author', `создано ${BRAND.author}`);
     this.loreEl = this.createEl('p', 'zh-hero__lore', 'архив подписан именем хозяина. терминус примет только его');
 
-    stage.append(this.labelEl, this.headlineEl, this.authorEl, this.loreEl);
+    altarInner.append(this.labelEl, this.headlineEl, this.authorEl, this.loreEl);
+    altarOuter.appendChild(altarInner);
+    altar.appendChild(altarOuter);
+    stage.appendChild(altar);
     inner.appendChild(stage);
 
     const sigil = this.createEl('div', 'zh-hero__sigil');
     sigil.setAttribute('role', 'button');
     sigil.setAttribute('tabindex', '0');
-    sigil.innerHTML = '<span class="zh-hero__sigil-inner"><span class="zh-hero__sigil-text">войти в архив</span><span class="zh-hero__sigil-rune">ᛟ</span></span>';
+    sigil.innerHTML = [
+      '<span class="zh-hero__sigil-tear zh-hero__sigil-tear--outer">',
+      '<span class="zh-hero__sigil-tear zh-hero__sigil-tear--inner">',
+      '<span class="zh-hero__sigil-text">войти в архив</span>',
+      '<span class="zh-hero__sigil-rune">ᛟ</span>',
+      '</span></span>',
+    ].join('');
     sigil.addEventListener('click', () => {
       if (!quest.canInteract()) return;
       quest.enterArchive();
@@ -137,7 +151,11 @@ export class HeroScene extends Scene {
     const v = Math.min(1, this.introTime / 0.65);
 
     this.labelEl.style.opacity = String(v * 0.85);
-    this.headlineEl.style.opacity = String(v);
+    if (this.introTime < 1.6) {
+      this.headlineEl.style.opacity = String(v);
+    } else {
+      this.headlineEl.style.removeProperty('opacity');
+    }
     this.authorEl.style.opacity = String(v * 0.75);
     this.loreEl.style.opacity = String(v * 0.6);
     this.runeRing.style.opacity = String(v * 0.5);
