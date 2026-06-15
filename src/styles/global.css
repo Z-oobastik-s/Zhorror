@@ -2421,7 +2421,7 @@ body.zh-scare-shake {
 @media (min-width: 2560px) {
   .zh-hero {
     --hero-orbit: 310px;
-    --hero-eye-y: clamp(278px, 51vh, 384px);
+    --hero-eye-y: clamp(282px, 55vh, 387px);
   }
 
   .zh-hero__headline-line {
