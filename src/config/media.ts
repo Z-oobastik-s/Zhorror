@@ -23,6 +23,22 @@ export const HERO_HAND_RIGHT = `${I}/hand_right.png`;
 /** Фон главной страницы */
 export const HERO_BACKGROUND = `${I}/background.png`;
 
+/** Кадры века для главной */
+export const HERO_EYE_FRAMES = [
+  `${I}/eye_1.png`,
+  `${I}/eye_2.png`,
+  `${I}/eye_3.png`,
+  `${I}/eye_4.png`,
+] as const;
+
+/** Кадры сетчатки (направление взгляда) */
+export const HERO_EYE_RETINA = [
+  `${I}/eye_retina_1.png`,
+  `${I}/eye_retina_2.png`,
+  `${I}/eye_retina_3.png`,
+  `${I}/eye_retina_4.png`,
+] as const;
+
 export function mediaUrl(relativePath: string): string {
   const encoded = relativePath.split('/').map((p) => encodeURIComponent(p)).join('/');
   return `${BASE}assets/${encoded}`;

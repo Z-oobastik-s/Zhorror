@@ -2,7 +2,14 @@ import { Scene } from './Scene';
 
 import { SCENE_IDS, BRAND, RUNES, HERO_THREATS } from '@/config/constants';
 
-import { HERO_BACKGROUND, HERO_HAND_LEFT, HERO_HAND_RIGHT, mediaUrl } from '@/config/media';
+import {
+  HERO_BACKGROUND,
+  HERO_EYE_FRAMES,
+  HERO_EYE_RETINA,
+  HERO_HAND_LEFT,
+  HERO_HAND_RIGHT,
+  mediaUrl,
+} from '@/config/media';
 
 import { quest } from '@/systems/QuestSystem';
 
@@ -25,6 +32,12 @@ const HEADLINE_LINES = [
   'должен существовать',
 ] as const;
 
+const BLINK_SEQUENCE = [0, 1, 2, 3, 2, 1, 0] as const;
+
+const RETINA_MAX_X = 22;
+
+const RETINA_MAX_Y = 14;
+
 export class HeroScene extends Scene {
   readonly id = SCENE_IDS.hero;
 
@@ -44,7 +57,9 @@ export class HeroScene extends Scene {
 
   private eyeEl!: HTMLElement;
 
-  private eyePupil!: HTMLElement;
+  private eyeRetinaEl!: HTMLImageElement;
+
+  private eyeLidEl!: HTMLImageElement;
 
   private threatsEl!: HTMLElement;
 
@@ -52,9 +67,21 @@ export class HeroScene extends Scene {
 
   private introTime = 0;
 
-  private pupilX = 0;
+  private lookTargetX = 0;
 
-  private pupilY = 0;
+  private lookTargetY = 0;
+
+  private retinaX = 0;
+
+  private retinaY = 0;
+
+  private retinaFrame = 0;
+
+  private blinkPhase = -1;
+
+  private blinkTime = 0;
+
+  private blinkTimer = 7;
 
   private threatTimer = 5;
 
@@ -133,10 +160,23 @@ export class HeroScene extends Scene {
     core.appendChild(this.runeRing);
 
     this.eyeEl = this.createEl('div', 'zh-hero__eye');
-    const iris = this.createEl('div', 'zh-hero__iris');
-    this.eyePupil = this.createEl('div', 'zh-hero__pupil');
-    iris.appendChild(this.eyePupil);
-    this.eyeEl.appendChild(iris);
+    const slot = this.createEl('div', 'zh-hero__eye-slot');
+    this.eyeRetinaEl = document.createElement('img');
+    this.eyeRetinaEl.className = 'zh-hero__eye-retina';
+    this.eyeRetinaEl.src = mediaUrl(HERO_EYE_RETINA[0]);
+    this.eyeRetinaEl.alt = '';
+    this.eyeRetinaEl.draggable = false;
+    this.eyeRetinaEl.decoding = 'async';
+    slot.appendChild(this.eyeRetinaEl);
+    this.eyeEl.appendChild(slot);
+
+    this.eyeLidEl = document.createElement('img');
+    this.eyeLidEl.className = 'zh-hero__eye-lid';
+    this.eyeLidEl.src = mediaUrl(HERO_EYE_FRAMES[0]);
+    this.eyeLidEl.alt = '';
+    this.eyeLidEl.draggable = false;
+    this.eyeLidEl.decoding = 'async';
+    this.eyeEl.appendChild(this.eyeLidEl);
     core.appendChild(this.eyeEl);
 
     rings.appendChild(core);
@@ -179,12 +219,10 @@ export class HeroScene extends Scene {
 
     this.element.appendChild(inner);
 
-    const preloadLeft = new Image();
-    preloadLeft.src = mediaUrl(HERO_HAND_LEFT);
-    const preloadRight = new Image();
-    preloadRight.src = mediaUrl(HERO_HAND_RIGHT);
-    const preloadBg = new Image();
-    preloadBg.src = mediaUrl(HERO_BACKGROUND);
+    [...HERO_EYE_FRAMES, ...HERO_EYE_RETINA, HERO_HAND_LEFT, HERO_HAND_RIGHT, HERO_BACKGROUND].forEach((src) => {
+      const img = new Image();
+      img.src = mediaUrl(src);
+    });
 
     window.addEventListener('mousemove', this.trackEye, { passive: true });
   }
@@ -194,10 +232,55 @@ export class HeroScene extends Scene {
     const rect = this.eyeEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    this.pupilX = damp(this.pupilX, Math.max(-22, Math.min(22, (e.clientX - cx) / 18)), 14, 0.018);
-    this.pupilY = damp(this.pupilY, Math.max(-14, Math.min(14, (e.clientY - cy) / 18)), 14, 0.018);
-    this.eyePupil.style.transform = `translate(${this.pupilX}px, ${this.pupilY}px)`;
+    const dx = (e.clientX - cx) / Math.max(rect.width * 0.28, 1);
+    const dy = (e.clientY - cy) / Math.max(rect.height * 0.32, 1);
+    this.lookTargetX = Math.max(-RETINA_MAX_X, Math.min(RETINA_MAX_X, dx * RETINA_MAX_X));
+    this.lookTargetY = Math.max(-RETINA_MAX_Y, Math.min(RETINA_MAX_Y, dy * RETINA_MAX_Y));
   };
+
+  private pickRetinaFrame(nx: number, ny: number): number {
+    if (Math.abs(nx) < 0.22 && Math.abs(ny) < 0.22) return 0;
+    if (Math.abs(nx) >= Math.abs(ny)) return nx < 0 ? 1 : 2;
+    return 3;
+  }
+
+  private updateBlink(dt: number): void {
+    if (this.blinkPhase < 0) {
+      this.blinkTimer -= dt;
+      if (this.blinkTimer > 0) return;
+      this.blinkPhase = 0;
+      this.blinkTime = 0;
+    }
+
+    this.blinkTime += dt;
+    const step = 0.05;
+    const idx = Math.min(Math.floor(this.blinkTime / step), BLINK_SEQUENCE.length - 1);
+    const frame = BLINK_SEQUENCE[idx];
+    this.eyeLidEl.src = mediaUrl(HERO_EYE_FRAMES[frame]);
+    this.eyeEl.classList.toggle('zh-hero__eye--blink', frame >= 2);
+
+    if (idx >= BLINK_SEQUENCE.length - 1) {
+      this.blinkPhase = -1;
+      this.blinkTimer = randRange(6, 12);
+      this.eyeEl.classList.remove('zh-hero__eye--blink');
+    }
+  }
+
+  private updateRetina(dt: number): void {
+    this.retinaX = damp(this.retinaX, this.lookTargetX, 11, dt);
+    this.retinaY = damp(this.retinaY, this.lookTargetY, 11, dt);
+
+    const nx = this.retinaX / RETINA_MAX_X;
+    const ny = this.retinaY / RETINA_MAX_Y;
+    const frame = this.pickRetinaFrame(nx, ny);
+    if (frame !== this.retinaFrame) {
+      this.retinaFrame = frame;
+      this.eyeRetinaEl.src = mediaUrl(HERO_EYE_RETINA[frame]);
+    }
+
+    this.eyeRetinaEl.style.setProperty('--rx', `${this.retinaX}px`);
+    this.eyeRetinaEl.style.setProperty('--ry', `${this.retinaY}px`);
+  }
 
   private showThreat(): void {
     const el = this.createEl('span', 'zh-hero__threat', randPick(HERO_THREATS));
@@ -257,6 +340,9 @@ export class HeroScene extends Scene {
   protected onUpdate(dt: number): void {
     if (!this.active && !this.visible) return;
 
+    this.updateRetina(dt);
+    this.updateBlink(dt);
+
     this.introTime = Math.min(this.introTime + dt, 2.2);
     const v = Math.min(1, this.introTime / 0.7);
 
@@ -272,6 +358,7 @@ export class HeroScene extends Scene {
     this.loreEl.style.opacity = String(Math.max(0, Math.min(1, (this.introTime - 0.65) / 0.55)) * 0.65);
     this.runeRing.style.setProperty('--rune-o', String(v * 0.55));
     this.runeRing.style.transform = `rotate(${performance.now() * 0.022}deg)`;
+    this.eyeEl.style.opacity = String(Math.max(0.35, v));
 
     if (!this.threatStarted && (this.active || this.visible)) {
       this.threatStarted = true;

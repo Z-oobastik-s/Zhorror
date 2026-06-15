@@ -989,8 +989,7 @@ body.zh-dragging {
 
 .zh-hero__ring,
 .zh-hero__orbit,
-.zh-hero__rune-ring,
-.zh-hero__eye {
+.zh-hero__rune-ring {
   position: absolute;
   inset: 0;
   margin: auto;
@@ -1072,46 +1071,63 @@ body.zh-dragging {
 }
 
 .zh-hero__eye {
+  position: absolute;
+  inset: 0;
+  margin: auto;
   z-index: 3;
-  flex-shrink: 0;
-  width: clamp(112px, calc(var(--hero-orbit) * 0.46), 168px);
-  height: clamp(54px, calc(var(--hero-orbit) * 0.22), 80px);
+  width: clamp(168px, calc(var(--hero-orbit) * 0.78), 260px);
+  aspect-ratio: 637 / 366;
+  pointer-events: none;
+}
+
+.zh-hero__eye-slot {
+  position: absolute;
+  z-index: 1;
+  left: 16%;
+  right: 16%;
+  top: 22%;
+  bottom: 24%;
+  overflow: hidden;
   border-radius: 50%;
-  background: radial-gradient(ellipse 88% 92% at 48% 42%, #1a0c0c 0%, #080404 68%, #030202 100%);
-  border: 1px solid rgba(100, 32, 38, 0.6);
-  box-shadow:
-    inset 0 0 0 3px rgba(6, 3, 3, 0.9),
-    0 0 40px rgba(60, 12, 18, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: eyeBlink 9s infinite;
 }
 
-.zh-hero__iris {
-  width: 54%;
-  height: 74%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 36%, #7a1e1e 0%, #3a0c0c 48%, #120303 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.7);
-}
-
-.zh-hero__pupil {
-  width: clamp(22px, 4.8vmin, 32px);
-  height: clamp(22px, 4.8vmin, 32px);
-  border-radius: 50%;
-  background: #080202;
-  box-shadow: 0 0 10px rgba(120, 24, 30, 0.5);
+.zh-hero__eye-retina {
+  width: 118%;
+  height: 118%;
+  max-width: none;
+  object-fit: contain;
+  transform: translate(var(--rx, 0px), var(--ry, 0px));
   will-change: transform;
+  filter: drop-shadow(0 0 14px rgba(120, 20, 24, 0.45));
 }
 
-@keyframes eyeBlink {
-  0%, 96%, 100% { transform: scaleY(1); }
-  97% { transform: scaleY(0.06); }
-  98% { transform: scaleY(1); }
+.zh-hero__eye-lid {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 34% 38% at 50% 47%, transparent 0 58%, #000 72%);
+  mask-image: radial-gradient(ellipse 34% 38% at 50% 47%, transparent 0 58%, #000 72%);
+}
+
+.zh-hero__eye--blink .zh-hero__eye-lid {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.zh-hero__eye--blink .zh-hero__eye-slot {
+  opacity: 0.08;
+  transform: scaleY(0.08);
+}
+
+.zh-hero__eye-slot {
+  transition: opacity 0.1s ease, transform 0.1s ease;
 }
 
 .zh-hero__copy {
