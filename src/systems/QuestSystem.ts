@@ -368,6 +368,11 @@ export class QuestSystem {
     return this.getChapterInfo().scene as SceneId;
   }
 
+  /** Порог: главная до входа в архив */
+  isOnHeroEntry(): boolean {
+    return this.act === 1 && this.chapter === 0;
+  }
+
   getObjective(): string {
     if (this.act5Complete) return 'Архив замкнут. Петля довольна. Ты - последняя запись.';
     if (this.act === 5) {

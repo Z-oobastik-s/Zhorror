@@ -204,6 +204,22 @@ export const WHISPERS = [
   'петля затягивается', 'они висят', 'не дыши', 'верёвка помнит',
 ] as const;
 
+/** Тихие угрозы на главной (порог), без скримеров */
+export const HERO_THREATS = [
+  'уйди',
+  'закрой вкладку',
+  'тебе не следовало открывать',
+  'лучше не входи',
+  'они уже смотрят',
+  'архив не отпускает',
+  'ты не готов',
+  'поздно выходить',
+  'это не игра',
+  'не листай дальше',
+  'здесь не место для тебя',
+  'остановись',
+] as const;
+
 export const HOOK_COUNT = 8;
 export const HOOK_REAL_COUNT = 4;
 export const ABATTOIR_CODE_POOL = ['BUTCHER', 'MEATHOOK', 'ABATTOIR', 'CLEAVER', 'SKINNER', 'CARCASS'] as const;

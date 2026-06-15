@@ -2,6 +2,7 @@ import { chance, randInt, randPick } from '@/utils/math';
 import { RUNES, WHISPERS } from '@/config/constants';
 import { events, EVT } from '@/core/EventBus';
 import { perf } from '@/systems/PerformanceManager';
+import { quest } from '@/systems/QuestSystem';
 import type { AtmosphereSystem } from './AtmosphereSystem';
 
 type EventType =
@@ -43,6 +44,7 @@ export class RandomEventSystem {
 
   update(dt: number): void {
     if (!perf.shouldRunAmbientSystems() || this.active) return;
+    if (quest.isOnHeroEntry()) return;
     const elapsed = performance.now();
     const level = this.atmosphere.getLevel();
 
