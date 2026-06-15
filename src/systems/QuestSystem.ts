@@ -103,6 +103,7 @@ export class QuestSystem {
     this.run = generateRunConfig(seed);
     this.load();
     this.syncUnlocks();
+    this.repairInconsistentState();
   }
 
   getRun(): Readonly<RunConfig> {
@@ -1034,8 +1035,8 @@ export class QuestSystem {
       if (this.act3Chapter >= 2) {
         for (const m of this.run.catacombMarks) this.catacombMarks.add(m);
       }
-      if (this.act3Chapter >= 2) this.swarmFound = this.run.swarmRealIndices.length;
-      if (this.act3Chapter >= 4) this.finalRiteStep = this.run.finalRiteSequence.length;
+      if (this.act3Chapter >= 3) this.swarmFound = this.run.swarmRealIndices.length;
+      if (this.act3Chapter >= 5) this.finalRiteStep = this.run.finalRiteSequence.length;
     }
 
     if (this.act >= 4) {
@@ -1057,14 +1058,70 @@ export class QuestSystem {
       for (let i = 0; i <= this.act5Chapter && i < SCENE_ORDER_ACT5.length; i++) {
         this.unlocked.add(SCENE_ORDER_ACT5[i]);
       }
-      if (this.act5Chapter >= 1) this.gallowsFound = this.run.gallowsRealIndices.length;
-      if (this.act5Chapter >= 2) this.pendulumHits = PENDULUM_GOAL;
-      if (this.act5Chapter >= 3) this.hangedFound = this.run.hangedRealIndices.length;
-      if (this.act5Chapter >= 5) this.roperiteStep = this.run.ropeSequence.length;
-      if (this.act5Chapter >= 6) this.trapfloorStep = this.run.trapFloorSequence.length;
+      if (this.act5Chapter >= 2) this.gallowsFound = this.run.gallowsRealIndices.length;
+      if (this.act5Chapter >= 3) this.pendulumHits = PENDULUM_GOAL;
+      if (this.act5Chapter >= 4) this.hangedFound = this.run.hangedRealIndices.length;
+      if (this.act5Chapter >= 6) this.roperiteStep = this.run.ropeSequence.length;
+      if (this.act5Chapter >= 7) this.trapfloorStep = this.run.trapFloorSequence.length;
     }
 
     this.refreshSeals();
+  }
+
+  /** Сброс ложного «завершено» после syncUnlocks или битого сохранения */
+  private repairInconsistentState(): void {
+    let changed = false;
+
+    if (
+      this.act === 3
+      && this.act3Chapter === 4
+      && this.finalRiteStep >= this.run.finalRiteSequence.length
+      && !this.unlocked.has(SCENE_IDS.terminus)
+    ) {
+      this.finalRiteStep = 0;
+      changed = true;
+    }
+
+    if (
+      this.act === 3
+      && this.act3Chapter === 2
+      && this.swarmFound >= this.run.swarmRealIndices.length
+    ) {
+      this.swarmFound = 0;
+      changed = true;
+    }
+
+    if (
+      this.act === 5
+      && this.act5Chapter === 1
+      && this.gallowsFound >= this.run.gallowsRealIndices.length
+    ) {
+      this.gallowsFound = 0;
+      changed = true;
+    }
+
+    if (
+      this.act === 5
+      && this.act5Chapter === 2
+      && this.pendulumHits >= PENDULUM_GOAL
+    ) {
+      this.pendulumHits = 0;
+      changed = true;
+    }
+
+    if (
+      this.act === 5
+      && this.act5Chapter === 3
+      && this.hangedFound >= this.run.hangedRealIndices.length
+    ) {
+      this.hangedFound = 0;
+      changed = true;
+    }
+
+    if (changed) {
+      this.save();
+      events.emit(EVT.QUEST_UPDATE, this.snapshot());
+    }
   }
 
   private snapshot() {

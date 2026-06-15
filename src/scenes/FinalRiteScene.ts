@@ -73,11 +73,12 @@ export class FinalRiteScene extends Scene {
     inner.append(header, this.sequenceEl, this.hintEl, this.timerBar, circleWrap);
     this.element.appendChild(inner);
 
-    if (quest.getFinalRiteProgress() >= quest.getFinalRiteSequence().length) {
+    if (quest.isUnlocked(SCENE_IDS.terminus)) {
       this.phase = 'done';
       this.ritualDone = true;
       this.hintEl.textContent = 'ритуал завершён';
       this.timerBar.classList.add('zh-ritual__timer--hidden');
+      this.showSequence();
     }
   }
 
