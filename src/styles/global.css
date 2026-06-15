@@ -235,120 +235,79 @@ body.zh-dragging {
 
 .zh-nav {
   position: fixed;
-  right: 24px;
+  right: 18px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: flex-end;
+  gap: 5px;
   z-index: 200;
-  padding: 14px 12px 14px 10px;
-  max-height: min(85vh, 720px);
+  max-height: 92vh;
   overflow-y: auto;
-  scrollbar-width: thin;
-  background: rgba(6, 4, 4, 0.82);
-  border: 1px solid rgba(120, 80, 80, 0.4);
-  border-radius: 4px;
-  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  overflow-x: hidden;
+  padding: 6px 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.zh-nav::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .zh-nav__sigil {
   position: relative;
   display: flex;
+  flex-direction: row-reverse;
   align-items: center;
-  gap: 10px;
+  gap: 7px;
   cursor: pointer;
-  opacity: 0.72;
-  transition: opacity 0.35s, transform 0.35s;
-  padding: 5px 4px 5px 0;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+  padding: 2px 0;
 }
 
-.zh-nav__sigil:hover {
-  opacity: 0.95;
-}
-
+.zh-nav__sigil:hover,
 .zh-nav__sigil--active {
   opacity: 1;
 }
 
-.zh-nav__sigil--active .zh-nav__sigil-mark {
-  color: #e8c8c8;
-  text-shadow: 0 0 14px rgba(200, 60, 60, 0.85), 0 0 4px rgba(0, 0, 0, 0.9);
-}
-
 .zh-nav__sigil-mark {
-  font-size: 15px;
-  color: #a89088;
-  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.95));
-  transition: color 0.3s, text-shadow 0.3s;
+  font-size: 9px;
+  color: #5a2020;
+  flex-shrink: 0;
+  transition: color 0.25s;
 }
 
 .zh-nav__sigil-label {
-  font-size: 10px;
-  letter-spacing: 2px;
+  font-size: 9px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: #c8beb6;
-  opacity: 0;
-  transform: translateX(-8px);
-  transition: opacity 0.3s, transform 0.3s;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.95);
-  white-space: nowrap;
-}
-
-.zh-nav__sigil:hover .zh-nav__sigil-label,
-.zh-nav__sigil--active .zh-nav__sigil-label {
+  color: #7a3030;
   opacity: 1;
-  transform: translateX(0);
+  transform: none;
+  white-space: nowrap;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 1), 0 1px 3px rgba(0, 0, 0, 0.95);
+  transition: color 0.25s;
+}
+
+.zh-nav__sigil:hover .zh-nav__sigil-label {
+  color: #b83838;
+}
+
+.zh-nav__sigil--active .zh-nav__sigil-mark {
+  color: #d04040;
 }
 
 .zh-nav__sigil--active .zh-nav__sigil-label {
-  color: #f0e8e0;
+  color: #e84848;
+  text-shadow: 0 0 12px rgba(160, 25, 25, 0.55), 0 0 10px rgba(0, 0, 0, 1);
 }
 
 .zh-nav__sigil-glow {
-  position: absolute;
-  left: -8px;
-  width: 2px;
-  height: 0;
-  background: #8a3030;
-  box-shadow: 0 0 8px rgba(140, 40, 40, 0.6);
-  transition: height 0.4s;
-}
-
-.zh-nav__sigil--active .zh-nav__sigil-glow {
-  height: 100%;
-}
-
-/* Навигация на очень тёмных фонах (акт III-V) */
-.zh-app--act3 .zh-nav,
-.zh-app--act4 .zh-nav,
-.zh-app--act5 .zh-nav {
-  background: rgba(0, 0, 0, 0.88);
-  border-color: rgba(160, 150, 140, 0.28);
-}
-
-.zh-app--act5 .zh-nav__sigil-mark {
-  color: #b8b8b8;
-}
-
-.zh-app--act5 .zh-nav__sigil--active .zh-nav__sigil-mark {
-  color: #f4f4f4;
-  text-shadow: 0 0 16px rgba(255, 255, 255, 0.45), 0 0 4px rgba(0, 0, 0, 1);
-}
-
-.zh-app--act5 .zh-nav__sigil--active .zh-nav__sigil-glow {
-  background: #d0d0d0;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
-}
-
-.zh-app--act5 .zh-nav__sigil-label {
-  color: #c8c8c8;
-}
-
-.zh-app--act5 .zh-nav__sigil--active .zh-nav__sigil-label {
-  color: #f0f0f0;
+  display: none;
 }
 
 /* ===== AUDIO TOGGLE ===== */
@@ -1684,23 +1643,25 @@ body.zh-scare-shake {
 
 @media (hover: none) {
   .zh-nav__sigil-label {
-    opacity: 1;
-    transform: translateX(0);
+    color: #7a3030;
   }
 }
 
 .zh-nav__sigil--locked {
-  opacity: 0.35;
+  opacity: 0.2;
   cursor: not-allowed;
-  filter: grayscale(0.5);
 }
 
 .zh-nav__sigil--locked .zh-nav__sigil-mark {
-  color: #6a5a58;
+  color: #3a1515;
+}
+
+.zh-nav__sigil--locked .zh-nav__sigil-label {
+  color: #4a1818;
 }
 
 .zh-nav__sigil--locked:hover {
-  opacity: 0.42;
+  opacity: 0.26;
 }
 
 /* ===== QUEST HUD ===== */
