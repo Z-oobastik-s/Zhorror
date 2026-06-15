@@ -113,7 +113,7 @@ export class EntityScene extends Scene {
 
   private track = (): void => {
 
-    if (!this.active || this.completed) return;
+    if (!this.active || this.completed || !this.isPlayable()) return;
 
     if (this.holdTime > 0.2) {
 
@@ -139,7 +139,7 @@ export class EntityScene extends Scene {
 
   protected onUpdate(dt: number): void {
 
-    if (!this.active || this.completed) return;
+    if (!this.active || this.completed || !this.isPlayable()) return;
 
 
 

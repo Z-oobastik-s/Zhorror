@@ -44,7 +44,7 @@ export class NooseholdScene extends Scene {
   }
 
   private onMove = (): void => {
-    if (!this.active || this.completed) return;
+    if (!this.active || this.completed || !this.isPlayable()) return;
     if (this.holdTime > 0.12) {
       events.emit(EVT.SCARE_REQUEST, { type: 'face' });
       this.statusEl.textContent = 'петля дёрнулась';
@@ -59,7 +59,7 @@ export class NooseholdScene extends Scene {
   };
 
   protected onUpdate(dt: number): void {
-    if (!this.active || this.completed) return;
+    if (!this.active || this.completed || !this.isPlayable()) return;
     this.holdTime += dt;
     const holdSeconds = quest.getNooseHoldSeconds();
     const p = Math.min(1, this.holdTime / holdSeconds);

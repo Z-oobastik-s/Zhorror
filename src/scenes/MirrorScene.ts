@@ -49,7 +49,7 @@ export class MirrorScene extends Scene {
   }
 
   private onMove = (): void => {
-    if (!this.active || this.completed) return;
+    if (!this.active || this.completed || !this.isPlayable()) return;
     if (this.holdTime > 0.15) {
       events.emit(EVT.SCARE_REQUEST, { type: 'eyes' });
       this.statusEl.textContent = 'отражение дёрнулось. снова.';
@@ -58,7 +58,7 @@ export class MirrorScene extends Scene {
   };
 
   protected onUpdate(dt: number): void {
-    if (!this.active || this.completed) return;
+    if (!this.active || this.completed || !this.isPlayable()) return;
 
     this.holdTime += dt;
     const holdSeconds = quest.getMirrorHoldSeconds();
@@ -66,10 +66,11 @@ export class MirrorScene extends Scene {
     this.progressFill.style.width = `${progress * 100}%`;
 
     if (progress >= 1) {
+      if (!this.isPlayable()) return;
+      quest.completeMirrorTrial();
       this.completed = true;
       this.statusEl.textContent = 'зеркало треснуло. коллапс близко.';
       this.element.classList.add('zh-mirror--cleared');
-      quest.completeMirrorTrial();
       events.emit(EVT.INTERACT, { type: 'rune' });
       return;
     }

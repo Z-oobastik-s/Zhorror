@@ -524,7 +524,7 @@ export class QuestSystem {
   }
 
   completeEntityTrial(): void {
-    if (this.chapter !== 2) return;
+    if (!this.unlocked.has(SCENE_IDS.entity) || this.chapter !== 2) return;
     this.chapter = 3;
     this.unlock(SCENE_IDS.ritual);
     this.save();
@@ -533,7 +533,7 @@ export class QuestSystem {
   }
 
   completeMirrorTrial(): void {
-    if (this.act !== 2 || this.act2Chapter !== 2) return;
+    if (!this.unlocked.has(SCENE_IDS.mirror) || this.act !== 2 || this.act2Chapter !== 2) return;
     this.act2Chapter = 3;
     this.unlock(SCENE_IDS.collapse);
     this.save();
@@ -698,7 +698,7 @@ export class QuestSystem {
   }
 
   completeSilenceTrial(): void {
-    if (this.act !== 3 || this.act3Chapter !== 3) return;
+    if (!this.unlocked.has(SCENE_IDS.silence) || this.act !== 3 || this.act3Chapter !== 3) return;
     this.act3Chapter = 4;
     this.unlock(SCENE_IDS.finalrite);
     this.save();
@@ -940,7 +940,7 @@ export class QuestSystem {
   }
 
   completeNoosehold(): void {
-    if (this.act !== 5 || this.act5Chapter !== 4) return;
+    if (!this.unlocked.has(SCENE_IDS.noosehold) || this.act !== 5 || this.act5Chapter !== 4) return;
     this.act5Chapter = 5;
     this.unlock(SCENE_IDS.roperite);
     this.save();

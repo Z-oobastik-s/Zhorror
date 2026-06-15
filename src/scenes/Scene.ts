@@ -1,3 +1,6 @@
+import type { SceneId } from '@/config/constants';
+import { quest } from '@/systems/QuestSystem';
+
 export abstract class Scene {
   abstract readonly id: string;
   abstract readonly label: string;
@@ -27,7 +30,13 @@ export abstract class Scene {
     this.element.classList.toggle('zh-scene--active', active);
     this.element.classList.toggle('zh-scene--visible', visible);
     if (!visible && !active) return;
+    if (!this.isPlayable()) return;
     this.onUpdate(dt);
+  }
+
+  /** Секция открыта в квесте, не только визуально доступна при скролле */
+  protected isPlayable(): boolean {
+    return quest.isUnlocked(this.id as SceneId);
   }
 
   protected onUpdate(_dt: number): void {
