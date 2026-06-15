@@ -57,9 +57,15 @@ export class HeroScene extends Scene {
 
   private eyeEl!: HTMLElement;
 
-  private eyeRetinaEl!: HTMLImageElement;
+  private eyeBodyEl!: HTMLElement;
 
-  private eyeLidEl!: HTMLImageElement;
+  private eyeRetinaWrap!: HTMLElement;
+
+  private eyeLidWrap!: HTMLElement;
+
+  private retinaLayers: HTMLImageElement[] = [];
+
+  private lidLayers: HTMLImageElement[] = [];
 
   private threatsEl!: HTMLElement;
 
@@ -76,8 +82,6 @@ export class HeroScene extends Scene {
   private retinaY = 0;
 
   private retinaFrame = 0;
-
-  private eyeFrame = 0;
 
   private blinkSquash = 1;
 
@@ -99,9 +103,37 @@ export class HeroScene extends Scene {
 
   private wasActive = false;
 
+  private introDone = false;
+
   private lastPointerAt = performance.now();
 
+  private lastRectRefresh = 0;
+
+  private eyeRectCx = 0;
+
+  private eyeRectCy = 0;
+
+  private eyeRectScaleX = 1;
+
+  private eyeRectScaleY = 1;
+
+  private motionRx = 0;
+
+  private motionRy = 0;
+
+  private motionSquash = 1;
+
+  private motionBreathe = 1;
+
+  private motionTilt = 0;
+
+  private motionLidX = 0;
+
+  private motionLidY = 0;
+
   private static readonly POINTER_IDLE_MS = 2600;
+
+  private static readonly RECT_REFRESH_MS = 250;
 
   protected build(): void {
     const atmo = this.createEl('div', 'zh-hero__atmo');
@@ -172,25 +204,42 @@ export class HeroScene extends Scene {
     core.appendChild(this.runeRing);
 
     this.eyeEl = this.createEl('div', 'zh-hero__eye');
-    const body = this.createEl('div', 'zh-hero__eye-body');
+    this.eyeBodyEl = this.createEl('div', 'zh-hero__eye-body');
     const slot = this.createEl('div', 'zh-hero__eye-slot');
-    this.eyeRetinaEl = document.createElement('img');
-    this.eyeRetinaEl.className = 'zh-hero__eye-retina';
-    this.eyeRetinaEl.src = mediaUrl(HERO_EYE_RETINA[0]);
-    this.eyeRetinaEl.alt = '';
-    this.eyeRetinaEl.draggable = false;
-    this.eyeRetinaEl.decoding = 'async';
-    slot.appendChild(this.eyeRetinaEl);
-    body.appendChild(slot);
+    this.eyeRetinaWrap = this.createEl('div', 'zh-hero__eye-retina-wrap');
 
-    this.eyeLidEl = document.createElement('img');
-    this.eyeLidEl.className = 'zh-hero__eye-lid';
-    this.eyeLidEl.src = mediaUrl(HERO_EYE_FRAMES[0]);
-    this.eyeLidEl.alt = '';
-    this.eyeLidEl.draggable = false;
-    this.eyeLidEl.decoding = 'async';
-    body.appendChild(this.eyeLidEl);
-    this.eyeEl.appendChild(body);
+    HERO_EYE_RETINA.forEach((src, i) => {
+      const img = document.createElement('img');
+      img.className = 'zh-hero__eye-retina zh-hero__eye-frame';
+      if (i === 0) img.classList.add('zh-hero__eye-frame--on');
+      img.src = mediaUrl(src);
+      img.alt = '';
+      img.draggable = false;
+      img.decoding = 'async';
+      img.loading = i === 0 ? 'eager' : 'lazy';
+      this.retinaLayers.push(img);
+      this.eyeRetinaWrap.appendChild(img);
+    });
+
+    slot.appendChild(this.eyeRetinaWrap);
+    this.eyeBodyEl.appendChild(slot);
+
+    this.eyeLidWrap = this.createEl('div', 'zh-hero__eye-lid-wrap');
+    HERO_EYE_FRAMES.forEach((src, i) => {
+      const img = document.createElement('img');
+      img.className = 'zh-hero__eye-lid zh-hero__eye-frame';
+      if (i === 0) img.classList.add('zh-hero__eye-frame--on');
+      img.src = mediaUrl(src);
+      img.alt = '';
+      img.draggable = false;
+      img.decoding = 'async';
+      img.loading = i === 0 ? 'eager' : 'lazy';
+      this.lidLayers.push(img);
+      this.eyeLidWrap.appendChild(img);
+    });
+
+    this.eyeBodyEl.appendChild(this.eyeLidWrap);
+    this.eyeEl.appendChild(this.eyeBodyEl);
     core.appendChild(this.eyeEl);
 
     rings.appendChild(core);
@@ -236,11 +285,73 @@ export class HeroScene extends Scene {
     [...HERO_EYE_FRAMES, ...HERO_EYE_RETINA, HERO_HAND_LEFT, HERO_HAND_RIGHT, HERO_BACKGROUND].forEach((src) => {
       const img = new Image();
       img.src = mediaUrl(src);
+      img.decode?.().catch(() => undefined);
     });
+
+    this.refreshEyeRect();
+    window.addEventListener('resize', this.refreshEyeRect, { passive: true });
 
     window.addEventListener('mousemove', this.trackEye, { passive: true });
     document.documentElement.addEventListener('mouseleave', this.releaseEyeLook, { passive: true });
     document.addEventListener('visibilitychange', this.onPageHidden);
+  }
+
+  private refreshEyeRect = (): void => {
+    const rect = this.eyeEl.getBoundingClientRect();
+    this.eyeRectCx = rect.left + rect.width / 2;
+    this.eyeRectCy = rect.top + rect.height / 2;
+    this.eyeRectScaleX = Math.max(rect.width * 0.28, 1);
+    this.eyeRectScaleY = Math.max(rect.height * 0.32, 1);
+  };
+
+  private setLookFrame(frame: number): void {
+    if (frame === this.retinaFrame) return;
+    this.retinaFrame = frame;
+    this.retinaLayers.forEach((el, i) => {
+      el.classList.toggle('zh-hero__eye-frame--on', i === frame);
+    });
+    this.lidLayers.forEach((el, i) => {
+      el.classList.toggle('zh-hero__eye-frame--on', i === frame);
+    });
+  }
+
+  private setEyeMotion(
+    squash: number,
+    breathe: number,
+    tilt: number,
+    rx: number,
+    ry: number,
+    lidX: number,
+    lidY: number,
+  ): void {
+    if (Math.abs(squash - this.motionSquash) > 0.002) {
+      this.motionSquash = squash;
+      this.eyeEl.style.setProperty('--eye-squash', String(squash));
+    }
+    if (Math.abs(breathe - this.motionBreathe) > 0.001) {
+      this.motionBreathe = breathe;
+      this.eyeEl.style.setProperty('--eye-breathe', String(breathe));
+    }
+    if (Math.abs(tilt - this.motionTilt) > 0.05) {
+      this.motionTilt = tilt;
+      this.eyeEl.style.setProperty('--eye-tilt', `${tilt}deg`);
+    }
+    if (Math.abs(rx - this.motionRx) > 0.15) {
+      this.motionRx = rx;
+      this.eyeEl.style.setProperty('--rx', `${rx.toFixed(1)}px`);
+    }
+    if (Math.abs(ry - this.motionRy) > 0.15) {
+      this.motionRy = ry;
+      this.eyeEl.style.setProperty('--ry', `${ry.toFixed(1)}px`);
+    }
+    if (Math.abs(lidX - this.motionLidX) > 0.05) {
+      this.motionLidX = lidX;
+      this.eyeEl.style.setProperty('--lid-x', `${lidX.toFixed(2)}px`);
+    }
+    if (Math.abs(lidY - this.motionLidY) > 0.05) {
+      this.motionLidY = lidY;
+      this.eyeEl.style.setProperty('--lid-y', `${lidY.toFixed(2)}px`);
+    }
   }
 
   private releaseEyeLook = (): void => {
@@ -257,32 +368,37 @@ export class HeroScene extends Scene {
     this.lookTargetY = 0;
     this.retinaX = 0;
     this.retinaY = 0;
-
-    if (this.retinaFrame !== 0) {
-      this.retinaFrame = 0;
-      this.eyeRetinaEl.src = mediaUrl(HERO_EYE_RETINA[0]);
-    }
-    if (this.eyeFrame !== 0) {
-      this.eyeFrame = 0;
-      this.eyeLidEl.src = mediaUrl(HERO_EYE_FRAMES[0]);
-    }
-
-    this.eyeRetinaEl.style.setProperty('--rx', '0px');
-    this.eyeRetinaEl.style.setProperty('--ry', '0px');
+    this.retinaFrame = -1;
+    this.setLookFrame(0);
+    this.motionRx = 0;
+    this.motionRy = 0;
+    this.motionTilt = 0;
+    this.motionLidX = 0;
+    this.motionLidY = 0;
+    this.motionSquash = 1;
+    this.motionBreathe = 1;
+    this.eyeEl.style.setProperty('--rx', '0px');
+    this.eyeEl.style.setProperty('--ry', '0px');
     this.eyeEl.style.setProperty('--eye-tilt', '0deg');
-    this.eyeLidEl.style.setProperty('--lid-x', '0px');
-    this.eyeLidEl.style.setProperty('--lid-y', '0px');
+    this.eyeEl.style.setProperty('--lid-x', '0px');
+    this.eyeEl.style.setProperty('--lid-y', '0px');
+    this.eyeEl.style.setProperty('--eye-squash', '1');
+    this.eyeEl.style.setProperty('--eye-breathe', '1');
   }
 
   private trackEye = (e: MouseEvent): void => {
     if (!this.active) return;
     this.lastPointerAt = performance.now();
     if (this.blinkActive || this.blinkSquash < 0.92) return;
-    const rect = this.eyeEl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = (e.clientX - cx) / Math.max(rect.width * 0.28, 1);
-    const dy = (e.clientY - cy) / Math.max(rect.height * 0.32, 1);
+
+    const now = performance.now();
+    if (now - this.lastRectRefresh > HeroScene.RECT_REFRESH_MS) {
+      this.refreshEyeRect();
+      this.lastRectRefresh = now;
+    }
+
+    const dx = (e.clientX - this.eyeRectCx) / this.eyeRectScaleX;
+    const dy = (e.clientY - this.eyeRectCy) / this.eyeRectScaleY;
     this.lookTargetX = Math.max(-RETINA_MAX_X, Math.min(RETINA_MAX_X, dx * RETINA_MAX_X));
     this.lookTargetY = Math.max(-RETINA_MAX_Y, Math.min(RETINA_MAX_Y, dy * RETINA_MAX_Y));
   };
@@ -323,13 +439,11 @@ export class HeroScene extends Scene {
     this.blinkTime += dt;
     const t = Math.min(1, this.blinkTime / BLINK_DURATION);
     this.blinkSquash = this.squashBlink(t);
-    this.eyeEl.style.setProperty('--eye-squash', String(this.blinkSquash));
 
     if (t < 1) return;
 
     this.blinkActive = false;
     this.blinkSquash = 1;
-    this.eyeEl.style.setProperty('--eye-squash', '1');
 
     if (this.blinkChain > 0) {
       this.blinkChain -= 1;
@@ -348,15 +462,19 @@ export class HeroScene extends Scene {
     const tilt = (this.retinaX / RETINA_MAX_X) * 2.8;
     const lidShiftX = this.retinaX * 0.12;
     const lidShiftY = this.retinaY * 0.08;
+    const squash = this.blinkActive
+      ? this.blinkSquash
+      : damp(this.blinkSquash, 1, 16, dt);
 
-    this.eyeEl.style.setProperty('--eye-breathe', String(breathe));
-    this.eyeEl.style.setProperty('--eye-tilt', `${tilt}deg`);
-    this.eyeLidEl.style.setProperty('--lid-x', `${lidShiftX}px`);
-    this.eyeLidEl.style.setProperty('--lid-y', `${lidShiftY}px`);
-
-    if (this.blinkActive) return;
-
-    this.eyeEl.style.setProperty('--eye-squash', String(damp(this.blinkSquash, 1, 16, dt)));
+    this.setEyeMotion(
+      squash,
+      breathe,
+      tilt,
+      this.retinaX,
+      this.retinaY,
+      lidShiftX,
+      lidShiftY,
+    );
   }
 
   private updateRetina(dt: number): void {
@@ -369,18 +487,7 @@ export class HeroScene extends Scene {
 
     const nx = this.retinaX / RETINA_MAX_X;
     const ny = this.retinaY / RETINA_MAX_Y;
-    const frame = this.pickLookFrame(nx, ny);
-    if (frame !== this.retinaFrame) {
-      this.retinaFrame = frame;
-      this.eyeRetinaEl.src = mediaUrl(HERO_EYE_RETINA[frame]);
-    }
-    if (frame !== this.eyeFrame) {
-      this.eyeFrame = frame;
-      this.eyeLidEl.src = mediaUrl(HERO_EYE_FRAMES[frame]);
-    }
-
-    this.eyeRetinaEl.style.setProperty('--rx', `${this.retinaX}px`);
-    this.eyeRetinaEl.style.setProperty('--ry', `${this.retinaY}px`);
+    this.setLookFrame(this.pickLookFrame(nx, ny));
   }
 
   private showThreat(): void {
@@ -448,27 +555,34 @@ export class HeroScene extends Scene {
     }
 
     this.wasActive = true;
+    if (this.eyeRectCx === 0) this.refreshEyeRect();
 
     this.updateRetina(dt);
     this.updateBlink(dt);
     this.updateEyeMotion(dt);
 
-    this.introTime = Math.min(this.introTime + dt, 2.2);
-    const v = Math.min(1, this.introTime / 0.7);
+    if (!this.introDone) {
+      this.introTime = Math.min(this.introTime + dt, 2.2);
+      const v = Math.min(1, this.introTime / 0.7);
 
-    this.labelEl.style.opacity = String(v * 0.9);
-    this.headlineLines.forEach((el, i) => {
-      const lv = Math.max(0, Math.min(1, (this.introTime - i * 0.14) / 0.6));
-      el.style.opacity = String(lv);
-      if (this.introTime >= 2.2 && i === this.headlineLines.length - 1) {
-        this.headlineEl.classList.add('zh-hero__headline--live');
+      this.labelEl.style.opacity = String(v * 0.9);
+      this.headlineLines.forEach((el, i) => {
+        const lv = Math.max(0, Math.min(1, (this.introTime - i * 0.14) / 0.6));
+        el.style.opacity = String(lv);
+        if (this.introTime >= 2.2 && i === this.headlineLines.length - 1) {
+          this.headlineEl.classList.add('zh-hero__headline--live');
+        }
+      });
+      this.authorEl.style.opacity = String(Math.max(0, Math.min(1, (this.introTime - 0.45) / 0.55)) * 0.8);
+      this.loreEl.style.opacity = String(Math.max(0, Math.min(1, (this.introTime - 0.65) / 0.55)) * 0.65);
+      this.runeRing.style.setProperty('--rune-o', String(v * 0.55));
+      this.eyeEl.style.opacity = String(Math.max(0.35, v));
+
+      if (this.introTime >= 2.2) {
+        this.introDone = true;
+        this.eyeEl.classList.add('zh-hero__eye--live');
       }
-    });
-    this.authorEl.style.opacity = String(Math.max(0, Math.min(1, (this.introTime - 0.45) / 0.55)) * 0.8);
-    this.loreEl.style.opacity = String(Math.max(0, Math.min(1, (this.introTime - 0.65) / 0.55)) * 0.65);
-    this.runeRing.style.setProperty('--rune-o', String(v * 0.55));
-    this.runeRing.style.transform = `rotate(${performance.now() * 0.022}deg)`;
-    this.eyeEl.style.opacity = String(Math.max(0.35, v));
+    }
 
     if (!this.threatStarted && this.active) {
       this.threatStarted = true;
